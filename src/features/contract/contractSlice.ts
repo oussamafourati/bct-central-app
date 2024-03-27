@@ -1,0 +1,79 @@
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+
+export interface Contract {
+  _id?: string;
+  contractName: string;
+  invoiceFrequency: string;
+  customerNotes: string;
+  staffNotes: string;
+  prices: string;
+  salesperson: string;
+  idProgram: string;
+  idAccount: string;
+  vehicleType: string;
+  journeyType: string;
+  luggageDetails: string;
+  contractStatus: string;
+  accountRef: string;
+  accountName: string;
+  accountEmail: string;
+  accountPhone: string;
+}
+
+export const contractSlice = createApi({
+  reducerPath: "contract",
+  baseQuery: fetchBaseQuery({
+    baseUrl: "http://localhost:3000/api/contract/",
+  }),
+  tagTypes: ["Contract"],
+  endpoints(builder) {
+    return {
+      getAllContracts: builder.query<Contract[], number | void>({
+        query() {
+          return "/getAllContracts";
+        },
+        providesTags: ["Contract"],
+      }),
+        getContract: builder.query<Contract, string | void>({
+          query: (_id) => ({
+            url: `/getContractByID/${_id}`,
+            method: "GET",
+          }),
+          providesTags: ["Contract"],
+        }),
+      addNewContract: builder.mutation<void, Contract>({
+        query(payload) {
+          return {
+            url: "/newContract",
+            method: "POST",
+            body: payload,
+          };
+        },
+        invalidatesTags: ["Contract"],
+      }),
+      updateContract: builder.mutation<void, Contract>({
+        query: ({ _id, ...rest }) => ({
+          url: `/updateContract/${_id}`,
+          method: "PUT",
+          body: rest,
+        }),
+        invalidatesTags: ["Contract"],
+      }),
+      deleteContract: builder.mutation<void, Contract>({
+        query: (_id) => ({
+          url: `/deleteContract/${_id}`,
+          method: "Delete",
+        }),
+        invalidatesTags: ["Contract"],
+      }),
+    };
+  },
+});
+
+export const {
+  useAddNewContractMutation,
+  useGetAllContractsQuery,
+  useDeleteContractMutation,
+  useUpdateContractMutation,
+  useGetContractQuery
+} = contractSlice;
