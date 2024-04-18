@@ -39,18 +39,18 @@ export const modePriceSlice = createApi({
       }),
       deleteModePrice: builder.mutation<void, ModePrice>({
         query: (_id) => ({
-            url: `/deleteMode/${_id}`,
-            method: "Delete",
+          url: `/deleteMode/${_id}`,
+          method: "Delete",
         }),
         invalidatesTags: ["ModePrice"],
-    }),
+      }),
     };
   },
 });
 
 export const {
-useAddNewModePriceMutation,
-useDeleteModePriceMutation,
-useGetAllModePricesQuery,
-useUpdateModePriceMutation
+  useAddNewModePriceMutation,
+  useDeleteModePriceMutation,
+  useGetAllModePricesQuery,
+  useUpdateModePriceMutation,
 } = modePriceSlice;

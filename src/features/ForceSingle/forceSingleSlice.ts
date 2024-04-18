@@ -34,17 +34,17 @@ export const forceSingleSlice = createApi({
       }),
       deleteForceSingle: builder.mutation<void, ForceSingle>({
         query: (_id) => ({
-            url: `/deleteForceSingle/${_id}`,
-            method: "Delete",
+          url: `/deleteForceSingle/${_id}`,
+          method: "Delete",
         }),
         invalidatesTags: ["ForceSingle"],
-    }),
+      }),
     };
   },
 });
 
 export const {
-useAddNewForceSingleMutation,
-useDeleteForceSingleMutation,
-useGetAllForceSinglesQuery
+  useAddNewForceSingleMutation,
+  useDeleteForceSingleMutation,
+  useGetAllForceSinglesQuery,
 } = forceSingleSlice;

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Card, Col, Container, Form, Modal, Row } from "react-bootstrap";
+import { Card, Col, Container, Form, Row } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { useAddNewContractMutation } from "features/contract/contractSlice";
@@ -18,10 +18,9 @@ import {
   useFetchProgrammByIdQuery,
   useFetchProgrammsQuery,
 } from "features/Programs/programSlice";
-import { useGetAllVehicleTypesQuery } from "features/VehicleType/vehicleTypeSlice";
-import { useGetAllLuggageQuery } from "features/luggage/luggageSlice";
-import { useGetAllJourneyQuery } from "features/Journeys/journeySlice";
-import AddProgramm from "pages/Programs/AddProgramm";
+import { useFetchVehicleTypeByIdQuery, useGetAllVehicleTypesQuery } from "features/VehicleType/vehicleTypeSlice";
+import { useFetchLuggageByIdQuery, useGetAllLuggageQuery } from "features/luggage/luggageSlice";
+import { useFetchJourneyByIdQuery, useGetAllJourneyQuery } from "features/Journeys/journeySlice";
 import AddContractProgramm from "pages/Programs/AddContractProgramm";
 
 const AddNewContract = () => {
@@ -30,7 +29,7 @@ const AddNewContract = () => {
   const { data: AllSchools = [] } = useGetAllSchoolsQuery();
   const { data: AllTeams = [] } = useGetAllTeamQuery();
   const { data: AllPrograms = [] } = useFetchProgrammsQuery();
-  const { data: AllVehicleTypes = [] } = useGetAllVehicleTypesQuery();
+  // const { data: AllVehicleTypes = [] } = useGetAllVehicleTypesQuery();
   const { data: AllLuggages = [] } = useGetAllLuggageQuery();
   const { data: AllJourneys = [] } = useGetAllJourneyQuery();
 
@@ -97,7 +96,25 @@ const AddNewContract = () => {
   let company_exist = AllCompany.some(selectedCompany);
   const selectedSchool = (element: School) => element._id === selectedAccount;
   let school_exist = AllSchools.some(selectedSchool);
+  let filteredSchoolsProg = AllPrograms.filter((program) => {
+    const schoolIdObj = program?.school_id as { _id: string } | undefined;
+    if (schoolIdObj) {
+      return schoolIdObj._id === selectedAccount;
+    }
+    return false;
+  });
 
+  let filteredCompaniesProg = AllPrograms.filter((program) => {
+    const schoolIdObj = program?.company_id as { _id: string } | undefined;
+    if (schoolIdObj) {
+      return schoolIdObj._id === selectedAccount;
+    }
+    return false;
+  });
+
+  const { data: OneVehicleType } = useFetchVehicleTypeByIdQuery(OneProgram?.vehiculeType);
+  const { data: OneJourney } = useFetchJourneyByIdQuery(OneProgram?.journeyType);
+  const { data: OneLuggageDetails } = useFetchLuggageByIdQuery(OneProgram?.luggage);
   const notifySuccess = () => {
     Swal.fire({
       position: "center",
@@ -137,6 +154,7 @@ const AddNewContract = () => {
     accountEmail: "",
     accountPhone: "",
     accountRef: "",
+    unit_price: "",
   };
 
   const [contract, setContract] = useState(initialContract);
@@ -158,6 +176,7 @@ const AddNewContract = () => {
     accountEmail,
     accountName,
     accountRef,
+    unit_price,
   } = contract;
 
   const onChangeContract = (
@@ -184,7 +203,8 @@ const AddNewContract = () => {
         contract["accountEmail"] = OneCompany?.email!;
         contract["accountPhone"] = OneCompany?.phone!;
         contract["accountRef"] = OneCompany?.name!;
-      } else {
+      }
+      if (school_exist) {
         contract["accountName"] = OneSchool?.name!;
         contract["accountEmail"] = OneSchool?.email!;
         contract["accountPhone"] = OneSchool?.phone!;
@@ -246,6 +266,7 @@ const AddNewContract = () => {
                         </div>
                       </Col>
                       {/* Account == Done */}
+                      {company_exist ? (
                       <Col lg={4}>
                         <div className="mb-3">
                           <Form.Label htmlFor="accountRef">Account</Form.Label>
@@ -254,11 +275,24 @@ const AddNewContract = () => {
                             id="accountRef"
                             name="accountRef"
                             placeholder="Enter account name"
-                            onChange={onChangeContract}
-                            value={contract.accountRef}
+                            readOnly
+                            defaultValue={OneCompany?.name!}
                           />
                         </div>
-                      </Col>
+                      </Col>) : school_exist ? (
+                      <Col lg={4}>
+                        <div className="mb-3">
+                          <Form.Label htmlFor="accountRef">Account</Form.Label>
+                          <Form.Control
+                            type="text"
+                            id="accountRef"
+                            name="accountRef"
+                            placeholder="Enter account name"
+                            readOnly
+                            defaultValue={OneSchool?.name!}
+                          />
+                        </div>
+                      </Col>) : ""}
                       {/* Account Id Select */}
                       <Col lg={4}>
                         <div className="mb-3">
@@ -298,6 +332,7 @@ const AddNewContract = () => {
                               name="accountName"
                               placeholder="Enter name"
                               defaultValue={OneCompany?.name!}
+                              readOnly
                             />
                           </div>
                         </Col>
@@ -313,6 +348,7 @@ const AddNewContract = () => {
                               name="accountEmail"
                               placeholder="Enter email"
                               defaultValue={OneCompany?.email!}
+                              readOnly
                             />
                           </div>
                         </Col>
@@ -328,6 +364,7 @@ const AddNewContract = () => {
                               name="accountPhone"
                               placeholder="Enter phone"
                               defaultValue={OneCompany?.phone!}
+                              readOnly
                             />
                           </div>
                         </Col>
@@ -344,6 +381,7 @@ const AddNewContract = () => {
                               name="accountName"
                               placeholder="Enter name"
                               defaultValue={OneSchool?.name!}
+                              readOnly
                             />
                           </div>
                         </Col>
@@ -359,6 +397,7 @@ const AddNewContract = () => {
                               name="accountEmail"
                               placeholder="Enter email"
                               defaultValue={OneSchool?.email!}
+                              readOnly
                             />
                           </div>
                         </Col>
@@ -374,6 +413,7 @@ const AddNewContract = () => {
                               name="accountPhone"
                               placeholder="Enter phone"
                               defaultValue={OneSchool?.phone!}
+                              readOnly
                             />
                           </div>
                         </Col>
@@ -391,6 +431,7 @@ const AddNewContract = () => {
                               placeholder="Enter name"
                               onChange={onChangeContract}
                               value={contract.accountName}
+                              readOnly
                             />
                           </div>
                         </Col>
@@ -407,6 +448,7 @@ const AddNewContract = () => {
                               placeholder="Enter email"
                               onChange={onChangeContract}
                               value={contract.accountEmail}
+                              readOnly
                             />
                           </div>
                         </Col>
@@ -423,6 +465,7 @@ const AddNewContract = () => {
                               placeholder="Enter phone"
                               onChange={onChangeContract}
                               value={contract.accountPhone}
+                              readOnly
                             />
                           </div>
                         </Col>
@@ -505,14 +548,31 @@ const AddNewContract = () => {
                     <Row>
                       <Col lg={4}>
                         <div className="mb-2">
-                          <Form.Label htmlFor="prices">Price</Form.Label>
+                          <Form.Label htmlFor="unit_price">
+                            Unit Price
+                          </Form.Label>
+                          <Form.Control
+                            type="text"
+                            id="unit_price"
+                            name="unit_price"
+                            placeholder="00.00"
+                            // value={contract.unit_price}
+                            onChange={onChangeContract}
+                            defaultValue={OneProgram?.unit_price!}
+                          />
+                        </div>
+                      </Col>
+                      <Col lg={4}>
+                        <div className="mb-2">
+                          <Form.Label htmlFor="prices">Total Price</Form.Label>
                           <Form.Control
                             type="text"
                             id="prices"
                             name="prices"
                             placeholder="00.00"
-                            value={contract.prices}
+                            // value={contract.prices}
                             onChange={onChangeContract}
+                            defaultValue={OneProgram?.total_price!}
                           />
                         </div>
                       </Col>
@@ -525,14 +585,8 @@ const AddNewContract = () => {
                             className="form-select text-muted"
                             name="invoiceFrequency"
                             id="invoiceFrequency"
-                            onChange={handleSelectInvoiceFrequency}
                           >
-                            <option value="">Select</option>
-                            <option value="Daily">Daily</option>
-                            <option value="Weekly">Weekly</option>
-                            <option value="Bi Weekly">Bi Weekly</option>
-                            <option value="Third Weekly">Third Weekly</option>
-                            <option value="Monthly">Monthly</option>
+                            <option value={`${OneProgram?.invoiceFrequency}`} selected>{OneProgram?.invoiceFrequency}</option>
                           </select>
                         </div>
                       </Col>
@@ -561,28 +615,89 @@ const AddNewContract = () => {
                       <Col lg={12}>
                         <Form.Label htmlFor="idProgram">Program</Form.Label>
                         <div className="input-group mb-3">
-                          <select
-                            className="form-select text-muted"
-                            name="idProgram"
-                            id="idProgram"
-                            onChange={handleSelectProgram}
-                          >
-                            <option value="">Select</option>
-                            {AllPrograms.map((program) => (
-                              <option key={program._id} value={program._id}>
-                                {program.programName}
-                              </option>
-                            ))}
-                          </select>
-                          <button
-                            className="btn btn-success btn-label"
-                            type="button"
-                            id="button-addon2"
-                            onClick={handleShowProgram}
-                          >
-                            <i className="mdi mdi-plus label-icon align-middle fs-18 me-2"></i>
-                            New Program
-                          </button>
+                          {filteredSchoolsProg.length === 0 && filteredCompaniesProg.length === 0 ? (
+                            <>
+                              <button
+                                className="btn btn-success btn-label"
+                                type="button"
+                                id="button-addon2"
+                                onClick={handleShowProgram}
+                              >
+                                <i className="mdi mdi-plus label-icon align-middle fs-18 me-2"></i>
+                                New Program
+                              </button>
+                              <small className="text-danger">
+                                This Account Don't have any Program. Please
+                                create a New One.{" "}
+                              </small>
+                            </>
+                          ) : filteredSchoolsProg.length !== 0 && filteredCompaniesProg.length === 0 ? (
+                            <>
+                              <select
+                                className="form-select text-muted"
+                                name="idProgram"
+                                id="idProgram"
+                                onChange={handleSelectProgram}
+                              >
+                                <option value="">Select</option>
+                                {filteredSchoolsProg.map((program) => (
+                                  <option key={program._id} value={program._id}>
+                                    {program.programName}
+                                  </option>
+                                ))}
+                              </select>
+                              <button
+                                className="btn btn-success btn-label"
+                                type="button"
+                                id="button-addon2"
+                                onClick={handleShowProgram}
+                              >
+                                <i className="mdi mdi-plus label-icon align-middle fs-18 me-2"></i>
+                                New Program
+                              </button>
+                            </>
+                          ) : filteredCompaniesProg.length === 0 && filteredSchoolsProg.length === 0 ? (
+                            <>
+                              <button
+                                className="btn btn-success btn-label"
+                                type="button"
+                                id="button-addon2"
+                                onClick={handleShowProgram}
+                              >
+                                <i className="mdi mdi-plus label-icon align-middle fs-18 me-2"></i>
+                                New Program
+                              </button>
+                              <small className="text-danger">
+                                This Account Don't have any Program. Please
+                                create a New One.{" "}
+                              </small>
+                            </>
+                          ) : (
+                            <>
+                              <select
+                                className="form-select text-muted"
+                                name="idProgram"
+                                id="idProgram"
+                                onChange={handleSelectProgram}
+                              >
+                                <option value="">Select</option>
+                                {filteredCompaniesProg.map((program) => (
+                                  <option key={program._id} value={program._id}>
+                                    {program.programName}
+                                  </option>
+                                ))}
+                              </select>
+                              <button
+                                className="btn btn-success btn-label"
+                                type="button"
+                                id="button-addon2"
+                                onClick={handleShowProgram}
+                              >
+                                <i className="mdi mdi-plus label-icon align-middle fs-18 me-2"></i>
+                                New Program
+                              </button>
+                            </>
+                          )}
                         </div>
                       </Col>
                     </Row>
@@ -598,6 +713,7 @@ const AddNewContract = () => {
                             id="customerName-field"
                             placeholder="Enter job pattern name"
                             defaultValue={OneProgram?.programName}
+                            readOnly
                           />
                         </div>
                       </Col>
@@ -614,6 +730,7 @@ const AddNewContract = () => {
                             name="recommanded_capacity"
                             placeholder="Number of passengers"
                             defaultValue={OneProgram?.recommanded_capacity}
+                            readOnly
                           />
                         </div>
                       </Col>
@@ -629,17 +746,9 @@ const AddNewContract = () => {
                               className="form-select text-muted"
                               name="vehicleType"
                               id="vehicleType"
-                              onChange={handleSelectVehicleType}
+                              // onChange={handleSelectVehicleType}
                             >
-                              <option value="">Select Vehicle Type</option>
-                              {AllVehicleTypes.map((vehicleType) => (
-                                <option
-                                  value={vehicleType._id}
-                                  key={vehicleType._id}
-                                >
-                                  {vehicleType.type}
-                                </option>
-                              ))}
+                              <option value={`${OneVehicleType?._id!}`} selected>{OneVehicleType?.type!}</option>
                             </select>
                           </div>
                         </div>
@@ -655,14 +764,9 @@ const AddNewContract = () => {
                             className="form-select text-muted"
                             name="luggageDetails"
                             id="luggageDetails"
-                            onChange={handleSelectLuggage}
+                            // onChange={handleSelectLuggage}
                           >
-                            <option value="">Select Luggage</option>
-                            {AllLuggages.map((Luggage) => (
-                              <option value={Luggage._id} key={Luggage._id}>
-                                {Luggage.description}
-                              </option>
-                            ))}
+                            <option value={`${OneLuggageDetails?._id!}`} selected>{OneLuggageDetails?.description!}</option>
                           </select>
                         </div>
                       </Col>
@@ -679,12 +783,7 @@ const AddNewContract = () => {
                             id="journeyType"
                             onChange={handleSelectJourney}
                           >
-                            <option value="">Select Journey Type</option>
-                            {AllJourneys.map((journeys) => (
-                              <option value={journeys._id} key={journeys._id}>
-                                {journeys.type}
-                              </option>
-                            ))}
+                            <option value={`${OneJourney?._id!}`} selected>{OneJourney?.type!}</option>
                           </select>
                         </div>
                       </Col>
@@ -695,7 +794,7 @@ const AddNewContract = () => {
                   <Col lg={11} className="d-flex justify-content-end">
                     <button type="submit" className="btn btn-primary btn-lg">
                       <span>
-                        <i className="ri-roadster-line align-middle"></i> Add
+                        <i className="ri-add-line align-middle"></i> Add
                         Contract
                       </span>
                     </button>

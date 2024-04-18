@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Form, Row, Card, Col, Button } from "react-bootstrap";
+import { Form, Row, Card, Col, Button, Modal } from "react-bootstrap";
 import { useLocation, useNavigate } from "react-router-dom";
 import DataTable from "react-data-table-component";
 import {
@@ -8,8 +8,11 @@ import {
 } from "features/Vehicles/vehicleSlice";
 import Swal from "sweetalert2";
 import { useAddVehicleToQuoteMutation } from "features/Quotes/quoteSlice";
-
-const ModalAssignVehicle = () => {
+import { boolean } from "yup";
+interface VehicleProps {
+  assigned : boolean
+}
+const ModalAssignVehicle: React.FC<VehicleProps> = (assigned) => {
   const locationQuote = useLocation();
   const navigate = useNavigate()
   const { data: AllVehicles = [] } = useGetAllVehiclesQuery();
@@ -18,22 +21,22 @@ const ModalAssignVehicle = () => {
   );
   let journeyOne = [];
   let journeyTwo: any[] = [];
-  if (locationQuote!.state!.type! === "One way") {
+  if (locationQuote?.state?.type! === "One way") {
     journeyOne.push(locationQuote!.state!);
   } else {
     journeyTwo.push(
       {
-        estimated_start_time: locationQuote.state.estimated_start_time,
+        estimated_start_time: locationQuote?.state?.estimated_start_time!,
         estimated_return_start_time:
-          locationQuote.state.estimated_return_start_time,
-        destination_point: locationQuote.state.destination_point,
-        start_point: locationQuote.state.start_point,
+          locationQuote?.state?.estimated_return_start_time!,
+        destination_point: locationQuote?.state?.destination_point!,
+        start_point: locationQuote?.state?.start_point!,
       },
       {
-        estimated_start_time: locationQuote.state.estimated_return_start_time,
-        estimated_return_start_time: locationQuote.state.estimated_start_time,
-        destination_point: locationQuote.state.start_point,
-        start_point: locationQuote.state.destination_point,
+        estimated_start_time: locationQuote?.state?.estimated_return_start_time!,
+        estimated_return_start_time: locationQuote?.state?.estimated_start_time!,
+        destination_point: locationQuote?.state?.start_point!,
+        start_point: locationQuote?.state?.destination_point!,
       }
     );
   }
@@ -58,12 +61,12 @@ const ModalAssignVehicle = () => {
     },
     {
       name: <span className="font-weight-bold fs-13">Pickup</span>,
-      selector: (row: any) => row.start_point.placeName,
+      selector: (row: any) => row?.start_point?.placeName!,
       sortable: true,
     },
     {
       name: <span className="font-weight-bold fs-13">Destination</span>,
-      selector: (row: any) => row.destination_point.placeName,
+      selector: (row: any) => row?.destination_point?.placeName!,
       sortable: true,
     },
     {
@@ -143,8 +146,17 @@ const ModalAssignVehicle = () => {
     }
   };
 
-
+const [closeModal, setCloseModal] = useState<boolean>(true)
+const tog_CloseModal = ()=> {
+  setCloseModal(!assigned)
+}
   return (
+    <>
+    <Modal.Header className="px-4 pt-4" closeButton>
+    <h5 className="modal-title fs-18" id="exampleModalLabel">
+      Assign Vehicle
+    </h5>
+  </Modal.Header>
     <Card>
       <Card.Header>
         <div className="d-flex align-items-center p-1">
@@ -159,7 +171,7 @@ const ModalAssignVehicle = () => {
             <h4 className="mb-1">Journey</h4>
           </div>
         </div>
-        {locationQuote.state.type === "One way" ? (
+        {locationQuote?.state?.type! === "One way" ? (
           <DataTable columns={columns} data={journeyOne} />
         ) : (
           <DataTable columns={columns} data={journeyTwo} />
@@ -269,7 +281,7 @@ const ModalAssignVehicle = () => {
                 >
                   <i className="ri-close-line align-bottom me-1"></i> Close
                 </Button>
-                <Button variant="primary" id="add-btn" type="submit">
+                <Button variant="primary" id="add-btn" type="submit" onClick={()=> tog_CloseModal()}>
                   Assign Vehicle
                 </Button>
               </div>
@@ -278,6 +290,7 @@ const ModalAssignVehicle = () => {
         </Form>
       </Card.Header>
     </Card>
+    </>
   );
 };
 export default ModalAssignVehicle;

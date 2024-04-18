@@ -93,5 +93,5 @@ export const {
   useAddNewDriverMutation,
   useGetAllDriverQuery,
   useDeleteDriverMutation,
-  useGetDriverByIDQuery
+  useGetDriverByIDQuery,
 } = driverSlice;

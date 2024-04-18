@@ -25,10 +25,9 @@ import "swiper/css/thumbs";
 
 // Import Images
 import productsImg31 from "../../../assets/images/products/images.jpg";
-import { Document, Page } from 'react-pdf';
-import { pdfjs } from 'react-pdf';
-import '@react-pdf-viewer/core/lib/styles/index.css';
-
+import { Document, Page } from "react-pdf";
+import { pdfjs } from "react-pdf";
+import "@react-pdf-viewer/core/lib/styles/index.css";
 
 const VehicleDetails = () => {
   document.title = "Vehicle Details | Bouden Coach Travel";
@@ -38,25 +37,22 @@ const VehicleDetails = () => {
   const [modal_AddShippingModals, setmodal_AddShippingModals] =
     useState<boolean>(false);
   function tog_AddShippingModals() {
-    setmodal_AddShippingModals(!modal_AddShippingModals)
+    setmodal_AddShippingModals(!modal_AddShippingModals);
   }
 
-  const [modal_DQCModal, setmodal_DQCModal] =
-    useState<boolean>(false);
+  const [modal_DQCModal, setmodal_DQCModal] = useState<boolean>(false);
   function tog_DQCModal() {
-    setmodal_DQCModal(!modal_DQCModal)
+    setmodal_DQCModal(!modal_DQCModal);
   }
 
-  const [modal_DBSModals, setmodal_DBSModals] =
-    useState<boolean>(false);
+  const [modal_DBSModals, setmodal_DBSModals] = useState<boolean>(false);
   function tog_DBSModals() {
-    setmodal_DBSModals(!modal_DBSModals)
+    setmodal_DBSModals(!modal_DBSModals);
   }
 
-  const [modal_PVCModals, setmodal_PVCModals] =
-    useState<boolean>(false);
+  const [modal_PVCModals, setmodal_PVCModals] = useState<boolean>(false);
   function tog_PVCModals() {
-    setmodal_PVCModals(!modal_PVCModals)
+    setmodal_PVCModals(!modal_PVCModals);
   }
 
   if (pdfjs.GlobalWorkerOptions) {
@@ -73,7 +69,10 @@ const VehicleDetails = () => {
     <React.Fragment>
       <div className="page-content">
         <Container fluid={true}>
-          <Breadcrumb title={LocationVehicle.state.registration_number} pageTitle="Vehicle" />
+          <Breadcrumb
+            title={LocationVehicle.state.registration_number}
+            pageTitle="Vehicle"
+          />
           <Row className="gx-lg-4" style={{ backgroundColor: "#ffffff" }}>
             <Col xl={4} lg={8} className="mx-auto">
               <Row className="m-5">
@@ -95,10 +94,37 @@ const VehicleDetails = () => {
               <Row>
                 <Col lg={12} className="mt-4"></Col>
                 <Col lg={12} className="mt-4">
-                  <div className='text-center hstack gap-5'>
-                    <Button variant='soft-danger' className="btn-label" onClick={() => { tog_DQCModal(); }}><i className="bi bi-filetype-pdf label-icon align-middle fs-24 me-2"></i> Insurance</Button>
-                    <Button variant='soft-danger' className="btn-label" onClick={() => { tog_DBSModals(); }}><i className="bi bi-filetype-pdf label-icon align-middle fs-24 me-2"></i> MOT </Button>
-                    <Button variant='soft-danger' className="btn-label" onClick={() => { tog_PVCModals(); }}><i className="bi bi-filetype-pdf label-icon align-middle fs-24 me-2"></i> TAX</Button>
+                  <div className="text-center hstack gap-5">
+                    <Button
+                      variant="soft-danger"
+                      className="btn-label"
+                      onClick={() => {
+                        tog_DQCModal();
+                      }}
+                    >
+                      <i className="bi bi-filetype-pdf label-icon align-middle fs-24 me-2"></i>{" "}
+                      Insurance
+                    </Button>
+                    <Button
+                      variant="soft-danger"
+                      className="btn-label"
+                      onClick={() => {
+                        tog_DBSModals();
+                      }}
+                    >
+                      <i className="bi bi-filetype-pdf label-icon align-middle fs-24 me-2"></i>{" "}
+                      MOT{" "}
+                    </Button>
+                    <Button
+                      variant="soft-danger"
+                      className="btn-label"
+                      onClick={() => {
+                        tog_PVCModals();
+                      }}
+                    >
+                      <i className="bi bi-filetype-pdf label-icon align-middle fs-24 me-2"></i>{" "}
+                      TAX
+                    </Button>
                   </div>
                 </Col>
               </Row>
@@ -133,7 +159,11 @@ const VehicleDetails = () => {
                       placement="top"
                       overlay={<Tooltip id="top"> Edit </Tooltip>}
                     >
-                      <Link to={`/edit-vehicle/${LocationVehicle.state.registration_number}`} className="btn btn-soft-secondary btn-icon" state={LocationVehicle.state}>
+                      <Link
+                        to={`/edit-vehicle/${LocationVehicle.state.registration_number}`}
+                        className="btn btn-soft-secondary btn-icon"
+                        state={LocationVehicle.state}
+                      >
                         <i className="ri-pencil-fill align-bottom"></i>
                       </Link>
                     </OverlayTrigger>
@@ -182,13 +212,16 @@ const VehicleDetails = () => {
                     <div className=" mt-4">
                       <h5 className="fs-15 mb-2">Status :</h5>
                       <div>
-                        {LocationVehicle.state.registration_number && LocationVehicle.state.statusVehicle === "Active" ?
+                        {LocationVehicle.state.registration_number &&
+                        LocationVehicle.state.statusVehicle === "Active" ? (
                           <span className="bg-success-subtle text-success fs-15 rounded-3">
                             Active
-                          </span> : <span className="bg-danger-subtle text-danger fs-15 rounded-3">
+                          </span>
+                        ) : (
+                          <span className="bg-danger-subtle text-danger fs-15 rounded-3">
                             Inactive
                           </span>
-                        }
+                        )}
                       </div>
                     </div>
                   </Col>
@@ -196,7 +229,9 @@ const VehicleDetails = () => {
                   <Col xl={6}>
                     <div className="mt-4">
                       <h5 className="fs-15 mb-3">Fuel Type :</h5>
-                      <h5 className="mb-0">{LocationVehicle.state.fuel_type}</h5>
+                      <h5 className="mb-0">
+                        {LocationVehicle.state.fuel_type}
+                      </h5>
                     </div>
                   </Col>
                 </Row>
@@ -263,17 +298,23 @@ const VehicleDetails = () => {
                   <div className="d-flex flex-wrap gap-4 justify-content-between align-items-center mt-4">
                     <div className="flex-shrink-0 w-xl">
                       <h5 className="fs-15 mb-3 fw-medium">Mot Expiry</h5>
-                      <h4 className="fw-bold mb-3">{LocationVehicle.state.mot_expiry}</h4>
+                      <h4 className="fw-bold mb-3">
+                        {LocationVehicle.state.mot_expiry}
+                      </h4>
                     </div>
                     <hr className="vr" />
                     <div className="flex-shrink-0 w-xl">
                       <h5 className="fs-15 mb-3 fw-medium">Tax Expiry</h5>
-                      <h4 className="fw-bold mb-3">{LocationVehicle.state.tax_expiry}</h4>
+                      <h4 className="fw-bold mb-3">
+                        {LocationVehicle.state.tax_expiry}
+                      </h4>
                     </div>
                     <hr className="vr" />
                     <div className="flex-shrink-0 w-xl">
                       <h5 className="fs-15 mb-3 fw-medium">Insurance</h5>
-                      <h4 className="fw-bold mb-3">{LocationVehicle.state.insurance_expiry}</h4>
+                      <h4 className="fw-bold mb-3">
+                        {LocationVehicle.state.insurance_expiry}
+                      </h4>
                     </div>
                     <hr className="vr" />
                   </div>
@@ -282,40 +323,88 @@ const VehicleDetails = () => {
             </Col>
           </Row>
         </Container>
-        <Modal className="fade zoomIn" size="xl" show={modal_DQCModal} onHide={() => { tog_DQCModal(); }} centered>
+        <Modal
+          className="fade zoomIn"
+          size="xl"
+          show={modal_DQCModal}
+          onHide={() => {
+            tog_DQCModal();
+          }}
+          centered
+        >
           <Modal.Header className="px-4 pt-4" closeButton>
-            <h5 className="modal-title fs-18" id="exampleModalLabel">Insurance File</h5>
+            <h5 className="modal-title fs-18" id="exampleModalLabel">
+              Insurance File
+            </h5>
           </Modal.Header>
           <Modal.Body className="p-4">
-            <div id="alert-error-msg" className="d-none alert alert-danger py-2"></div>
+            <div
+              id="alert-error-msg"
+              className="d-none alert alert-danger py-2"
+            ></div>
             <div>
-              <Document file={`http://localhost:3000/VehicleFiles/insuranceFiles/${LocationVehicle.state.insurance_file}`} onLoadSuccess={onDocumentLoadSuccess}>
+              <Document
+                file={`http://localhost:3000/VehicleFiles/insuranceFiles/${LocationVehicle.state.insurance_file}`}
+                onLoadSuccess={onDocumentLoadSuccess}
+              >
                 <Page pageNumber={1} />
               </Document>
             </div>
           </Modal.Body>
         </Modal>
-        <Modal className="fade zoomIn" size="xl" show={modal_DBSModals} onHide={() => { tog_DBSModals(); }} centered>
+        <Modal
+          className="fade zoomIn"
+          size="xl"
+          show={modal_DBSModals}
+          onHide={() => {
+            tog_DBSModals();
+          }}
+          centered
+        >
           <Modal.Header className="px-4 pt-4" closeButton>
-            <h5 className="modal-title fs-18" id="exampleModalLabel">MOT File</h5>
+            <h5 className="modal-title fs-18" id="exampleModalLabel">
+              MOT File
+            </h5>
           </Modal.Header>
           <Modal.Body className="p-4">
-            <div id="alert-error-msg" className="d-none alert alert-danger py-2"></div>
+            <div
+              id="alert-error-msg"
+              className="d-none alert alert-danger py-2"
+            ></div>
             <div>
-              <Document file={`http://localhost:3000/VehicleFiles/motFiles/${LocationVehicle.state.mot_file}`} onLoadSuccess={onDocumentLoadSuccess}>
+              <Document
+                file={`http://localhost:3000/VehicleFiles/motFiles/${LocationVehicle.state.mot_file}`}
+                onLoadSuccess={onDocumentLoadSuccess}
+              >
                 <Page pageNumber={1} />
               </Document>
             </div>
           </Modal.Body>
         </Modal>
-        <Modal className="fade zoomIn" size="xl" show={modal_PVCModals} onHide={() => { tog_PVCModals(); }} centered>
+        <Modal
+          className="fade zoomIn"
+          size="xl"
+          show={modal_PVCModals}
+          onHide={() => {
+            tog_PVCModals();
+          }}
+          centered
+        >
           <Modal.Header className="px-4 pt-4" closeButton>
-            <h5 className="modal-title fs-18" id="exampleModalLabel">TAX File</h5>
+            <h5 className="modal-title fs-18" id="exampleModalLabel">
+              TAX File
+            </h5>
           </Modal.Header>
           <Modal.Body className="p-4">
-            <div id="alert-error-msg" className="d-none alert alert-danger py-2"></div>
+            <div
+              id="alert-error-msg"
+              className="d-none alert alert-danger py-2"
+            ></div>
             <div>
-              <Document file={`http://localhost:3000/VehicleFiles/taxFiles/${LocationVehicle.state.tax_file}`} onLoadSuccess={onDocumentLoadSuccess}>
+              <Document
+                file={`http://localhost:3000/VehicleFiles/taxFiles/${LocationVehicle.state.tax_file}`}
+                onLoadSuccess={onDocumentLoadSuccess}
+              >
                 <Page pageNumber={1} />
               </Document>
             </div>

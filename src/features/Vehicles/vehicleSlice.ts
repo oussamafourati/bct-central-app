@@ -96,8 +96,8 @@ export const vehicleSlice = createApi({
 });
 
 export const {
-    useAddNewVehicleMutation,
-    useGetAllVehiclesQuery,
-    useDeleteVehicleMutation,
-    useGetVehicleByIDQuery
+  useAddNewVehicleMutation,
+  useGetAllVehiclesQuery,
+  useDeleteVehicleMutation,
+  useGetVehicleByIDQuery,
 } = vehicleSlice;

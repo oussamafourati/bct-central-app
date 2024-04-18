@@ -21,7 +21,7 @@ const DriverTable = ({ driver }: any) => {
   const paginatedData = driver.slice(startIndex, endIndex);
   const totalPages = Math.ceil(driver.length / itemsPerPage);
 
-  console.log("paginatedData", paginatedData)
+  console.log("paginatedData", paginatedData);
   useEffect(() => {
     setBrandList(driver);
     setItemsPerPage(15);
@@ -128,7 +128,6 @@ const DriverTable = ({ driver }: any) => {
         ref={teamList}
       >
         {(paginatedData || []).map((item: Driver, key: number) => (
-
           <Card className="card brand-widget card-animate p-2" key={key}>
             <Link
               className="page-link"
@@ -146,18 +145,23 @@ const DriverTable = ({ driver }: any) => {
                     />
                   </div>
                   <div className="flex-grow-1 ms-2">
-                    <h4 className="card-title mb-1">{item.firstname} {item.surname}</h4>
+                    <h4 className="card-title mb-1">
+                      {item.firstname} {item.surname}
+                    </h4>
                     <span>
-                      <i className="mdi mdi-phone align-middle"></i>{item.phonenumber}
+                      <i className="mdi mdi-phone align-middle"></i>
+                      {item.phonenumber}
                     </span>
                   </div>
-                  {
-                    item.driverStatus === "Active" ? <p className="badge bg-success">Active</p> :
-                      item.driverStatus === "Inactive" ? <p className="badge bg-danger">Inactive</p> :
-                        item.driverStatus === "onRoad" ? <p className="badge bg-info">On Road</p> :
-                          <p className="badge bg-warning">On Vacation</p>
-                  }
-
+                  {item.driverStatus === "Active" ? (
+                    <p className="badge bg-success">Active</p>
+                  ) : item.driverStatus === "Inactive" ? (
+                    <p className="badge bg-danger">Inactive</p>
+                  ) : item.driverStatus === "onRoad" ? (
+                    <p className="badge bg-info">On Road</p>
+                  ) : (
+                    <p className="badge bg-warning">On Vacation</p>
+                  )}
                 </div>
                 <div className="mb-3">
                   <span>
@@ -166,7 +170,10 @@ const DriverTable = ({ driver }: any) => {
                 </div>
                 <div>
                   <p>
-                    <b>Driving Licence: </b><span className="fw-meduim">{item.driving_license_expiry}</span>
+                    <b>Driving Licence: </b>
+                    <span className="fw-meduim">
+                      {item.driving_license_expiry}
+                    </span>
                   </p>
                 </div>
                 <div className="mt-0">
@@ -181,23 +188,28 @@ const DriverTable = ({ driver }: any) => {
                 className="btn-group btn-group-lg d-flex justify-content-center"
                 role="group"
                 aria-label="Basic example"
-              > <Link to={`/driver-details/${item.firstname}`} state={item}>
+              >
+                {" "}
+                <Link to={`/driver-details/${item.firstname}`} state={item}>
                   <button type="button" className="btn btn-outline-info">
-                    < i className="ri-eye-line ri-xl"></i>
+                    <i className="ri-eye-line ri-xl"></i>
                   </button>
                 </Link>
                 <Link to="#">
                   <button type="button" className="btn btn-outline-secondary">
-                    < i className="ri-edit-2-line ri-xl"></i>
-                  </button></Link>
+                    <i className="ri-edit-2-line ri-xl"></i>
+                  </button>
+                </Link>
                 <Link to="#">
                   <button type="button" className="btn btn-outline-dark">
-                    < i className="ri-settings-5-line ri-xl"></i>
-                  </button></Link>
-                <Link to="#" onClick={()=>AlertDelete(item?._id!)}>
+                    <i className="ri-settings-5-line ri-xl"></i>
+                  </button>
+                </Link>
+                <Link to="#" onClick={() => AlertDelete(item?._id!)}>
                   <button type="button" className="btn btn-outline-danger">
                     <i className="ri-delete-bin-5-line ri-xl" />
-                  </button></Link>
+                  </button>
+                </Link>
               </div>
             </Card.Footer>
           </Card>

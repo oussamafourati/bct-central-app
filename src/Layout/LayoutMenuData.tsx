@@ -18,9 +18,10 @@ const Navdata = () => {
   const [isHelp, setIsHelp] = useState(false);
   const { data: allQuotes = [] } = useGetAllQuoteQuery();
   let resultPendingQuotes = allQuotes.filter(
-    (pendingQuotes) => pendingQuotes.status === "pending"
+    (pendingQuotes) => pendingQuotes.progress === "New"
   );
   const { data: allVisitors = [] } = useGetAllVisitorsQuery();
+  const new_visitor = allVisitors.filter((visitors) => visitors?.status === "new")
   // Multi Level
   const [isLevel1, setIsLevel1] = useState(false);
   const [isLevel2, setIsLevel2] = useState(false);
@@ -114,7 +115,7 @@ const Navdata = () => {
       link: "/#",
       badgeName: `${resultPendingQuotes.length}`,
       badgeColor: "info",
-      badgeName1: `${allVisitors.length}`,
+      badgeName1: `${new_visitor.length}`,
       badgeColor1: "danger",
       click: function (e: any) {
         e.preventDefault();
@@ -195,7 +196,7 @@ const Navdata = () => {
           icon: "mdi mdi-format-quote-open",
           link: "/partial-quotes",
           parentId: "jobs",
-          badgeName: `${allVisitors.length}`,
+          badgeName: `${new_visitor.length}`,
           badgeColor: "danger",
         },
         {

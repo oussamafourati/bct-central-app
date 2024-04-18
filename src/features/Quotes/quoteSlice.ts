@@ -23,7 +23,7 @@ export interface Quote {
   vehicle_type: string;
   id_visitor: string;
   notes: string;
-  createdAt: string;
+  createdAt: Date;
   luggage_details: string;
   manual_cost: string;
   status: string;
@@ -32,10 +32,19 @@ export interface Quote {
   deposit: string;
   id_driver: string;
   id_vehicle: string;
-  total_price: string,
-  deposit_percentage: string,
-  automatic_cost: string,
-  deposit_amount: string
+  total_price: string;
+  deposit_percentage: string;
+  automatic_cost: string;
+  deposit_amount: string;
+  category?: string;
+  date?: string;
+  return_time?: string;
+  pickup_time?: string;
+  mid_stations: {
+    id: string;
+    address: string;
+    time: string;
+  }[];
 }
 
 export interface BookEmail {
@@ -56,6 +65,12 @@ export interface AssignDriver {
   id_driver: string;
 }
 
+export interface AssignDriverAndVehicleToQuoteInterface {
+  quote_ID: string;
+  vehicle_ID: string;
+  driver_ID: string;
+}
+
 export interface AssignDriverToQuote {
   quote_id: string;
   id_driver: string;
@@ -66,12 +81,26 @@ export interface AssignVehicleToQuote {
   id_vehicle: string;
 }
 
+export interface CancelQuote {
+  quoteId: string;
+  status: string;
+}
+
 export const quoteSlice = createApi({
   reducerPath: "quote",
   baseQuery: fetchBaseQuery({
     baseUrl: "http://localhost:3000/api/quote",
   }),
-  tagTypes: ["Quote", "BookEmail", "AssignDriver", "AssignVehicleToQuote", "AssignDriverToQuote"],
+  tagTypes: [
+    "Quote",
+    "BookEmail",
+    "AssignDriver",
+    "AssignVehicleToQuote",
+    "AssignDriverToQuote",
+    "CancelQuote",
+    "ConvertTo",
+    "AssignDriverAndVehicleToQuoteInterface",
+  ],
   endpoints(builder) {
     return {
       getAllQuote: builder.query<Quote[], number | void>({
@@ -84,6 +113,14 @@ export const quoteSlice = createApi({
         query: (_id) => ({
           url: `/getQuoteById/${_id}`,
           method: "GET",
+        }),
+        providesTags: ["Quote"],
+      }),
+      getQuoteByIdSchedule: builder.query<Quote[], { id_schedule: string }>({
+        query: ({ id_schedule }) => ({
+          url: `/getQuoteByIdSchedule`,
+          method: "POST",
+          body: { id_schedule: id_schedule },
         }),
         providesTags: ["Quote"],
       }),
@@ -133,6 +170,16 @@ export const quoteSlice = createApi({
         },
         invalidatesTags: ["Quote", "AssignDriverToQuote"],
       }),
+      updateStatusQuoteToCancel: builder.mutation<void, CancelQuote>({
+        query({ quoteId, status }) {
+          return {
+            url: "/cancelQuote",
+            method: "POST",
+            body: { quoteId, status },
+          };
+        },
+        invalidatesTags: ["Quote", "CancelQuote"],
+      }),
       addVehicleToQuote: builder.mutation<void, AssignVehicleToQuote>({
         query({ quote_id, id_vehicle }) {
           return {
@@ -142,6 +189,26 @@ export const quoteSlice = createApi({
           };
         },
         invalidatesTags: ["Quote", "AssignVehicleToQuote"],
+      }),
+      deleteQuote: builder.mutation<void, Quote>({
+        query: (_id) => ({
+          url: `/deleteQuote/${_id}`,
+          method: "Delete",
+        }),
+        invalidatesTags: ["Quote"],
+      }),
+      assignDriverAndVehicleToQuote: builder.mutation<
+        void,
+        AssignDriverAndVehicleToQuoteInterface
+      >({
+        query({ quote_ID, vehicle_ID, driver_ID }) {
+          return {
+            url: "/assignDriverAndVehicleToQuote",
+            method: "POST",
+            body: { quote_ID, vehicle_ID, driver_ID },
+          };
+        },
+        invalidatesTags: ["Quote", "AssignDriverAndVehicleToQuoteInterface"],
       }),
     };
   },
@@ -153,5 +220,9 @@ export const {
   useAddAssignDriverMutation,
   useGetQuoteByIdQuery,
   useAddDriverToQuoteMutation,
-  useAddVehicleToQuoteMutation
+  useAddVehicleToQuoteMutation,
+  useUpdateStatusQuoteToCancelMutation,
+  useGetQuoteByIdScheduleQuery,
+  useDeleteQuoteMutation,
+  useAssignDriverAndVehicleToQuoteMutation
 } = quoteSlice;

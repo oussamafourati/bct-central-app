@@ -1,9 +1,9 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 export interface HourBand {
-    vehicle_type: string;
-    hours_limit:string;
-    price:string;
+  vehicle_type: string;
+  hours_limit: string;
+  price: string;
 }
 
 export const hourlyBandSlice = createApi({
@@ -42,7 +42,7 @@ export const hourlyBandSlice = createApi({
 });
 
 export const {
-useGetAllHourBandQuery,
-useAddNewHourBandMutation,
-useDeleteHourBandMutation
+  useGetAllHourBandQuery,
+  useAddNewHourBandMutation,
+  useDeleteHourBandMutation,
 } = hourlyBandSlice;

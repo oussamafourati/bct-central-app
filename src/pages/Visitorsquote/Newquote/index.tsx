@@ -411,43 +411,44 @@ const Newquote = () => {
                           </Card.Header>
                         </Row>
                       </div>
-                      <div className="mb-1">
-                        <Row>
-                          <Card.Header>
-                            <div className="d-flex align-items-center p-1">
-                              <div className="flex-shrink-0 me-3">
-                                <div className="avatar-sm">
-                                  <div className="avatar-title rounded-circle bg-light text-primary fs-20">
-                                    <i className="ph ph-currency-gbp"></i>
+                      {allModes[0].type === "0" ? (
+                        ""
+                      ) : (
+                        <div className="mb-1">
+                          <Row>
+                            <Card.Header>
+                              <div className="d-flex align-items-center p-1">
+                                <div className="flex-shrink-0 me-3">
+                                  <div className="avatar-sm">
+                                    <div className="avatar-title rounded-circle bg-light text-primary fs-20">
+                                      <i className="ph ph-currency-gbp"></i>
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                              <div className="flex-grow-1">
-                                <h5 className="card-title mb-1">
-                                  Suggested Price
-                                </h5>
-                              </div>
-                            </div>
-                            <Row>
-                              {/* Suggested Price  == Done */}
-                              <Col lg={4}>
-                                <div className="mb-3">
-                                  <Form.Label htmlFor="supplierName-field">
-                                    Price
-                                  </Form.Label>
-                                  <Form.Control
-                                    type="number"
-                                    id="supplierName-field"
-                                    placeholder={`£${quoteById?.manual_cost!}`}
-                                    value={quoteById?.manual_cost!}
-                                    readOnly
-                                  />
+                                <div className="flex-grow-1">
+                                  <h5 className="card-title mb-1">
+                                    Suggested Price
+                                  </h5>
                                 </div>
-                              </Col>
-                            </Row>
-                          </Card.Header>
-                        </Row>
-                      </div>
+                              </div>
+                              <Row>
+                                {/* Suggested Price  == Done */}
+                                <Col lg={4}>
+                                  <div className="mb-3">
+                                    <Form.Control
+                                      type="number"
+                                      id="supplierName-field"
+                                      placeholder={`£${quoteById?.manual_cost!}`}
+                                      value={quoteById?.manual_cost!}
+                                      readOnly
+                                    />
+                                  </div>
+                                </Col>
+                              </Row>
+                            </Card.Header>
+                          </Row>
+                        </div>
+                      )}
                       <div className="mb-1">
                         <Row>
                           <Card.Header>
@@ -465,7 +466,7 @@ const Newquote = () => {
                             </div>
                             <Row>
                               {/* Vehicle Price  == Done */}
-                              <Col lg={2}>
+                              <Col lg={3}>
                                 <div className="mb-3">
                                   <Form.Label htmlFor="price">
                                     Vehicle Price
@@ -481,7 +482,7 @@ const Newquote = () => {
                                 </div>
                               </Col>
                               {/* Suggested Price  == Done */}
-                              <Col lg={3}>
+                              {allModes[0].type === "0" ? "" : <Col lg={3}>
                                 <div className="mb-3">
                                   <Form.Label htmlFor="automatic_cost">
                                     Suggested Price
@@ -495,7 +496,7 @@ const Newquote = () => {
                                     readOnly
                                   />
                                 </div>
-                              </Col>
+                              </Col>}
                               {/* Total Price == Done */}
                               <Col lg={2}>
                                 <div className="mb-3">
@@ -516,7 +517,7 @@ const Newquote = () => {
                                 </div>
                               </Col>
                               {/* Deposit %  == Done */}
-                              <Col lg={2}>
+                              <Col lg={1}>
                                 <div className="mb-3">
                                   <Form.Label htmlFor="deposit_percentage">
                                     Deposit %

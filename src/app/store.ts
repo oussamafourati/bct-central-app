@@ -31,6 +31,9 @@ import { pricingPostalCodeSlice } from "features/PricingPostalCode/pricingPostal
 import { forceSingleSlice } from "features/ForceSingle/forceSingleSlice";
 import { programmSlice } from "features/Programs/programSlice";
 import { contractSlice } from "features/contract/contractSlice";
+import { checkTypesSlice } from "features/ChechTypes/checkTypesSlice";
+import { accountSlice } from "features/Account/accountSlice";
+import authSlice from "features/Account/authSlice";
 
 export const store = configureStore({
   reducer: {
@@ -58,6 +61,9 @@ export const store = configureStore({
     [forceSingleSlice.reducerPath]: forceSingleSlice.reducer,
     [programmSlice.reducerPath]: programmSlice.reducer,
     [contractSlice.reducerPath]: contractSlice.reducer,
+    [checkTypesSlice.reducerPath]: checkTypesSlice.reducer,
+    [accountSlice.reducerPath]: accountSlice.reducer,
+    auth: authSlice,
     Layout: LayoutReducer,
     ForgetPassword: ForgetPasswordReducer,
     Profile: ProfileReducer,
@@ -88,7 +94,9 @@ export const store = configureStore({
       pricingPostalCodeSlice.middleware,
       forceSingleSlice.middleware,
       programmSlice.middleware,
-      contractSlice.middleware
+      contractSlice.middleware,
+      accountSlice.middleware,
+      checkTypesSlice.middleware
     ]);
   },
 });

@@ -15,7 +15,10 @@ export const passengerAndLuggageSlice = createApi({
   tagTypes: ["PassengerAndLuggage"],
   endpoints(builder) {
     return {
-      getAllPassengerAndLuggages: builder.query<PassengerAndLuggage[], number | void>({
+      getAllPassengerAndLuggages: builder.query<
+        PassengerAndLuggage[],
+        number | void
+      >({
         query() {
           return "/getAllPassengerLuggageLimits";
         },
@@ -33,17 +36,17 @@ export const passengerAndLuggageSlice = createApi({
       }),
       deletePassengerAndLuggage: builder.mutation<void, PassengerAndLuggage>({
         query: (_id) => ({
-            url: `/deletePassengerLuggageLimit/${_id}`,
-            method: "Delete",
+          url: `/deletePassengerLuggageLimit/${_id}`,
+          method: "Delete",
         }),
         invalidatesTags: ["PassengerAndLuggage"],
-    }),
+      }),
     };
   },
 });
 
 export const {
-useAddNewPassengerAndLuggageMutation,
-useDeletePassengerAndLuggageMutation,
-useGetAllPassengerAndLuggagesQuery
+  useAddNewPassengerAndLuggageMutation,
+  useDeletePassengerAndLuggageMutation,
+  useGetAllPassengerAndLuggagesQuery,
 } = passengerAndLuggageSlice;

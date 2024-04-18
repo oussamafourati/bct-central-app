@@ -1,15 +1,6 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Col, Container, Row } from "react-bootstrap";
-import CustomerSatisfaction from "./CustomerSatisfaction";
-import NewCustomers from "./NewCustomers";
-import ProductDelivery from "./ProductDelivery";
-import Revenue from "./Revenue";
-import StockReport from "./StockReport";
-import TopCategories from "./TopCategories";
-import TopProducts from "./TopProducts";
-import TopSalesLocation from "./TopSalesLocation";
 import Widgets from "./Widgets";
-import RecentOrders from "./RecentOrders";
 
 const Dashboard = () => {
   document.title = "Dashboard | Bouden Coach Travel";
@@ -24,20 +15,7 @@ const Dashboard = () => {
                 <Widgets />
               </Row>
             </Col>
-            {/* <Revenue /> */}
-            {/* <TopSalesLocation /> */}
           </Row>
-          {/* <Row>
-            <RecentOrders />
-          </Row> */}
-          {/* <Row className="widget-responsive-fullscreen">
-            <CustomerSatisfaction />
-            <StockReport />
-            <ProductDelivery />
-            <TopCategories />
-            <NewCustomers />
-            <TopProducts />
-          </Row> */}
         </Container>
       </div>
     </React.Fragment>

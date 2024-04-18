@@ -31,15 +31,53 @@ export interface Programm {
   notes: string;
   dropOff_time: string;
   pickUp_Time: string;
-  clientID?: string;
+  school_id?: string;
+  company_id?: string;
+  unit_price?: string;
+  total_price?: string;
+  vehiculeType?: string;
+  luggage?: string;
+  journeyType?: string;
+  program_status?: {
+    status: string;
+    date_status: string;
+  }[];
+  invoiceFrequency?: string;
+  notes_for_client?: {
+    msg: string;
+    date: string;
+    sender: string;
+  }[];
 }
 
 export interface SendResponse {
   id: string;
-  notes_for_client: string;
+  notes_for_client: {
+    msg: string;
+    date: string;
+    sender: string;
+  }[];
   unit_price: string;
   total_price: string;
-  program_status: string;
+  program_status: {
+    status: string;
+    date_status: string;
+  }[];
+  invoiceFrequency: string;
+  within_payment_days?: string;
+}
+
+export interface ConvertTo {
+  idProgram: String;
+}
+
+export interface ConvertToQuote {
+  id_schedule: String;
+}
+
+export interface UpdateStatus {
+  id: string;
+  status: string;
 }
 
 export const programmSlice = createApi({
@@ -47,7 +85,13 @@ export const programmSlice = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: "http://localhost:3000/api/programm/",
   }),
-  tagTypes: ["Programm", "SendResponse"],
+  tagTypes: [
+    "Programm",
+    "SendResponse",
+    "ConvertTo",
+    "ConvertToQuote",
+    "UpdateStatus",
+  ],
   endpoints(builder) {
     return {
       fetchProgramms: builder.query<Programm[], number | void>({
@@ -80,6 +124,8 @@ export const programmSlice = createApi({
           unit_price,
           total_price,
           program_status,
+          invoiceFrequency,
+          within_payment_days,
         }) {
           return {
             url: "/sendResponse",
@@ -90,10 +136,56 @@ export const programmSlice = createApi({
               unit_price,
               total_price,
               program_status,
+              invoiceFrequency,
+              within_payment_days,
             },
           };
         },
         invalidatesTags: ["Programm", "SendResponse"],
+      }),
+      convertToContract: builder.mutation<void, ConvertTo>({
+        query({ idProgram }) {
+          return {
+            url: "/toContract",
+            method: "POST",
+            body: {
+              idProgram,
+            },
+          };
+        },
+        invalidatesTags: ["Programm", "ConvertTo"],
+      }),
+      convertToQuote: builder.mutation<void, ConvertToQuote>({
+        query({ id_schedule }) {
+          return {
+            url: "/convertToQuote",
+            method: "POST",
+            body: {
+              id_schedule,
+            },
+          };
+        },
+        invalidatesTags: ["Programm", "ConvertToQuote"],
+      }),
+      updateStatus: builder.mutation<void, UpdateStatus>({
+        query({ id, status }) {
+          return {
+            url: "/statusToConverted",
+            method: "POST",
+            body: {
+              id,
+              status,
+            },
+          };
+        },
+        invalidatesTags: ["Programm", "UpdateStatus"],
+      }),
+      deleteProgram: builder.mutation<void, string>({
+        query: (_id) => ({
+          url: `/deleteProgram/${_id}`,
+          method: "DELETE",
+        }),
+        invalidatesTags: ["Programm"],
       }),
     };
   },
@@ -104,4 +196,8 @@ export const {
   useFetchProgrammsQuery,
   useFetchProgrammByIdQuery,
   useSendResponseMutation,
+  useConvertToContractMutation,
+  useConvertToQuoteMutation,
+  useDeleteProgramMutation,
+  useUpdateStatusMutation,
 } = programmSlice;

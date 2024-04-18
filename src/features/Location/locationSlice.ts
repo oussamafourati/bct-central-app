@@ -8,7 +8,7 @@ export interface Location {
       lat: number;
       lon: number;
     };
-    postalCode: string
+    postalCode: string;
   };
 }
 
@@ -45,18 +45,18 @@ export const locationSlice = createApi({
       }),
       deleteLocation: builder.mutation<void, Location>({
         query: (_id) => ({
-            url: `/deleteLocation/${_id}`,
-            method: "Delete",
+          url: `/deleteLocation/${_id}`,
+          method: "Delete",
         }),
         invalidatesTags: ["Location"],
-    }),
+      }),
     };
   },
 });
 
 export const {
-useAddNewLocationMutation,
-useDeleteLocationMutation,
-useGetAllLocationsQuery,
-useGetLocationQuery
+  useAddNewLocationMutation,
+  useDeleteLocationMutation,
+  useGetAllLocationsQuery,
+  useGetLocationQuery,
 } = locationSlice;

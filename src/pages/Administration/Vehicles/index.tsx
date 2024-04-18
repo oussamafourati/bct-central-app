@@ -3,8 +3,7 @@ import { Button, Card, Col, Container, Row } from "react-bootstrap";
 import Breadcrumb from "Common/BreadCrumb";
 import { Link, useNavigate } from "react-router-dom";
 import TableContainer from "Common/TableContainer";
-import { vehicleList } from "Common/data";
-import { Suspense } from "react";
+
 import {
   Vehicle,
   useDeleteVehicleMutation,

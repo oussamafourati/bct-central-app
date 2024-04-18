@@ -31,17 +31,17 @@ export const sourcesSlice = createApi({
       }),
       deleteSource: builder.mutation<void, Sources>({
         query: (_id) => ({
-            url: `/deleteSource/${_id}`,
-            method: "Delete",
+          url: `/deleteSource/${_id}`,
+          method: "Delete",
         }),
         invalidatesTags: ["Sources"],
-    }),
+      }),
     };
   },
 });
 
 export const {
-useAddNewSourceMutation,
-useDeleteSourceMutation,
-useGetAllSourcesQuery
+  useAddNewSourceMutation,
+  useDeleteSourceMutation,
+  useGetAllSourcesQuery,
 } = sourcesSlice;

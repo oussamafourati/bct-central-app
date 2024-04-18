@@ -10,7 +10,7 @@ import {
 } from "./dashboard";
 import { productList, categoryListData, subCategoryListData } from "./products";
 import { ordersList } from "./orders";
-import { vehicleList } from "./sellers";
+import { sellerList, sellerGrid } from "./sellers"
 import { currencyRate, transaction } from "./localization";
 import { couponsList } from "./coupons";
 import { numbersList } from "./numbers";
@@ -35,7 +35,8 @@ export {
   subCategoryListData,
   ordersList,
   numbersList,
-  vehicleList,
+  sellerGrid,
+  sellerList,
   currencyRate,
   transaction,
   couponsList,

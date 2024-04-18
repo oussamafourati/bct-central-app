@@ -70,7 +70,12 @@ const Schools = () => {
           return (
             <div className="d-flex align-items-center gap-2">
               <div className="flex-shrink-0">
-                <img src={`http://localhost:3000/schoolFiles/logoImages/${cellProps.id_file}`} alt="" className="avatar-xs rounded-circle user-profile-img" id='photos' />
+                <img
+                  src={`http://localhost:3000/schoolFiles/logoImages/${cellProps.id_file}`}
+                  alt=""
+                  className="avatar-xs rounded-circle user-profile-img"
+                  id="photos"
+                />
               </div>
               <Link
                 to={`/school-details/${cellProps.name}`}
@@ -110,14 +115,15 @@ const Schools = () => {
       {
         Header: "Status",
         accessor: (cellProps: School) => {
-          return (
-            cellProps.statusSchool === "Active" ?
-              <span className="badge badge-soft-success text-uppercase">
-                Active
-              </span> : <span className="badge badge-soft-danger text-uppercase">
-                Inactive
-              </span>
-          )
+          return cellProps.statusSchool === "Active" ? (
+            <span className="badge badge-soft-success text-uppercase">
+              Active
+            </span>
+          ) : (
+            <span className="badge badge-soft-danger text-uppercase">
+              Inactive
+            </span>
+          );
         },
         disableFilters: true,
         filterable: true,

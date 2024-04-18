@@ -18,6 +18,13 @@ export interface Contract {
   accountName: string;
   accountEmail: string;
   accountPhone: string;
+  unit_price: string;
+  contractRef?: string;
+}
+
+export interface UpdateContractStatus {
+  contract_id: string;
+  effectiveDate: string;
 }
 
 export const contractSlice = createApi({
@@ -25,7 +32,7 @@ export const contractSlice = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: "http://localhost:3000/api/contract/",
   }),
-  tagTypes: ["Contract"],
+  tagTypes: ["Contract", "UpdateContractStatus"],
   endpoints(builder) {
     return {
       getAllContracts: builder.query<Contract[], number | void>({
@@ -34,13 +41,13 @@ export const contractSlice = createApi({
         },
         providesTags: ["Contract"],
       }),
-        getContract: builder.query<Contract, string | void>({
-          query: (_id) => ({
-            url: `/getContractByID/${_id}`,
-            method: "GET",
-          }),
-          providesTags: ["Contract"],
+      getContract: builder.query<Contract, string | void>({
+        query: (_id) => ({
+          url: `/getContractByID/${_id}`,
+          method: "GET",
         }),
+        providesTags: ["Contract"],
+      }),
       addNewContract: builder.mutation<void, Contract>({
         query(payload) {
           return {
@@ -66,6 +73,16 @@ export const contractSlice = createApi({
         }),
         invalidatesTags: ["Contract"],
       }),
+      updateContractStatusToApproved: builder.mutation<void, UpdateContractStatus>({
+        query(payload) {
+          return {
+            url: "/updateContractStatus",
+            method: "POST",
+            body: payload,
+          };
+        },
+        invalidatesTags: ["Contract", "UpdateContractStatus"],
+      }),
     };
   },
 });
@@ -75,5 +92,6 @@ export const {
   useGetAllContractsQuery,
   useDeleteContractMutation,
   useUpdateContractMutation,
-  useGetContractQuery
+  useGetContractQuery,
+  useUpdateContractStatusToApprovedMutation
 } = contractSlice;

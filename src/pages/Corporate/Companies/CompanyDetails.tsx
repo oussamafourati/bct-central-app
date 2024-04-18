@@ -9,9 +9,9 @@ import {
   Table,
 } from "react-bootstrap";
 import { useLocation } from "react-router-dom";
-import { pdfjs } from 'react-pdf';
-import '@react-pdf-viewer/core/lib/styles/index.css';
-import { Document, Page } from 'react-pdf';
+import { pdfjs } from "react-pdf";
+import "@react-pdf-viewer/core/lib/styles/index.css";
+import { Document, Page } from "react-pdf";
 
 const CompanyDetails = () => {
   document.title = "Company Details | Bouden Coach Travel";
@@ -22,7 +22,7 @@ const CompanyDetails = () => {
   const [modal_AddShippingModals, setmodal_AddShippingModals] =
     useState<boolean>(false);
   function tog_AddShippingModals() {
-    setmodal_AddShippingModals(!modal_AddShippingModals)
+    setmodal_AddShippingModals(!modal_AddShippingModals);
   }
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
@@ -50,7 +50,9 @@ const CompanyDetails = () => {
                     <div className="d-flex border-bottom border-bottom-dashed pb-3 mb-3 mt-4 mt-lg-0">
                       <div className="flex-grow-1">
                         <h4>{LocationCompany.state.name}</h4>
-                        <h6 className="text-muted">{LocationCompany.state.activity}</h6>
+                        <h6 className="text-muted">
+                          {LocationCompany.state.activity}
+                        </h6>
                       </div>
                     </div>
                     <Row>
@@ -123,10 +125,15 @@ const CompanyDetails = () => {
                               <tr>
                                 <td>Status</td>
                                 <td className="fw-medium">
-                                  {LocationCompany.state.statusCompany === "Active" ? (
-                                    <span className="badge badge-soft-success">Active</span>
+                                  {LocationCompany.state.statusCompany ===
+                                  "Active" ? (
+                                    <span className="badge badge-soft-success">
+                                      Active
+                                    </span>
                                   ) : (
-                                    <span className="badge badge-soft-danger">Inactive</span>
+                                    <span className="badge badge-soft-danger">
+                                      Inactive
+                                    </span>
                                   )}
                                 </td>
                               </tr>
@@ -163,20 +170,45 @@ const CompanyDetails = () => {
                 </Row>
               </Card.Body>
               <Row>
-                <div className='text-center hstack gap-5'>
-                  <Button variant='soft-danger' className="btn-label" onClick={() => { tog_AddShippingModals(); }}><i className="bi bi-filetype-pdf label-icon align-middle fs-24 me-2"></i> Legal File</Button>
+                <div className="text-center hstack gap-5">
+                  <Button
+                    variant="soft-danger"
+                    className="btn-label"
+                    onClick={() => {
+                      tog_AddShippingModals();
+                    }}
+                  >
+                    <i className="bi bi-filetype-pdf label-icon align-middle fs-24 me-2"></i>{" "}
+                    Legal File
+                  </Button>
                 </div>
               </Row>
             </Col>
           </Row>
-          <Modal className="fade zoomIn" size="xl" show={modal_AddShippingModals} onHide={() => { tog_AddShippingModals(); }} centered>
+          <Modal
+            className="fade zoomIn"
+            size="xl"
+            show={modal_AddShippingModals}
+            onHide={() => {
+              tog_AddShippingModals();
+            }}
+            centered
+          >
             <Modal.Header className="px-4 pt-4" closeButton>
-              <h5 className="modal-title fs-18" id="exampleModalLabel">Legal File</h5>
+              <h5 className="modal-title fs-18" id="exampleModalLabel">
+                Legal File
+              </h5>
             </Modal.Header>
             <Modal.Body className="p-4">
-              <div id="alert-error-msg" className="d-none alert alert-danger py-2"></div>
+              <div
+                id="alert-error-msg"
+                className="d-none alert alert-danger py-2"
+              ></div>
               <div>
-                <Document file={`http://localhost:3000/companyFiles/legalFiles/${LocationCompany.state.legal_file}`} onLoadSuccess={onDocumentLoadSuccess}>
+                <Document
+                  file={`http://localhost:3000/companyFiles/legalFiles/${LocationCompany.state.legal_file}`}
+                  onLoadSuccess={onDocumentLoadSuccess}
+                >
                   <Page pageNumber={1} />
                 </Document>
               </div>

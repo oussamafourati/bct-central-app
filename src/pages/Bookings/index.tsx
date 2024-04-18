@@ -1,12 +1,32 @@
 import React, { useState } from "react";
-import { Container, Row, Card, Col, Modal } from "react-bootstrap";
+import {
+  Container,
+  Row,
+  Card,
+  Col,
+  Modal,
+  Form,
+  Button,
+} from "react-bootstrap";
 import DataTable from "react-data-table-component";
 import Breadcrumb from "Common/BreadCrumb";
 import Flatpickr from "react-flatpickr";
-import { Link } from "react-router-dom";
-import { Quote, useGetAllQuoteQuery } from "features/Quotes/quoteSlice";
-import ModalAssignDriver from "./ModalAssignDriver";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import {
+  Quote,
+  useAddDriverToQuoteMutation,
+  useAssignDriverAndVehicleToQuoteMutation,
+  useDeleteQuoteMutation,
+  useGetAllQuoteQuery,
+  useUpdateStatusQuoteToCancelMutation,
+} from "features/Quotes/quoteSlice";
 import ModalAssignVehicle from "./ModalAssignVehicle";
+import Swal from "sweetalert2";
+import {
+  useGetAllDriverQuery,
+  useGetDriverByIDQuery,
+} from "features/Driver/driverSlice";
+import { useGetAllVehiclesQuery } from "features/Vehicles/vehicleSlice";
 
 const Bookings = () => {
   document.title = "Bookings | Bouden Coach Travel";
@@ -14,7 +34,168 @@ const Bookings = () => {
   const [modal_AssignVehicle, setModal_AssignVehicle] =
     useState<boolean>(false);
   const { data: AllQuotes = [] } = useGetAllQuoteQuery();
-  const result = AllQuotes.filter((bookings) => bookings.status === "Booked");
+  const result = AllQuotes.filter((bookings) => bookings.progress !== "New");
+  const privateHiredJobs = result.filter(
+    (privateHired) => privateHired?.category === "Private"
+  );
+  const contractJobs = result.filter(
+    (contract) => contract?.category === "Regular"
+  );
+  const [isChecked, setIsChecked] = useState<boolean>(false);
+  const [selectedRow, setSelectedRow] = useState<any>();
+  const handleChange = ({ selectedRows }: { selectedRows: Quote }) => {
+    setIsChecked(!isChecked);
+    setSelectedRow(selectedRows);
+  };
+  const [modal_DriverVehicleAssign, setmodal_DriverVehicleAssign] =
+    useState<boolean>(false);
+  function tog_DriverVehicleAssign() {
+    setmodal_DriverVehicleAssign(!modal_DriverVehicleAssign);
+  }
+  const [modal_UpdateQuote, setmodal_UpdateQuote] = useState<boolean>(false);
+  const tog_ModalUpdateQuote = () => {
+    setmodal_UpdateQuote(!modal_UpdateQuote);
+  };
+  const locationQuote = useLocation();
+  const navigate = useNavigate();
+  const { data: AllDrivers = [] } = useGetAllDriverQuery();
+  let filterdDrivers = AllDrivers.filter(
+    (driver) => driver.driverStatus === "Active"
+  );
+  let journeyOne = [];
+  let journeyTwo: any[] = [];
+  if (locationQuote!.state?.type! === "One way") {
+    journeyOne.push(locationQuote?.state!);
+  } else {
+    journeyTwo.push(
+      {
+        estimated_start_time: locationQuote?.state?.date!,
+        estimated_return_start_time:
+          locationQuote?.state?.pickup_time!,
+        destination_point: locationQuote!.state?.destination_point!,
+        start_point: locationQuote?.state?.start_point!,
+      },
+      {
+        estimated_start_time:
+          locationQuote?.state?.estimated_return_start_time!,
+        estimated_return_start_time:
+          locationQuote?.state?.estimated_start_time!,
+        destination_point: locationQuote?.state?.start_point!,
+        start_point: locationQuote?.state?.destination_point!,
+      }
+    );
+  }
+
+  const columns1 = [
+    {
+      name: <span className="font-weight-bold fs-13">Journey</span>,
+      selector: (row: any, index: number) => <span>Journey {index + 1}</span>,
+      sortable: true,
+    },
+    {
+      name: <span className="font-weight-bold fs-13">Date</span>,
+      selector: (row: any) => row.pickup_time,
+      sortable: true,
+    },
+    {
+      name: <span className="font-weight-bold fs-13">Pickup</span>,
+      selector: (row: any) => row.start_point?.placeName!,
+      sortable: true,
+    },
+    {
+      name: <span className="font-weight-bold fs-13">Destination</span>,
+      selector: (row: any) => row.destination_point?.placeName!,
+      sortable: true,
+    },
+    {
+      name: (
+        <span className="mdi mdi-account-tie-hat font-weight-bold fs-24"></span>
+      ),
+      selector: (row: any) =>
+        row!.id_driver! === undefined ? (
+          <span>No Driver</span>
+        ) : (
+          <span>
+            {row!.id_driver?.firstname!} {row!.id_driver?.surname!}
+          </span>
+        ),
+      sortable: true,
+    },
+    {
+      name: <span className="mdi mdi-car font-weight-bold fs-24"></span>,
+      selector: (row: any) =>
+        row.id_vehicle?.registration_number! === undefined ? (
+          <span>No Vehicle</span>
+        ) : (
+          <span>{row.id_vehicle?.registration_number!}</span>
+        ),
+      sortable: true,
+    },
+  ];
+
+  const notifySuccess = () => {
+    Swal.fire({
+      position: "center",
+      icon: "success",
+      title: "Assign Done successfully",
+      showConfirmButton: false,
+      timer: 2500,
+    });
+  };
+
+  const notifyError = (err: any) => {
+    Swal.fire({
+      position: "center",
+      icon: "error",
+      title: `Sothing Wrong, ${err}`,
+      showConfirmButton: false,
+      timer: 2500,
+    });
+  };
+
+  const [selectVehicle, setSelectedVehicle] = useState<string>("");
+  // This function is triggered when the select Vehicle
+  const handleSelectVehicle = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = event.target.value;
+    setSelectedVehicle(value);
+  };
+
+  let { data: oneDriver } = useGetDriverByIDQuery(selectVehicle);
+
+  const [assignDriverToQuoteMutation] = useAddDriverToQuoteMutation();
+
+  const initialAssignDriverToQuote = {
+    quote_id: "",
+    id_driver: "",
+  };
+
+  const [assignDriverToDriver, setAssignDriverToQuote] = useState(
+    initialAssignDriverToQuote
+  );
+
+  const { quote_id, id_driver } = assignDriverToDriver;
+
+  const onChangeAssignDriverToQuote = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setAssignDriverToQuote((prevState) => ({
+      ...prevState,
+      [e.target.id]: e.target.value,
+    }));
+  };
+
+  const onSubmitAssignDriverToQuote = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    try {
+      assignDriverToDriver["quote_id"] = locationQuote.state?._id!;
+      assignDriverToDriver["id_driver"] = selectVehicle;
+      assignDriverToQuoteMutation(assignDriverToDriver)
+        .then(() => navigate("/bookings"))
+        .then(() => notifySuccess());
+    } catch (error) {
+      notifyError(error);
+    }
+  };
 
   const openModalAssignDriver = () => {
     setModal_AssignDriver(!modal_AssignDriver);
@@ -37,6 +218,7 @@ const Bookings = () => {
         );
       },
       sortable: true,
+      width: "160px",
     },
     {
       name: (
@@ -73,41 +255,53 @@ const Bookings = () => {
     },
     {
       name: <span className="font-weight-bold fs-13">Go Date</span>,
-      selector: (row: any) => row?.estimated_start_time!,
+      selector: (row: any) => (
+        <div>
+          <strong>{row?.date!}</strong> at <strong>{row?.pickup_time!}</strong>
+        </div>
+      ),
       sortable: true,
+      width: "160px",
     },
     {
       name: <span className="font-weight-bold fs-13">Pax</span>,
       selector: (row: any) => row.passengers_number,
       sortable: true,
+      width: "60px"
     },
     {
       name: <span className="font-weight-bold fs-13">Pick Up</span>,
       selector: (row: any) => row.start_point?.placeName!,
       sortable: true,
+      width: "120px",
     },
     {
       name: <span className="font-weight-bold fs-13">Destination</span>,
       sortable: true,
       selector: (row: any) => row.destination_point?.placeName!,
+      width: "120px",
     },
     {
       name: <span className="font-weight-bold fs-13">Progress</span>,
       sortable: true,
-      selector: (cell: any) => {
-        switch (cell.progress) {
-          case "Booked":
-            return <span className="badge bg-warning"> {cell.progress} </span>;
-          case "Allocated":
-            return <span className="badge bg-info"> {cell.progress} </span>;
-          case "Driver Allocated":
-            return <span className="badge bg-primary"> {cell.progress} </span>;
-          case "Vehicle Allocated":
-            return <span className="badge bg-secondary"> {cell.progress} </span>;
-          default:
-            return <span className="badge bg-danger"> {cell.progress} </span>;
-        }
-      },
+      selector: (row: any) => (
+        <span
+          className={`badge ${
+            row.progress === "Booked"
+              ? "bg-warning"
+              : row.progress === "Allocated"
+              ? "bg-info"
+              : row.progress === "Driver Allocated"
+              ? "bg-primary"
+              : row.progress === "Vehicle Allocated"
+              ? "bg-secondary"
+              : "bg-danger"
+          } ${row.progress === "Cancel" ? "line-through" : ""}`}
+        >
+          {row.progress}
+        </span>
+      ),
+      width: "140px"
     },
     {
       name: <span className="font-weight-bold fs-13">Passenger Name</span>,
@@ -127,22 +321,35 @@ const Bookings = () => {
     {
       name: <span className="font-weight-bold fs-13">Arrival Date</span>,
       sortable: true,
-      selector: (row: any) => row.estimated_return_start_time,
+      selector: (row: any) => (
+        <span>
+          <b>{row.dropoff_date}</b> at <b>{row.dropoff_time}</b>
+        </span>
+      ),
+      width: "160px"
     },
     {
       name: <span className="font-weight-bold fs-13">Price</span>,
       sortable: true,
-      selector: (row: any) => row.manual_cost,
+      selector: (row: any) => (
+        <span>
+          £ <b>{row?.manual_cost!}</b>
+        </span>
+      ),
     },
     {
       name: <span className="font-weight-bold fs-13">Balance</span>,
       sortable: true,
-      selector: (row: any) => row.manual_cost,
+      selector: (row: any) => "No Balance",
     },
     {
       name: <span className="font-weight-bold fs-13">Enquiry Date</span>,
       sortable: true,
-      selector: (row: any) => row.createdAt,
+      selector: (row: Quote) => {
+        const date = new Date(row.createdAt);
+        return <span>{date.toDateString()}</span>;
+      },
+      width: "125px",
     },
     {
       name: <span className="font-weight-bold fs-13">Affiliate</span>,
@@ -167,7 +374,7 @@ const Bookings = () => {
       selector: (cell: any) => {
         switch (cell.status) {
           case "Booked":
-            return <span className="badge bg-info"> {cell.status} </span>;
+            return <span className="badge bg-warning"> {cell.status} </span>;
           case "Medium":
             return <span className="badge bg-info"> {cell.status} </span>;
           case "Low":
@@ -176,20 +383,173 @@ const Bookings = () => {
             return <span className="badge bg-danger"> {cell.status} </span>;
         }
       },
+      width: "160px"
     },
     {
       name: <span className="font-weight-bold fs-13">Account Name</span>,
       sortable: true,
-      selector: (row: any) => row.id_visitor.name,
+      selector: (row: any) => row?.id_visitor?.name!,
     },
     {
       name: <span className="font-weight-bold fs-13">Notes</span>,
       sortable: true,
       selector: (row: any) => {
-        return row.id_visitor.notes !== "" ? row.id_visitor.notes : "No Notes";
+        return row?.id_visitor?.notes! !== ""
+          ? row?.id_visitor?.notes!
+          : "No Notes";
       },
     },
   ];
+
+  const [isPrivateHiredChecked, setIsPrivateHiredChecked] = useState(false);
+  const handlePrivateHiredCheckboxChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setIsPrivateHiredChecked(event.target.checked);
+  };
+
+  const [isContractChecked, setIsContractChecked] = useState(false);
+  const handleContractCheckboxChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setIsContractChecked(event.target.checked);
+  };
+
+  const [deleteQuote] = useDeleteQuoteMutation();
+  const swalWithBootstrapButtons = Swal.mixin({
+    customClass: {
+      confirmButton: "btn btn-success",
+      cancelButton: "btn btn-danger",
+    },
+    buttonsStyling: false,
+  });
+
+  const AlertDelete = async () => {
+    swalWithBootstrapButtons
+      .fire({
+        title: "Are you sure?",
+        text: "You won't be able to go back?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, delete it !",
+        cancelButtonText: "No, cancel !",
+        reverseButtons: true,
+      })
+      .then((result: any) => {
+        if (result.isConfirmed) {
+          deleteQuote(selectedRow[0]._id);
+          setIsChecked(!isChecked);
+          swalWithBootstrapButtons.fire(
+            "Deleted !",
+            "Quote is deleted.",
+            "success"
+          );
+        } else if (
+          /* Read more about handling dismissals below */
+          result.dismiss === Swal.DismissReason.cancel
+        ) {
+          swalWithBootstrapButtons.fire("Canceled", "Quote is safe :)", "info");
+        }
+      });
+  };
+
+  // The selected Reglement
+  const [selectedCancelCause, setSelectedCancelCause] = useState<string>("");
+
+  // This function will be triggered when a radio button is selected
+  const radioHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSelectedCancelCause(event.target.value);
+  };
+
+  const [selectVehicleWhenAssignDriverAndVehicle, setSelectedVehicleWhenAssignDriverAndVehicle] = useState<string>("");
+  // This function is triggered when the select Vehicle
+  const handleSelectVehicleWhenAssignDriverAndVehicle = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = event.target.value;
+    setSelectedVehicleWhenAssignDriverAndVehicle(value);
+  };
+
+  const [selectDriverWhenAssignDriverAndVehicle, setSelectedDriverWhenAssignDriverAndVehicle] = useState<string>("");
+  // This function is triggered when the select Driver
+  const handleSelectDriverWhenAssignDriverAndVehicle = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = event.target.value;
+    setSelectedDriverWhenAssignDriverAndVehicle(value);
+  };
+
+  const [assignDriverAndVehicleToQuoteMutation] = useAssignDriverAndVehicleToQuoteMutation()
+
+  const initialAssginDriverAndVehicleToQuote = {
+    quote_ID: "",
+    vehicle_ID: "",
+    driver_ID: ""
+  };
+
+  const [assignDriverAndVehicleToQuoteState, setAssignDriverAndVehicleToQuoteState] = useState(
+    initialAssginDriverAndVehicleToQuote
+  );
+
+  const { quote_ID, vehicle_ID, driver_ID } = assignDriverAndVehicleToQuoteState;
+
+  const onSubmitAssignDriverAndVehicleToQuote = (
+    e: React.FormEvent<HTMLFormElement>
+  ) => {
+    e.preventDefault();
+    try {
+      assignDriverAndVehicleToQuoteState["quote_ID"] = selectedRow[0]._id;
+      assignDriverAndVehicleToQuoteState["vehicle_ID"] = selectVehicleWhenAssignDriverAndVehicle;
+      assignDriverAndVehicleToQuoteState["driver_ID"] = selectDriverWhenAssignDriverAndVehicle;
+      assignDriverAndVehicleToQuoteMutation(assignDriverAndVehicleToQuoteState)
+        .then(() => navigate("/bookings"))
+        .then(() => notifySuccess())
+        .then(()=> setIsChecked(!isChecked))
+    } catch (error) {
+      notifyError(error);
+    }
+  };
+
+  const [updateStatusQuoteToCancelMutation] =
+    useUpdateStatusQuoteToCancelMutation();
+
+  const initialUpdateStatusQuoteToCancel = {
+    quoteId: "",
+    status: "",
+  };
+
+  const [updateStatusToCancel, setUpdateStatusToCancel] = useState(
+    initialUpdateStatusQuoteToCancel
+  );
+
+  const { quoteId, status } = updateStatusToCancel;
+
+  const onChangeStatusToCancel = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUpdateStatusToCancel((prevState) => ({
+      ...prevState,
+      [e.target.id]: e.target.value,
+    }));
+  };
+
+  const onSubmitUpdateStatusToCancel = (
+    e: React.FormEvent<HTMLFormElement>
+  ) => {
+    e.preventDefault();
+    try {
+      updateStatusToCancel["quoteId"] = selectedRow[0]._id;
+      updateStatusToCancel["status"] = selectedCancelCause;
+      updateStatusQuoteToCancelMutation(updateStatusToCancel)
+        .then(() => navigate("/bookings"))
+        .then(() => notifySuccess());
+    } catch (error) {
+      notifyError(error);
+    }
+  };
+
+  const activeDrivers = AllDrivers.filter(
+    (drivers) => drivers.driverStatus === "Active"
+  );
+
+  const { data: AllVehicles = [] } = useGetAllVehiclesQuery();
+  const activeVehicles = AllVehicles.filter(
+    (vehicles) => vehicles.statusVehicle === "Active"
+  );
 
   return (
     <React.Fragment>
@@ -286,6 +646,8 @@ const Bookings = () => {
                         type="checkbox"
                         id="inlineCheckbox1"
                         value="option1"
+                        checked={isPrivateHiredChecked}
+                        onChange={handlePrivateHiredCheckboxChange}
                       />
                       <label
                         className="form-check-label"
@@ -300,6 +662,8 @@ const Bookings = () => {
                         type="checkbox"
                         id="inlineCheckbox2"
                         value="option2"
+                        checked={isContractChecked}
+                        onChange={handleContractCheckboxChange}
                       />
                       <label
                         className="form-check-label"
@@ -329,7 +693,45 @@ const Bookings = () => {
             <Card id="shipmentsList">
               <Card.Header className="border-bottom-dashed">
                 <Row className="g-3">
-                  <Col xxl={3} lg={6}>
+                  <Col lg={3} className="d-flex justify-content-start">
+                    {isChecked ? (
+                      <ul className="hstack gap-2 list-unstyled mb-0">
+                        <li>
+                          <Link
+                            to="#"
+                            className="badge badge-soft-info remove-item-btn fs-16"
+                            state={selectedRow}
+                            onClick={() => tog_DriverVehicleAssign()}
+                          >
+                            <i className="bi bi-plus-square-dotted fs-18"></i>{" "}
+                            Assign Vehicle/Driver
+                          </Link>
+                        </li>
+                        <li>
+                          <Link
+                            to="#"
+                            className="badge badge-soft-dark edit-item-btn fs-16"
+                            state={selectedRow}
+                            onClick={() => tog_ModalUpdateQuote()}
+                          >
+                            <i className="bi bi-x-square fs-18"></i> Cancel Job
+                          </Link>
+                        </li>
+                        <li>
+                          <Link
+                            to="#"
+                            className="badge badge-soft-danger edit-item-btn fs-16"
+                            onClick={() => AlertDelete()}
+                          >
+                            <i className="bi bi-trash2 fs-18"></i> Delete Job
+                          </Link>
+                        </li>
+                      </ul>
+                    ) : (
+                      ""
+                    )}
+                  </Col>
+                  <Col lg={7} className="d-flex justify-content-center">
                     <div className="search-box">
                       <input
                         type="text"
@@ -339,8 +741,7 @@ const Bookings = () => {
                       <i className="ri-search-line search-icon"></i>
                     </div>
                   </Col>
-                  <Col lg={7}></Col>
-                  <Col>
+                  <Col lg={2} className="d-flex justify-content-end">
                     <div
                       className="btn-group btn-group-sm mt-2"
                       role="group"
@@ -360,7 +761,31 @@ const Bookings = () => {
                 </Row>
               </Card.Header>
               <Card.Body>
-                <DataTable columns={columns} data={result} pagination />
+                {isPrivateHiredChecked && !isContractChecked ? (
+                  <DataTable
+                    columns={columns}
+                    data={privateHiredJobs}
+                    selectableRows
+                    pagination
+                    onSelectedRowsChange={handleChange}
+                  />
+                ) : !isPrivateHiredChecked && isContractChecked ? (
+                  <DataTable
+                    columns={columns}
+                    data={contractJobs}
+                    pagination
+                    selectableRows
+                    onSelectedRowsChange={handleChange}
+                  />
+                ) : (
+                  <DataTable
+                    columns={columns}
+                    data={result}
+                    pagination
+                    selectableRows
+                    onSelectedRowsChange={handleChange}
+                  />
+                )}
               </Card.Body>
             </Card>
           </Col>
@@ -380,7 +805,148 @@ const Bookings = () => {
               </h5>
             </Modal.Header>
             <Modal.Body className="p-4">
-              <ModalAssignDriver />
+              <Card>
+                <Card.Header>
+                  <div className="d-flex align-items-center p-1">
+                    <div className="flex-shrink-0 me-3">
+                      <div className="avatar-sm">
+                        <div className="avatar-title rounded-circle bg-light text-primary fs-24">
+                          <i className="mdi mdi-map-marker-path"></i>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex-grow-1">
+                      <h4 className="mb-1">Journey</h4>
+                    </div>
+                  </div>
+                  {locationQuote?.state?.type! === "One way" ? (
+                    <DataTable columns={columns1} data={journeyOne} />
+                  ) : (
+                    <DataTable columns={columns1} data={journeyTwo} />
+                  )}
+                </Card.Header>
+                <Card.Header>
+                  <div className="d-flex align-items-center p-1">
+                    <div className="flex-shrink-0 me-3">
+                      <div className="avatar-sm">
+                        <div className="avatar-title rounded-circle bg-light text-primary fs-24">
+                          <i className="mdi mdi-account-tie-hat"></i>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex-grow-1">
+                      <h4 className="mb-1">Choose Driver</h4>
+                    </div>
+                  </div>
+                  <Form
+                    className="tablelist-form"
+                    onSubmit={onSubmitAssignDriverToQuote}
+                  >
+                    <Row>
+                      <Col lg={12}>
+                        <div className="mb-3">
+                          <select
+                            className="form-select text-muted"
+                            name="vehicle_type"
+                            id="vehicle_type"
+                            onChange={handleSelectVehicle}
+                          >
+                            <option value="">Select</option>
+                            {filterdDrivers.map((driver) => (
+                              <option
+                                value={`${driver._id}`}
+                                key={driver?._id!}
+                              >
+                                {driver.firstname} {driver.surname}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </Col>
+                      {selectVehicle && (
+                        <Row className="mb-2">
+                          <Col lg={6}>
+                            <div>
+                              <Form.Label>Driver Name</Form.Label>
+                              <Form.Control
+                                type="text"
+                                readOnly
+                                defaultValue={oneDriver?.firstname!}
+                              />
+                            </div>
+                            <div className="mt-2">
+                              <Form.Label>Phone Number</Form.Label>
+                              <Form.Control
+                                type="text"
+                                readOnly
+                                defaultValue={oneDriver?.phonenumber!}
+                              />
+                            </div>
+                            <div className="mt-2">
+                              <Form.Label>Email</Form.Label>
+                              <Form.Control
+                                type="text"
+                                readOnly
+                                defaultValue={oneDriver?.email!}
+                              />
+                            </div>
+                          </Col>
+                          <Col lg={6}>
+                            <div>
+                              <Form.Label>Driving License Expiry</Form.Label>
+                              <Form.Control
+                                type="text"
+                                className="text-danger"
+                                readOnly
+                                defaultValue={
+                                  oneDriver?.driving_license_expiry!
+                                }
+                              />
+                            </div>
+                            <div className="mt-2">
+                              <Form.Label>DQC Expiry</Form.Label>
+                              <Form.Control
+                                type="text"
+                                className="text-danger"
+                                readOnly
+                                defaultValue={oneDriver?.dqc_expiry!}
+                              />
+                            </div>
+                            <div className="mt-2">
+                              <Form.Label>PVC Expiry</Form.Label>
+                              <Form.Control
+                                className="text-danger"
+                                type="text"
+                                readOnly
+                                defaultValue={oneDriver?.pvc_expiry!}
+                              />
+                            </div>
+                          </Col>
+                        </Row>
+                      )}
+                      <Col lg={12}>
+                        <div className="hstack gap-2 justify-content-end">
+                          <Button
+                            className="btn-ghost-danger"
+                            data-bs-dismiss="modal"
+                          >
+                            <i className="ri-close-line align-bottom me-1"></i>{" "}
+                            Close
+                          </Button>
+                          <Button
+                            variant="primary"
+                            id="add-btn"
+                            type="submit"
+                            onClick={() => openModalAssignDriver()}
+                          >
+                            Assign Driver
+                          </Button>
+                        </div>
+                      </Col>
+                    </Row>
+                  </Form>
+                </Card.Header>
+              </Card>
             </Modal.Body>
           </Modal>
           {/* Modal To Assign Vehicle */}
@@ -393,13 +959,261 @@ const Bookings = () => {
             }}
             centered
           >
-            <Modal.Header className="px-4 pt-4" closeButton>
-              <h5 className="modal-title fs-18" id="exampleModalLabel">
-                Assign Vehicle
-              </h5>
-            </Modal.Header>
             <Modal.Body className="p-4">
-              <ModalAssignVehicle />
+              <ModalAssignVehicle assigned={modal_AssignVehicle} />
+            </Modal.Body>
+          </Modal>
+          {/* Modal To Cancel Job */}
+          <Modal
+            className="fade zoomIn"
+            size="lg"
+            show={modal_UpdateQuote}
+            onHide={() => {
+              tog_ModalUpdateQuote();
+            }}
+            centered
+          >
+            {/* <Modal.Header className="px-4 pt-4" closeButton>
+              <h5 className="modal-title fs-18" id="exampleModalLabel">
+                Quote n° {selectedRow[0]?._id!}
+              </h5>
+            </Modal.Header> */}
+            <Modal.Body className="p-4">
+              <Form
+                className="tablelist-form"
+                onSubmit={onSubmitUpdateStatusToCancel}
+              >
+                <Row>
+                  <Col lg={12}>
+                    <div className="form-check mb-2">
+                      <input
+                        className="form-check-input"
+                        type="radio"
+                        name="flexRadioDefault"
+                        id="flexRadioDefault1"
+                        onChange={radioHandler}
+                        value="Canceled By Client"
+                      />
+                      <Form.Label
+                        className="form-check-label fs-17"
+                        htmlFor="flexRadioDefault1"
+                      >
+                        Canceled By Client
+                      </Form.Label>
+                    </div>
+                  </Col>
+                  {selectedCancelCause === "Canceled By Client" ? (
+                    <div
+                      className="alert alert-danger alert-modern alert-dismissible fade show"
+                      role="alert"
+                    >
+                      <i className="ri-error-warning-line icons"></i> By
+                      Choosing this option, the contract will be terminated at
+                      the customer disire.
+                    </div>
+                  ) : (
+                    ""
+                  )}
+                  <Col lg={12}>
+                    <div className="form-check mb-2">
+                      <input
+                        className="form-check-input"
+                        type="radio"
+                        name="flexRadioDefault"
+                        id="flexRadioDefault1"
+                        value="Canceled By Admin"
+                        onChange={radioHandler}
+                      />
+                      <Form.Label
+                        className="form-check-label fs-17"
+                        htmlFor="flexRadioDefault1"
+                      >
+                        Canceled By Admin
+                      </Form.Label>
+                    </div>
+                  </Col>
+                  {selectedCancelCause === "Canceled By Admin" ? (
+                    <div
+                      className="alert alert-danger alert-modern alert-dismissible fade show"
+                      role="alert"
+                    >
+                      <i className="ri-error-warning-line icons"></i> This
+                      option means that <strong>You Will Cancel</strong> the
+                      contract.
+                    </div>
+                  ) : (
+                    ""
+                  )}
+                  <Col lg={12}>
+                    <div className="form-check mb-2">
+                      <input
+                        className="form-check-input"
+                        type="radio"
+                        name="flexRadioDefault"
+                        id="flexRadioDefault1"
+                        value="Called off By Client"
+                        onChange={radioHandler}
+                      />
+                      <Form.Label
+                        className="form-check-label fs-17"
+                        htmlFor="flexRadioDefault1"
+                      >
+                        Called off By Client
+                      </Form.Label>
+                    </div>
+                  </Col>
+                  {selectedCancelCause === "Called off By Client" ? (
+                    <div
+                      className="alert alert-warning alert-modern alert-dismissible fade show"
+                      role="alert"
+                    >
+                      <i className="ri-alert-line icons"></i> The selected
+                      option will cancel jobs at the demand of the client
+                    </div>
+                  ) : (
+                    ""
+                  )}
+
+                  <Col lg={12}>
+                    <div className="form-check mb-2">
+                      <input
+                        className="form-check-input"
+                        type="radio"
+                        name="flexRadioDefault"
+                        id="flexRadioDefault1"
+                        value="Called off By Admin"
+                        onChange={radioHandler}
+                      />
+                      <Form.Label
+                        className="form-check-label fs-17"
+                        htmlFor="flexRadioDefault1"
+                      >
+                        Called off By Admin
+                      </Form.Label>
+                    </div>
+                  </Col>
+                  {selectedCancelCause === "Called off By Admin" ? (
+                    <div
+                      className="alert alert-warning alert-modern alert-dismissible fade show"
+                      role="alert"
+                    >
+                      <i className="ri-alert-line icons"></i> These jobs will be
+                      canceled due to You.
+                    </div>
+                  ) : (
+                    ""
+                  )}
+                  <Col lg={12}>
+                    <div className="hstack gap-2 justify-content-end">
+                      <Button
+                        className="btn-soft-danger"
+                        onClick={() => {
+                          tog_ModalUpdateQuote();
+                        }}
+                        data-bs-dismiss="modal"
+                      >
+                        <i className="ri-close-line align-bottom me-1"></i>{" "}
+                        Close
+                      </Button>
+                      <Button
+                        className="btn-soft-info"
+                        type="submit"
+                        onClick={() => {
+                          tog_ModalUpdateQuote();
+                        }}
+                      >
+                        <i className="ri-send-plane-line align-bottom me-1"></i>{" "}
+                        Send
+                      </Button>
+                    </div>
+                  </Col>
+                </Row>
+              </Form>
+            </Modal.Body>
+          </Modal>
+          {/* Modal To Assign Driver & Vehicle */}
+          <Modal
+            className="fade zoomIn"
+            size="lg"
+            show={modal_DriverVehicleAssign}
+            onHide={() => {
+              tog_DriverVehicleAssign();
+            }}
+            centered
+          >
+            <Modal.Body className="p-4">
+              <Form className="tablelist-form" onSubmit={onSubmitAssignDriverAndVehicleToQuote}>
+                <Row>
+                  <Col lg={3}>
+                    <div className="mb-3">
+                      <Form.Label htmlFor="vehicle_type">Driver</Form.Label>
+                    </div>
+                  </Col>
+                  <Col lg={9}>
+                    <div className="mb-3">
+                      <select
+                        className="form-select text-muted"
+                        name="vehicle_type"
+                        id="vehicle_type"
+                        onChange={handleSelectDriverWhenAssignDriverAndVehicle}
+                      >
+                        <option value="">Select</option>
+                        {activeDrivers.map((driver) => (
+                          <option value={`${driver._id}`} key={`${driver._id}`}>
+                            {driver.firstname} {driver.surname}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </Col>
+                </Row>
+                <Row>
+                  <Col lg={3}>
+                    <div className="mb-3">
+                      <Form.Label htmlFor="vehicle_type">Vehicle</Form.Label>
+                    </div>
+                  </Col>
+                  <Col lg={9}>
+                    <div className="mb-3">
+                      <select
+                        className="form-select text-muted"
+                        name="vehicle_type"
+                        id="vehicle_type"
+                        onChange={handleSelectVehicleWhenAssignDriverAndVehicle}
+                      >
+                        <option value="">Select</option>
+                        {activeVehicles.map((vehicle) => (
+                          <option
+                            value={`${vehicle._id}`}
+                            key={`${vehicle._id}`}
+                          >
+                            {vehicle.registration_number}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </Col>
+                </Row>
+                <Row>
+                  <Col lg={12}>
+                    <div className="hstack gap-2 justify-content-end">
+                      <Button
+                        className="btn-soft-danger"
+                        onClick={() => {
+                          tog_DriverVehicleAssign();
+                        }}
+                        data-bs-dismiss="modal"
+                      >
+                        <i className="ri-close-fill align-bottom me-1"></i>{" "}
+                        Close
+                      </Button>
+                      <Button className="btn-soft-primary" type="submit" onClick={() => tog_DriverVehicleAssign()}>
+                        <i className="ri-add-line align-bottom me-1"></i> Assign
+                      </Button>
+                    </div>
+                  </Col>
+                </Row>
+              </Form>
             </Modal.Body>
           </Modal>
         </Container>

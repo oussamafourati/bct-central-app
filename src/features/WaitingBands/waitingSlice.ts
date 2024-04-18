@@ -33,17 +33,17 @@ export const waitingBandSlice = createApi({
       }),
       deleteWaitingBand: builder.mutation<void, WaitingBand>({
         query: (_id) => ({
-            url: `/deleteWaitingBand/${_id}`,
-            method: "Delete",
+          url: `/deleteWaitingBand/${_id}`,
+          method: "Delete",
         }),
         invalidatesTags: ["WaitingBand"],
-    }),
+      }),
     };
   },
 });
 
 export const {
-useAddNewWaitingBandMutation,
-useDeleteWaitingBandMutation,
-useGetAllWaitingBandsQuery
+  useAddNewWaitingBandMutation,
+  useDeleteWaitingBandMutation,
+  useGetAllWaitingBandsQuery,
 } = waitingBandSlice;

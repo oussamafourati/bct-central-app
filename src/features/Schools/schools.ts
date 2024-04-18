@@ -70,5 +70,5 @@ export const {
   useAddNewSchoolMutation,
   useDeleteSchoolMutation,
   useGetAllSchoolsQuery,
-  useFetchSchoolByIdQuery
+  useFetchSchoolByIdQuery,
 } = schoolSlice;

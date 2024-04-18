@@ -14,47 +14,48 @@ import Swal from "sweetalert2";
 const PartialQuotes = () => {
   document.title = "Partial Quotes | Bouden Coach Travel";
   const { data = [] } = useGetAllVisitorsQuery()
-const [deleteVisitor] = useDeleteVisitorMutation()
+  const filteredVisitor = data.filter((visitor) => visitor.status === "new")
+  const [deleteVisitor] = useDeleteVisitorMutation()
 
-const swalWithBootstrapButtons = Swal.mixin({
-  customClass: {
-    confirmButton: "btn btn-success",
-    cancelButton: "btn btn-danger",
-  },
-  buttonsStyling: false,
-});
+  const swalWithBootstrapButtons = Swal.mixin({
+    customClass: {
+      confirmButton: "btn btn-success",
+      cancelButton: "btn btn-danger",
+    },
+    buttonsStyling: false,
+  });
 
-const AlertDelete = async (_id: any) => {
-  swalWithBootstrapButtons
-    .fire({
-      title: "Are you sure?",
-      text: "You won't be able to go back?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Yes, delete it !",
-      cancelButtonText: "No, cancel !",
-      reverseButtons: true,
-    })
-    .then((result: any) => {
-      if (result.isConfirmed) {
-        deleteVisitor(_id);
-        swalWithBootstrapButtons.fire(
-          "Deleted !",
-          "Quote is deleted.",
-          "success"
-        );
-      } else if (
-        /* Read more about handling dismissals below */
-        result.dismiss === Swal.DismissReason.cancel
-      ) {
-        swalWithBootstrapButtons.fire(
-          "Canceled",
-          "Quote is safe :)",
-          "info"
-        );
-      }
-    });
-};
+  const AlertDelete = async (_id: any) => {
+    swalWithBootstrapButtons
+      .fire({
+        title: "Are you sure?",
+        text: "You won't be able to go back?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, delete it !",
+        cancelButtonText: "No, cancel !",
+        reverseButtons: true,
+      })
+      .then((result: any) => {
+        if (result.isConfirmed) {
+          deleteVisitor(_id);
+          swalWithBootstrapButtons.fire(
+            "Deleted !",
+            "Quote is deleted.",
+            "success"
+          );
+        } else if (
+          /* Read more about handling dismissals below */
+          result.dismiss === Swal.DismissReason.cancel
+        ) {
+          swalWithBootstrapButtons.fire(
+            "Canceled",
+            "Quote is safe :)",
+            "info"
+          );
+        }
+      });
+  };
 
   const columns = [
     {
@@ -108,7 +109,7 @@ const AlertDelete = async (_id: any) => {
             </Link>
           </li>
           <li>
-            <Link to="#" className="badge badge-soft-danger remove-item-btn" onClick={()=> AlertDelete(row?._id!)}>
+            <Link to="#" className="badge badge-soft-danger remove-item-btn" onClick={() => AlertDelete(row?._id!)}>
               <i className="ri-delete-bin-2-line"></i>
             </Link>
           </li>
@@ -138,7 +139,7 @@ const AlertDelete = async (_id: any) => {
                 </Row>
               </Card.Header>
               <Card.Body>
-                <DataTable columns={columns} data={data} pagination />
+                <DataTable columns={columns} data={filteredVisitor} pagination />
               </Card.Body>
             </Card>
           </Col>

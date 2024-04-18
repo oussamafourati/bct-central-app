@@ -1,22 +1,20 @@
 import React, { useMemo } from "react";
-import {
-  Button,
-  Card,
-  Col,
-  Container,
-  Row,
-} from "react-bootstrap";
+import { Button, Card, Col, Container, Row } from "react-bootstrap";
 import Breadcrumb from "Common/BreadCrumb";
 import { Link, useNavigate } from "react-router-dom";
 import TableContainer from "Common/TableContainer";
-import { Company, useDeleteCompanyMutation, useGetAllCompanyQuery } from "features/Company/companySlice";
+import {
+  Company,
+  useDeleteCompanyMutation,
+  useGetAllCompanyQuery,
+} from "features/Company/companySlice";
 import Swal from "sweetalert2";
 
 const Companies = () => {
   document.title = "Companies | Bouden Coach Travel";
 
   const navigate = useNavigate();
-const {data:AllCompanies = []} = useGetAllCompanyQuery()
+  const { data: AllCompanies = [] } = useGetAllCompanyQuery();
   function tog_AddCompany() {
     navigate("/new-company");
   }
@@ -73,17 +71,21 @@ const {data:AllCompanies = []} = useGetAllCompanyQuery()
           return (
             <div className="d-flex align-items-center gap-2">
               <div className="flex-shrink-0">
-                <img src={`http://localhost:3000/companyFiles/logoFiles/${cellProps.logo_file}`} alt="" className="avatar-xs rounded-circle user-profile-img" id='photos' />
+                <img
+                  src={`http://localhost:3000/companyFiles/logoFiles/${cellProps.logo_file}`}
+                  alt=""
+                  className="avatar-xs rounded-circle user-profile-img"
+                  id="photos"
+                />
               </div>
               <Link
-              to={`/company-details/${cellProps.name}`}
-              className="fw-medium link-primary"
-              state={cellProps}
-            >
-              {cellProps.name}
-            </Link>
+                to={`/company-details/${cellProps.name}`}
+                className="fw-medium link-primary"
+                state={cellProps}
+              >
+                {cellProps.name}
+              </Link>
             </div>
-            
           );
         },
       },
@@ -114,14 +116,15 @@ const {data:AllCompanies = []} = useGetAllCompanyQuery()
       {
         Header: "Status",
         accessor: (cellProps: Company) => {
-          return (
-            cellProps.statusCompany === "Active" ?
-              <span className="badge badge-soft-success text-uppercase">
-                Active
-              </span> : <span className="badge badge-soft-danger text-uppercase">
-                Inactive
-              </span>
-          )
+          return cellProps.statusCompany === "Active" ? (
+            <span className="badge badge-soft-success text-uppercase">
+              Active
+            </span>
+          ) : (
+            <span className="badge badge-soft-danger text-uppercase">
+              Inactive
+            </span>
+          );
         },
         disableFilters: true,
         filterable: true,
@@ -146,7 +149,7 @@ const {data:AllCompanies = []} = useGetAllCompanyQuery()
                 <Link
                   to="#"
                   className="badge badge-soft-danger remove-item-btn"
-                  onClick={()=>AlertDeleteCompany(cellProps._id)}
+                  onClick={() => AlertDeleteCompany(cellProps._id)}
                 >
                   <i className="ri-delete-bin-2-line"></i>
                 </Link>

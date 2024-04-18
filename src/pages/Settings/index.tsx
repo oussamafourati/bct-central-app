@@ -20,6 +20,7 @@ import VehicleExtra from "./VehicleExtra";
 import PassengerAndLuggageLimits from "./PassengerAndLuggageLimits";
 import LocationSettings from "./LocationSettings";
 import RegionalPricings from "./RegionalPricings";
+import CheckTypes from "./CheckTypes";
 
 const SiteSettings = () => {
   document.title = "Site Settings | Bouden Coach Travel";
@@ -32,6 +33,7 @@ const SiteSettings = () => {
   const [showMileageBands, setShowMileageBands] = useState<boolean>(false);
   const [showHourlyBands, setShowHourlyBands] = useState<boolean>(false);
   const [showWaitingBands, setShowWaitingBands] = useState<boolean>(false);
+  const [showCheckTypes, setShowCheckTypes] = useState<boolean>(false);
   const [showSingleJourneys, setShowSingleJourneys] = useState<boolean>(false);
   const [showPricingCalendar, setShowPricingCalendar] =
     useState<boolean>(false);
@@ -386,11 +388,32 @@ const SiteSettings = () => {
     setShowPricingPostalCodes(true)
   }
 
+  function tog_ShowCheckTypes() {
+    setShowSupplierRoutingRule(false);
+    setShowVehicleExtra(false);
+    setShowBasetoBase(false);
+    setShowSources(false);
+    setShowRegionalPricings(false);
+    setShowPricingCalendar(false);
+    setShowSingleJourneys(false);
+    setShowWaitingBands(false);
+    setShowHourlyBands(false);
+    setShowMileageBands(false);
+    setShowLuggageTypes(false);
+    setShowJourneyTypes(false);
+    setShowSettings(false);
+    setShowVehicleTypes(false);
+    setShowPassengerAndLuggageLimits(false);
+    setLocationSettings(false)
+    setShowPricingPostalCodes(false)
+    setShowCheckTypes(true)
+  }
+
   return (
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
-          <Breadcrumb title="Site Settings" pageTitle="Management" />
+          <Breadcrumb title="General Settings" pageTitle="Management" />
           <Card>
             <Card.Header className="border-0">
               <Row>
@@ -1443,6 +1466,46 @@ const SiteSettings = () => {
                           </Accordion.Item>
                         </Accordion>
                       </Accordion.Item>
+                      <Accordion.Item eventKey="3">
+                        <Accordion defaultActiveKey="3">
+                          <Accordion.Item eventKey="3">
+                            <Accordion.Header>
+                              <span className="text-muted text-uppercase fs-13">
+                                Check List Options
+                              </span>
+                            </Accordion.Header>
+                            <Accordion.Body className="text-body pt-1">
+                              <Link
+                                className="text-dark"
+                                to="#"
+                                onClick={() => {
+                                  tog_ShowCheckTypes();
+                                }}
+                              >
+                                <i
+                                  className="ph ph-path align-middle"
+                                  style={{
+                                    transition: "transform 0.3s ease-in-out",
+                                    cursor: "pointer",
+                                    fontSize: "1.6em",
+                                  }}
+                                  onMouseEnter={(e) =>
+                                    (e.currentTarget.style.transform =
+                                      "scale(1.3)")
+                                  }
+                                  onMouseLeave={(e) =>
+                                    (e.currentTarget.style.transform =
+                                      "scale(1)")
+                                  }
+                                ></i>{" "}
+                                <span className="fw-bold">
+                                  Check Types
+                                </span>
+                              </Link>
+                            </Accordion.Body>
+                          </Accordion.Item>
+                        </Accordion>
+                      </Accordion.Item>
                     </Accordion>
                   </Card>
                 </Col>
@@ -1466,6 +1529,7 @@ const SiteSettings = () => {
                   {showSupplierRoutingRule && <SupplierRoutingRule />}
                   {locationSettings && <LocationSettings />}
                   {showPricingPostalCodes && <PricingPostalCodes />}
+                  {showCheckTypes && <CheckTypes />}
                 </Col>
               </Row>
             </Card.Header>

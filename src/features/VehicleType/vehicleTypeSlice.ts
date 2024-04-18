@@ -1,10 +1,10 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 export interface VehicleType {
-  _id?:string;
+  _id?: string;
   type: string;
   base_change: string;
-  coverage_mile: string
+  coverage_mile: string;
 }
 
 export const vehicleTypeSlice = createApi({
@@ -21,6 +21,13 @@ export const vehicleTypeSlice = createApi({
         },
         providesTags: ["VehicleType"],
       }),
+      fetchVehicleTypeById: builder.query<VehicleType, string | void>({
+        query: (_id) => ({
+          url: `/getVehicleTypeById/${_id}`,
+          method: "GET",
+        }),
+        providesTags: ["VehicleType"],
+      }),
       addNewVehicleType: builder.mutation<void, VehicleType>({
         query(payload) {
           return {
@@ -33,17 +40,18 @@ export const vehicleTypeSlice = createApi({
       }),
       deleteVehicleType: builder.mutation<void, VehicleType>({
         query: (_id) => ({
-            url: `/deleteVehicleType/${_id}`,
-            method: "Delete",
+          url: `/deleteVehicleType/${_id}`,
+          method: "Delete",
         }),
         invalidatesTags: ["VehicleType"],
-    }),
+      }),
     };
   },
 });
 
 export const {
-useGetAllVehicleTypesQuery,
-useAddNewVehicleTypeMutation,
-useDeleteVehicleTypeMutation
+  useGetAllVehicleTypesQuery,
+  useAddNewVehicleTypeMutation,
+  useDeleteVehicleTypeMutation,
+  useFetchVehicleTypeByIdQuery
 } = vehicleTypeSlice;

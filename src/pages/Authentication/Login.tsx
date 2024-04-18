@@ -1,285 +1,222 @@
-import React, { useEffect, useState } from 'react';
-import { Alert, Button, Card, Col, Container, Form, Row, Spinner } from 'react-bootstrap';
+import React, { useEffect } from "react";
+import { Button, Card, Col, Container, Form, Row } from "react-bootstrap";
 
-// Import Images
-import logoDark from 'assets/images/logo-dark.png'
-import logoLight from 'assets/images/logo-light.png'
-import img1 from 'assets/images/auth/img-1.png'
-import { Link } from 'react-router-dom';
+import logo from "assets/images/logo.png";
+import { Link, useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
 //redux
-import { useSelector, useDispatch } from "react-redux";
+import { useDispatch } from "react-redux";
 
-// Formik validation
-import * as Yup from "yup";
-import { useFormik } from "formik";
+import withRouter from "Common/withRouter";
 
-import { loginUser, socialLogin, resetLoginFlag } from "slices/thunk";
-import withRouter from 'Common/withRouter';
+import { LoginRequest, useLoginMutation } from "features/Account/accountSlice";
+import { setCredentials } from "features/Account/authSlice";
 
-//Social Media Imports
-import { GoogleLogin } from "react-google-login";
-import FacebookLogin from "react-facebook-login/dist/facebook-login-render-props";
+import Cookies from "js-cookie";
 
-//Import config
-import { facebook, google } from "../../config";
+const Login = () => {
+  document.title = "Login | Bouden Coach Travel";
 
-const Login = (props: any) => {
+  const [login, { isLoading }] = useLoginMutation();
 
-    document.title = "Login | Toner eCommerce + Admin React Template";
+  const [formState, setFormState] = React.useState<LoginRequest>({
+    login: "",
+    password: "",
+  });
 
-    const dispatch = useDispatch<any>();
-    const { user, error } = useSelector((state: any) => ({
-        user: state.Account.user,
-        error: state.Login.error,
-    }));
+  useEffect(() => {
+    if (localStorage.getItem("auth")) {
+      console.log("hey token2");
+      navigate("/dashboard");
+    }
+  }, [localStorage.getItem("auth")]);
 
-    const [userLogin, setUserLogin] = useState<any>([]);
-    const [passwordShow, setPasswordShow] = useState<any>(false);
-    const [loader, setLoader] = useState<boolean>(false);
-
-    useEffect(() => {
-        if (user && user) {
-            setUserLogin({
-                email: user.email,
-                password: user.password
-            });
-        }
-    }, [user]);
-
-    const validation: any = useFormik({
-        // enableReinitialize : use this flag when initial values needs to be changed
-        enableReinitialize: true,
-
-        initialValues: {
-            email: userLogin.email || "admin@themesbrand.com" || '',
-            password: userLogin.password || "123456" || '',
-        },
-        validationSchema: Yup.object({
-            email: Yup.string().required("Please Enter Your Email"),
-            password: Yup.string().required("Please Enter Your Password"),
-        }),
-        onSubmit: (values) => {
-            dispatch(loginUser(values, props.router.navigate));
-            setLoader(true)
-        }
+  const notify = () => {
+    Swal.fire({
+      icon: "success",
+      title: `Welcome`,
+      showConfirmButton: false,
+      timer: 2200,
     });
+    navigate("/");
+  };
 
-    const signIn = (res: any, type: any) => {
-        if (type === "google" && res) {
-            const postData = {
-                name: res.profileObj.name,
-                email: res.profileObj.email,
-                token: res.tokenObj.access_token,
-                idToken: res.tokenId,
-            };
-            dispatch(socialLogin(postData, props.router.navigate, type));
-        } else if (type === "facebook" && res) {
-            const postData = {
-                name: res.name,
-                email: res.email,
-                token: res.accessToken,
-                idToken: res.tokenId,
-            };
-            dispatch(socialLogin(postData, props.router.navigate, type));
-        }
-    };
+  const msgError: string = "Wrong Credentials !";
+  const Errornotify = (msg: string) => {
+    Swal.fire({
+      icon: "error",
+      title: "Error!",
+      text: `${msg}`,
+      showConfirmButton: false,
+      timer: 2500,
+    });
+    navigate("/login");
+  };
+  const dispatch = useDispatch<any>();
+  const navigate = useNavigate();
 
-    //handleGoogleLoginResponse
-    const googleResponse = (response: any) => {
-        signIn(response, "google");
-    };
+  const handleChange = ({
+    target: { name, value },
+  }: React.ChangeEvent<HTMLInputElement>) =>
+    setFormState((prev) => ({ ...prev, [name]: value }));
+  const [show, setShow] = React.useState(false);
+  const handleClick = () => setShow(!show);
 
-    //handleFacebookLoginResponse
-    const facebookResponse = (response: any) => {
-        signIn(response, "facebook");
-    };
+  return (
+    <React.Fragment>
+      <section className="auth-page-wrapper position-relative bg-light min-vh-100 d-flex align-items-center justify-content-between">
+        <div className="auth-header position-fixed top-0 start-0 end-0 bg-body">
+          <Container fluid={true}>
+            <Row className="justify-content-between align-items-center">
+              <Col className="col-2">
+                <Link className="navbar-brand mb-2 mb-sm-0" to="/">
+                  <img
+                    src={logo}
+                    className="card-logo card-logo-dark"
+                    alt="logo dark"
+                    height="38"
+                  />
+                  <img
+                    src={logo}
+                    className="card-logo card-logo-light"
+                    alt="logo light"
+                    height="38"
+                  />
+                </Link>
+              </Col>
+            </Row>
+          </Container>
+        </div>
+        <div className="w-100">
+          <Container>
+            <Row className="justify-content-center">
+              <Col lg={6}>
+                <div className="auth-card mx-lg-3">
+                  <Card className="border-0 mb-0">
+                    <Card.Header className="bg-primary border-0">
+                      <Row>
+                        <Col lg={4} className="col-3">
+                          <img src={logo} alt="" className="img-fluid" />
+                        </Col>
+                      </Row>
+                    </Card.Header>
+                    <Card.Body>
+                      <p className="text-muted fs-15">
+                        Sign in to continue to School Dashboard.
+                      </p>
+                      <div className="p-2">
+                        <div className="mb-3">
+                          <Form.Label htmlFor="username">Login</Form.Label>
+                          <Form.Control
+                            type="email"
+                            className="form-control"
+                            placeholder="Enter username"
+                            onChange={handleChange}
+                            name="login"
+                          />
+                        </div>
 
-    useEffect(() => {
-        setTimeout(() => {
-            dispatch(resetLoginFlag());
-        }, 3000);
-        setLoader(false)
-    }, [dispatch, error]);
-
-    return (
-        <React.Fragment>
-            <section className="auth-page-wrapper position-relative bg-light min-vh-100 d-flex align-items-center justify-content-between">
-                <div className="auth-header position-fixed top-0 start-0 end-0 bg-body">
-                    <Container fluid={true}>
-                        <Row className="justify-content-between align-items-center">
-                            <Col className="col-2">
-                                <Link className="navbar-brand mb-2 mb-sm-0" to="/">
-                                    <img src={logoDark} className="card-logo card-logo-dark" alt="logo dark" height="22" />
-                                    <img src={logoLight} className="card-logo card-logo-light" alt="logo light" height="22" />
-                                </Link>
-                            </Col>
-                            <Col className="col-auto">
-                                <ul className="list-unstyled hstack gap-2 mb-0">
-                                    <li className="me-md-3">
-                                        <Link to="#" className="text-body fw-medium fs-15">Become a Selling</Link>
-                                    </li>
-                                    <li className="d-none d-md-block">
-                                        <Link to="#" className="btn btn-soft-secondary" data-bs-toggle="dropdown" aria-expanded="false">
-                                            <i className="bi bi-google-play align-middle me-1"></i> Download App
-                                        </Link>
-                                    </li>
-                                    <li className="d-none d-md-block">
-                                        <Link to="#" className="btn btn-soft-primary" data-bs-toggle="dropdown" aria-expanded="false">
-                                            <i className="bi bi-apple align-middle me-1"></i> Download App
-                                        </Link>
-                                    </li>
-                                </ul>
-                            </Col>
-                        </Row>
-                    </Container>
+                        <div className="mb-3">
+                          <div className="float-end">
+                            <Link to="/forgot-password" className="text-muted">
+                              Forgot password?
+                            </Link>
+                          </div>
+                          <Form.Label htmlFor="password-input">
+                            Password
+                          </Form.Label>
+                          <div className="position-relative auth-pass-inputgroup mb-3">
+                            <Form.Control
+                              className="form-control pe-5 password-input"
+                              placeholder="Enter password"
+                              id="password-input"
+                              name="password"
+                              onChange={handleChange}
+                              type={show ? "text" : "password"}
+                            />
+                            <Button
+                              variant="link"
+                              className="position-absolute end-0 top-0 text-decoration-none text-muted password-addon"
+                              type="button"
+                              id="password-addon"
+                              onClick={handleClick}
+                            >
+                              <i className="ri-eye-fill align-middle"></i>
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="form-check">
+                          <Form.Check
+                            type="checkbox"
+                            value=""
+                            id="auth-remember-check"
+                          />
+                          <Form.Label htmlFor="auth-remember-check">
+                            Remember me
+                          </Form.Label>
+                        </div>
+                        <div>
+                          <Button
+                            variant="primary"
+                            className="w-100"
+                            type="submit"
+                            onClick={async () => {
+                              try {
+                                const user: any = await login(
+                                  formState
+                                ).unwrap();
+                                if (user) {
+                                  if (user.central.status === "Active") {
+                                    dispatch(setCredentials(user));
+                                    Cookies.set(
+                                      "astk",
+                                      user.central.api_token,
+                                      { expires: 1 / 4 }
+                                    );
+                                    notify();
+                                  }
+                                  if (user.central.status !== "Active") {
+                                    Errornotify("Your Account is Inactive!");
+                                  }
+                                } else {
+                                  Errornotify(msgError);
+                                }
+                              } catch (err: any) {
+                                console.log(err);
+                              }
+                            }}
+                          >
+                            Sign In
+                          </Button>
+                        </div>
+                      </div>
+                    </Card.Body>
+                  </Card>
                 </div>
-                <div className="w-100">
-                    <Container>
-                        <Row className="justify-content-center">
-                            <Col lg={6}>
-                                <div className="auth-card mx-lg-3">
-                                    <Card className="border-0 mb-0">
-                                        <Card.Header className="bg-primary border-0">
-                                            <Row>
-                                                <Col lg={4} className="col-3">
-                                                    <img src={img1} alt="" className="img-fluid" />
-                                                </Col>
-                                                <Col lg={8} className="col-9">
-                                                    <h1 className="text-white lh-base fw-lighter">Join Our Toner Store</h1>
-                                                </Col>
-                                            </Row>
-                                        </Card.Header>
-                                        <Card.Body>
-                                            <p className="text-muted fs-15">Sign in to continue to Toner.</p>
-                                            <div className="p-2">
-                                                {error && error ? (<Alert variant="danger"> Username and password are invalid. </Alert>) : null}
+              </Col>
+            </Row>
+          </Container>
 
-                                                <Form action="#" onSubmit={(e) => {
-                                                    e.preventDefault();
-                                                    validation.handleSubmit();
-                                                    return false;
-                                                }}>
-
-                                                    <div className="mb-3">
-                                                        <Form.Label htmlFor="username">Username</Form.Label>
-                                                        <Form.Control name="email" type="email" className="form-control" id="username" placeholder="Enter username"
-                                                            onChange={validation.handleChange}
-                                                            onBlur={validation.handleBlur}
-                                                            value={validation.values.email || ""}
-                                                            isInvalid={
-                                                                validation.touched.email && validation.errors.email ? true : false
-                                                            }
-                                                        />
-                                                        {validation.touched.email && validation.errors.email ? (
-                                                            <Form.Control.Feedback type="invalid">{validation.errors.email}</Form.Control.Feedback>
-                                                        ) : null}
-                                                    </div>
-
-                                                    <div className="mb-3">
-                                                        <div className="float-end">
-                                                            <Link to="/forgot-password" className="text-muted">Forgot password?</Link>
-                                                        </div>
-                                                        <Form.Label htmlFor="password-input">Password</Form.Label>
-                                                        <div className="position-relative auth-pass-inputgroup mb-3">
-                                                            <Form.Control className="form-control pe-5 password-input" placeholder="Enter password" id="password-input"
-                                                                name="password"
-                                                                value={validation.values.password || ""}
-                                                                type={passwordShow ? "text" : "password"}
-                                                                onChange={validation.handleChange}
-                                                                onBlur={validation.handleBlur}
-                                                                isInvalid={
-                                                                    validation.touched.password && validation.errors.password ? true : false
-                                                                }
-                                                            />
-                                                            {validation.touched.password && validation.errors.password ? (
-                                                                <Form.Control.Feedback type="invalid">{validation.errors.password}</Form.Control.Feedback>
-                                                            ) : null}
-                                                            <Button variant='link' className="position-absolute end-0 top-0 text-decoration-none text-muted password-addon" type="button" id="password-addon" onClick={() => setPasswordShow(!passwordShow)}><i className="ri-eye-fill align-middle"></i></Button>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="form-check">
-                                                        <Form.Check type="checkbox" value="" id="auth-remember-check" />
-                                                        <Form.Label htmlFor="auth-remember-check">Remember me</Form.Label>
-                                                    </div>
-
-                                                    <div className="mt-4">
-                                                        <Button variant='primary' className="w-100" type="submit" disabled={!error ? loader : false}>{!error ? loader && <Spinner size="sm" animation="border" className="me-2" /> : ""}Sign In</Button>
-                                                    </div>
-
-                                                    <div className="mt-4 pt-2 text-center">
-                                                        <div className="signin-other-title">
-                                                            <h5 className="fs-13 mb-4 title">Sign In with</h5>
-                                                        </div>
-                                                        <div className="pt-2 hstack gap-2 justify-content-center">
-                                                            <FacebookLogin
-                                                                appId={facebook.APP_ID}
-                                                                autoLoad={false}
-                                                                callback={facebookResponse}
-                                                                render={(renderProps:any) => (
-                                                                    <Button variant='soft-primary'
-                                                                        className="btn-icon"
-                                                                        onClick={renderProps.onClick}
-                                                                    >
-                                                                        <i className="ri-facebook-fill fs-16" />
-                                                                    </Button>
-                                                                )}
-                                                            />
-
-                                                            <GoogleLogin
-                                                                clientId={
-                                                                    google.CLIENT_ID ? google.CLIENT_ID : ""
-                                                                }
-                                                                render={renderProps => (
-                                                                    <Button variant='soft-danger'
-                                                                        className="btn-icon me-1"
-                                                                        onClick={renderProps.onClick}
-                                                                    >
-                                                                        <i className="ri-google-fill fs-16" />
-                                                                    </Button>
-                                                                )}
-                                                                onSuccess={googleResponse}
-                                                                onFailure={(error) => {
-                                                                    console.log("fail", error);
-                                                                }}
-                                                            />
-                                                            {/* <Button variant='soft-primary' className="btn-icon"><i className="ri-facebook-fill fs-16"></i></Button> */}
-                                                            {/* <Button variant='soft-danger' className="btn-icon"><i className="ri-google-fill fs-16"></i></Button> */}
-                                                            <Button variant='soft-dark' className="btn-icon"><i className="ri-github-fill fs-16"></i></Button>
-                                                            <Button variant='soft-info' className="btn-icon"><i className="ri-twitter-fill fs-16"></i></Button>
-                                                        </div>
-                                                    </div>
-                                                </Form>
-
-                                                <div className="text-center mt-5">
-                                                    <p className="mb-0">Don't have an account ? <Link to="/register" className="fw-semibold text-secondary text-decoration-underline"> SignUp</Link> </p>
-                                                </div>
-                                            </div>
-                                        </Card.Body>
-                                    </Card>
-                                </div>
-                            </Col>
-                        </Row>
-                    </Container>
-
-                    <footer className="footer">
-                        <Container>
-                            <Row>
-                                <Col lg={12}>
-                                    <div className="text-center">
-                                        <p className="mb-0 text-muted">©
-                                            {(new Date().getFullYear())} Toner. Crafted with <i className="mdi mdi-heart text-danger"></i> by Themesbrand
-                                        </p>
-                                    </div>
-                                </Col>
-                            </Row>
-                        </Container>
-                    </footer>
-                </div>
-            </section>
-        </React.Fragment>
-    );
+          <footer className="footer">
+            <Container>
+              <Row>
+                <Col lg={12}>
+                  <div className="text-center">
+                    <p className="mb-0 text-muted">
+                      ©{new Date().getFullYear()} Bouden Coach Travel. Crafted
+                      with <i className="mdi mdi-heart text-danger"></i> by Team
+                      3S
+                    </p>
+                  </div>
+                </Col>
+              </Row>
+            </Container>
+          </footer>
+        </div>
+      </section>
+    </React.Fragment>
+  );
 };
 
 export default withRouter(Login);

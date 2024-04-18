@@ -19,6 +19,13 @@ export const journeySlice = createApi({
         },
         providesTags: ["Journey"],
       }),
+      fetchJourneyById: builder.query<Journey, string | void>({
+        query: (_id) => ({
+          url: `/getJourneyById/${_id}`,
+          method: "GET",
+        }),
+        providesTags: ["Journey"],
+      }),
       addNewJourney: builder.mutation<void, Journey>({
         query(payload) {
           return {
@@ -31,17 +38,18 @@ export const journeySlice = createApi({
       }),
       deleteJourney: builder.mutation<void, Journey>({
         query: (_id) => ({
-            url: `/deleteJouney/${_id}`,
-            method: "Delete",
+          url: `/deleteJouney/${_id}`,
+          method: "Delete",
         }),
         invalidatesTags: ["Journey"],
-    }),
+      }),
     };
   },
 });
 
 export const {
-useGetAllJourneyQuery,
-useAddNewJourneyMutation,
-useDeleteJourneyMutation
+  useGetAllJourneyQuery,
+  useAddNewJourneyMutation,
+  useDeleteJourneyMutation,
+  useFetchJourneyByIdQuery
 } = journeySlice;

@@ -1,24 +1,34 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Container, Row, Card, Col } from "react-bootstrap";
 import DataTable from "react-data-table-component";
 import Breadcrumb from "Common/BreadCrumb";
 import Flatpickr from "react-flatpickr";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
   Quote,
-  useAddSendBookEmailMutation,
+  useDeleteQuoteMutation,
   useGetAllQuoteQuery,
 } from "features/Quotes/quoteSlice";
+import Swal from "sweetalert2";
 
 const PendingQuotes = () => {
   document.title = "Pending Quotes | Bouden Coach Travel";
+
   const { data: AllQuotes = [] } = useGetAllQuoteQuery();
-  const result = AllQuotes.filter((bookings) => bookings.status !== "Booked");
+  const result = AllQuotes.filter((bookings) => bookings.progress === "New");
+
   const [modal_QuoteInfo, setmodal_QuoteInfo] = useState<boolean>(false);
   function tog_QuoteInfo() {
     setmodal_QuoteInfo(!modal_QuoteInfo);
   }
-  console.log(AllQuotes[1]?.manual_cost!)
+
+  const [isChecked, setIsChecked] = useState<boolean>(false);
+  const [selectedRow, setSelectedRow] = useState<any>();
+  const handleChange = ({ selectedRows }: { selectedRows: Quote }) => {
+    setIsChecked(!isChecked);
+    setSelectedRow(selectedRows);
+  };
+
   const columns = [
     {
       name: <span className="font-weight-bold fs-13">Quote ID</span>,
@@ -57,7 +67,11 @@ const PendingQuotes = () => {
     },
     {
       name: <span className="font-weight-bold fs-13">Date</span>,
-      selector: (row: any) => row.estimated_start_time,
+      selector: (row: any) => (
+        <span>
+          <b>{row.date}</b> at <b>{row.pickup_time}</b>
+        </span>
+      ),
       sortable: true,
       width: "157px",
     },
@@ -82,19 +96,21 @@ const PendingQuotes = () => {
     {
       name: <span className="font-weight-bold fs-13">Progress</span>,
       selector: (cell: any) => {
-        switch (cell.status) {
+        switch (cell.progress) {
           case "New":
-            return <span className="badge bg-danger"> {cell.status} </span>;
+            return <span className="badge bg-danger"> {cell.progress} </span>;
           case "Booked":
-            return <span className="badge bg-info"> {cell.status} </span>;
-          case "Low":
-            return <span className="badge bg-success"> {cell.status} </span>;
+            return <span className="badge bg-info"> {cell.progress} </span>;
+          case "Cancel":
+            return <span className="badge bg-dark"> {cell.progress} </span>;
+          case "Created":
+            return <span className="badge bg-info"> {cell.progress} </span>;
           default:
-            return <span className="badge bg-danger"> {cell.status} </span>;
+            return <span className="badge bg-danger"> {cell.progress} </span>;
         }
       },
       sortable: true,
-      width: "86px",
+      width: "88px",
     },
     {
       name: <span className="font-weight-bold fs-13">Passenger Name</span>,
@@ -129,12 +145,21 @@ const PendingQuotes = () => {
     },
     {
       name: <span className="font-weight-bold fs-13">Arrival Date</span>,
-      selector: (row: any) => row.estimated_return_start_time,
+      selector: (row: any) => (
+        <span>
+          <b>{row.dropoff_date}</b> at <b>{row.dropoff_time}</b>
+        </span>
+      ),
       sortable: true,
+      width: "157px",
     },
     {
       name: <span className="font-weight-bold fs-13">Price</span>,
-      selector: (row: any) => row!.manual_cost!,
+      selector: (row: any) => (
+        <span>
+          £ <b>{row?.manual_cost!}</b>
+        </span>
+      ),
       sortable: true,
     },
     {
@@ -149,8 +174,12 @@ const PendingQuotes = () => {
     },
     {
       name: <span className="font-weight-bold fs-13">Enquiry Date</span>,
-      selector: (row: any) => row.createdAt,
+      selector: (row: Quote) => {
+        const date = new Date(row.createdAt);
+        return <span>{date.toDateString()}</span>;
+      },
       sortable: true,
+      width: "157px",
     },
     {
       name: <span className="font-weight-bold fs-13">Affiliate</span>,
@@ -203,6 +232,43 @@ const PendingQuotes = () => {
     },
   ];
 
+  const [deleteQuote] = useDeleteQuoteMutation();
+  const swalWithBootstrapButtons = Swal.mixin({
+    customClass: {
+      confirmButton: "btn btn-success",
+      cancelButton: "btn btn-danger",
+    },
+    buttonsStyling: false,
+  });
+
+  const AlertDelete = async () => {
+    swalWithBootstrapButtons
+      .fire({
+        title: "Are you sure?",
+        text: "You won't be able to go back?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, delete it !",
+        cancelButtonText: "No, cancel !",
+        reverseButtons: true,
+      })
+      .then((result: any) => {
+        if (result.isConfirmed) {
+          deleteQuote(selectedRow[0]._id);
+          setIsChecked(!isChecked);
+          swalWithBootstrapButtons.fire(
+            "Deleted !",
+            "Quote is deleted.",
+            "success"
+          );
+        } else if (
+          /* Read more about handling dismissals below */
+          result.dismiss === Swal.DismissReason.cancel
+        ) {
+          swalWithBootstrapButtons.fire("Canceled", "Quote is safe :)", "info");
+        }
+      });
+  };
   return (
     <React.Fragment>
       <div className="page-content">
@@ -230,7 +296,6 @@ const PendingQuotes = () => {
                     </select>
                   </Col>
                   <Col lg={2}>
-                    {/* <input type="text" className="form-control" data-provider="flatpickr" data-date-format="d M, Y" data-range-date="true" id="demo-datepicker" placeholder="Select date" /> */}
                     <Flatpickr
                       className="form-control flatpickr-input"
                       placeholder="Select Date"
@@ -342,8 +407,25 @@ const PendingQuotes = () => {
             </Card>
             <Card id="shipmentsList">
               <Card.Header className="border-bottom-dashed">
-                <Row className="g-3">
-                  <Col xxl={3} lg={6}>
+                <Row className="g-2">
+                  <Col lg={2} className="d-flex justify-content-center">
+                    {isChecked ? (
+                      <ul className="hstack gap-2 list-unstyled mb-0">
+                        <li>
+                          <Link
+                            to="#"
+                            className="badge badge-soft-danger edit-item-btn fs-16"
+                            onClick={() => AlertDelete()}
+                          >
+                            <i className="bi bi-trash-fill fs-20"></i> Delete
+                          </Link>
+                        </li>
+                      </ul>
+                    ) : (
+                      ""
+                    )}
+                  </Col>
+                  <Col lg={8} className="d-flex justify-content-center">
                     <div className="search-box">
                       <input
                         type="text"
@@ -353,8 +435,7 @@ const PendingQuotes = () => {
                       <i className="ri-search-line search-icon"></i>
                     </div>
                   </Col>
-                  <Col lg={7}></Col>
-                  <Col>
+                  <Col lg={2} className="d-flex justify-content-end">
                     <div
                       className="btn-group btn-group-sm mt-2"
                       role="group"
@@ -374,7 +455,13 @@ const PendingQuotes = () => {
                 </Row>
               </Card.Header>
               <Card.Body>
-                <DataTable columns={columns} data={result} pagination />
+                <DataTable
+                  columns={columns}
+                  data={result}
+                  selectableRows
+                  onSelectedRowsChange={handleChange}
+                  pagination
+                />
               </Card.Body>
             </Card>
           </Col>

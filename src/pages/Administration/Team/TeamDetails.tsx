@@ -31,9 +31,9 @@ import productsImg14 from "../../../assets/images/products/img-14.png";
 import productsImg15 from "../../../assets/images/products/img-15.png";
 import { Link } from "react-router-dom";
 import country from "Common/country";
-import { Document, Page } from 'react-pdf';
-import { pdfjs } from 'react-pdf';
-import '@react-pdf-viewer/core/lib/styles/index.css';
+import { Document, Page } from "react-pdf";
+import { pdfjs } from "react-pdf";
+import "@react-pdf-viewer/core/lib/styles/index.css";
 
 const bookmarkProduct = (e: any) => {
   const ele = e.target.closest("button");
@@ -57,7 +57,7 @@ const TeamDetails = () => {
   const [modal_AddShippingModals, setmodal_AddShippingModals] =
     useState<boolean>(false);
   function tog_AddShippingModals() {
-    setmodal_AddShippingModals(!modal_AddShippingModals)
+    setmodal_AddShippingModals(!modal_AddShippingModals);
   }
   const [activeVerticalTab, setactiveVerticalTab] = useState<number>(1);
   const [seletedCountry, setseletedCountry] = useState("");
@@ -183,7 +183,10 @@ const TeamDetails = () => {
                                 />
                               </div>
                               <div className="col-12">
-                                <label htmlFor="dateBirth" className="form-label">
+                                <label
+                                  htmlFor="dateBirth"
+                                  className="form-label"
+                                >
                                   Date of Birth
                                 </label>
                                 <input
@@ -230,7 +233,9 @@ const TeamDetails = () => {
                                   className="form-select text-muted"
                                   name="choices-single-default"
                                   id="statusSelect"
-                                  defaultValue={LocationTeam.state.marital_status}
+                                  defaultValue={
+                                    LocationTeam.state.marital_status
+                                  }
                                 >
                                   <option value="">Status</option>
                                   <option value="Married">Married</option>
@@ -247,7 +252,9 @@ const TeamDetails = () => {
                                   type="text"
                                   id="supplierName-field"
                                   placeholder="Enter number of childs"
-                                  defaultValue={LocationTeam.state.number_of_childs}
+                                  defaultValue={
+                                    LocationTeam.state.number_of_childs
+                                  }
                                 />
                               </div>
                               <div className="col-12">
@@ -300,10 +307,19 @@ const TeamDetails = () => {
                                 />
                               </div>
                               <Row className="mt-2">
-              <div className='text-center hstack gap-5'>
-                <Button variant='soft-danger' className="btn-label" onClick={() => { tog_AddShippingModals(); }}><i className="bi bi-filetype-pdf label-icon align-middle fs-24 me-2"></i>Legal Card</Button>
-              </div>
-            </Row>
+                                <div className="text-center hstack gap-5">
+                                  <Button
+                                    variant="soft-danger"
+                                    className="btn-label"
+                                    onClick={() => {
+                                      tog_AddShippingModals();
+                                    }}
+                                  >
+                                    <i className="bi bi-filetype-pdf label-icon align-middle fs-24 me-2"></i>
+                                    Legal Card
+                                  </Button>
+                                </div>
+                              </Row>
                             </Row>
                           </div>
                           <div className="d-flex align-items-start gap-3 mt-4">
@@ -377,7 +393,9 @@ const TeamDetails = () => {
                                   className="form-control"
                                   id="cc-cvv"
                                   placeholder=""
-                                  defaultValue={LocationTeam.state.contract_type}
+                                  defaultValue={
+                                    LocationTeam.state.contract_type
+                                  }
                                 />
                               </Col>
                             </Row>
@@ -498,7 +516,9 @@ const TeamDetails = () => {
                                   type="text"
                                   id="supplierName-field"
                                   placeholder="Enter account number"
-                                  defaultValue={LocationTeam.state.account_number}
+                                  defaultValue={
+                                    LocationTeam.state.account_number
+                                  }
                                 />
                               </div>
                               <div className="mt-2">
@@ -534,19 +554,35 @@ const TeamDetails = () => {
               </Card.Footer>
             </Card>
           </Col>
-          <Modal className="fade zoomIn" size="xl" show={modal_AddShippingModals} onHide={() => { tog_AddShippingModals(); }} centered>
-          <Modal.Header className="px-4 pt-4" closeButton>
-            <h5 className="modal-title fs-18" id="exampleModalLabel">Legal Card</h5>
-          </Modal.Header>
-          <Modal.Body className="p-4">
-            <div id="alert-error-msg" className="d-none alert alert-danger py-2"></div>
-            <div>
-              <Document file={`http://localhost:3000/teamFiles/${LocationTeam.state.id_file}`} onLoadSuccess={onDocumentLoadSuccess}>
-                <Page pageNumber={1} />
-              </Document>
-            </div>
-          </Modal.Body>
-        </Modal>
+          <Modal
+            className="fade zoomIn"
+            size="xl"
+            show={modal_AddShippingModals}
+            onHide={() => {
+              tog_AddShippingModals();
+            }}
+            centered
+          >
+            <Modal.Header className="px-4 pt-4" closeButton>
+              <h5 className="modal-title fs-18" id="exampleModalLabel">
+                Legal Card
+              </h5>
+            </Modal.Header>
+            <Modal.Body className="p-4">
+              <div
+                id="alert-error-msg"
+                className="d-none alert alert-danger py-2"
+              ></div>
+              <div>
+                <Document
+                  file={`http://localhost:3000/teamFiles/${LocationTeam.state.id_file}`}
+                  onLoadSuccess={onDocumentLoadSuccess}
+                >
+                  <Page pageNumber={1} />
+                </Document>
+              </div>
+            </Modal.Body>
+          </Modal>
         </Container>
       </div>
     </React.Fragment>

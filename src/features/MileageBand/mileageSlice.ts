@@ -3,9 +3,9 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 export interface MileageBand {
   _id?: string;
   vehicle_type: {
-    _id?:string;
+    _id?: string;
     base_change: string;
-    type:string
+    type: string;
   };
   mileage_limit: string;
   price: string;
@@ -37,17 +37,17 @@ export const mileageBandSlice = createApi({
       }),
       deleteMileageBand: builder.mutation<void, MileageBand>({
         query: (_id) => ({
-            url: `/deleteMileageBand/${_id}`,
-            method: "Delete",
+          url: `/deleteMileageBand/${_id}`,
+          method: "Delete",
         }),
         invalidatesTags: ["MileageBand"],
-    }),
+      }),
     };
   },
 });
 
 export const {
-useAddNewMileageBandMutation,
-useDeleteMileageBandMutation,
-useGetAllMileageBandsQuery
+  useAddNewMileageBandMutation,
+  useDeleteMileageBandMutation,
+  useGetAllMileageBandsQuery,
 } = mileageBandSlice;

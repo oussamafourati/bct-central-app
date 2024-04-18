@@ -10,6 +10,7 @@ export interface Visitor {
   phone: string;
   name: string;
   enquiryDate: string;
+  status: string;
 }
 
 export const visitorSlice = createApi({
@@ -38,11 +39,11 @@ export const visitorSlice = createApi({
       }),
       deleteVisitor: builder.mutation<void, Visitor>({
         query: (_id) => ({
-            url: `/deleteVisitor/${_id}`,
-            method: "Delete",
+          url: `/deleteVisitor/${_id}`,
+          method: "Delete",
         }),
         invalidatesTags: ["Visitor"],
-    }),
+      }),
     };
   },
 });
@@ -50,5 +51,5 @@ export const visitorSlice = createApi({
 export const {
   useAddNewVisitorMutation,
   useGetAllVisitorsQuery,
-  useDeleteVisitorMutation
+  useDeleteVisitorMutation,
 } = visitorSlice;

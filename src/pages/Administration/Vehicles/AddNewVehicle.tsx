@@ -11,19 +11,21 @@ import {
   Tab,
 } from "react-bootstrap";
 import Swal from "sweetalert2";
-// import Select from "react-select";
 import { Link, useNavigate } from "react-router-dom";
 import Flatpickr from "react-flatpickr";
 import { useGetAllVehicleTypesQuery } from "features/VehicleType/vehicleTypeSlice";
-import { useAddNewExtraMutation, useGetAllExtrasQuery } from "features/VehicleExtraLuxury/extraSlice";
+import {
+  useAddNewExtraMutation,
+  useGetAllExtrasQuery,
+} from "features/VehicleExtraLuxury/extraSlice";
 import { useAddNewVehicleMutation } from "features/Vehicles/vehicleSlice";
 
 const AddNewVehicle = () => {
   document.title = "Create Vehicle | Bouden Coach Travel";
 
-  const [selectedColor, setSelectedColor] = useState<string>('#ffffff');
+  const [selectedColor, setSelectedColor] = useState<string>("#ffffff");
 
-  const { data: AllExtraOptions = [] } = useGetAllExtrasQuery()
+  const { data: AllExtraOptions = [] } = useGetAllExtrasQuery();
 
   const [selectedValues, setSelectedValues] = useState<string[]>([]);
   const handleSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -38,13 +40,16 @@ const AddNewVehicle = () => {
   };
 
   // Registration Date
-  const [selectedRegistrationDate, setSelectedRegistrationDate] = useState<Date | null>(null);
+  const [selectedRegistrationDate, setSelectedRegistrationDate] =
+    useState<Date | null>(null);
   const handleRegistrationDateChange = (selectedDates: Date[]) => {
     setSelectedRegistrationDate(selectedDates[0]);
   };
 
   // Purchase Date
-  const [selectedPurchaseDate, setSelectedPurchaseDate] = useState<Date | null>(null);
+  const [selectedPurchaseDate, setSelectedPurchaseDate] = useState<Date | null>(
+    null
+  );
   const handlePurchaseDateChange = (selectedDates: Date[]) => {
     setSelectedPurchaseDate(selectedDates[0]);
   };
@@ -68,37 +73,46 @@ const AddNewVehicle = () => {
   };
 
   // Insurance Expiry
-  const [selectedInsuranceExpiry, setSelectedInsuranceExpiry] = useState<Date | null>(null);
+  const [selectedInsuranceExpiry, setSelectedInsuranceExpiry] =
+    useState<Date | null>(null);
   const handleInsuranceExpiryChange = (selectedDates: Date[]) => {
     setSelectedInsuranceExpiry(selectedDates[0]);
   };
 
   // Insurance Due
-  const [selectedInsuranceDue, setSelectedInsuranceDue] = useState<Date | null>(null);
+  const [selectedInsuranceDue, setSelectedInsuranceDue] = useState<Date | null>(
+    null
+  );
   const handleInsuranceDueChange = (selectedDates: Date[]) => {
     setSelectedInsuranceDue(selectedDates[0]);
   };
 
   // Service Due
-  const [selectedServiceDue, setSelectedServiceDue] = useState<Date | null>(null);
+  const [selectedServiceDue, setSelectedServiceDue] = useState<Date | null>(
+    null
+  );
   const handleServiceDueChange = (selectedDates: Date[]) => {
     setSelectedServiceDue(selectedDates[0]);
   };
 
   // Tacho Calibration Due
-  const [selectedTachoCalibrationDue, setSelectedTachoCalibrationDue] = useState<Date | null>(null);
+  const [selectedTachoCalibrationDue, setSelectedTachoCalibrationDue] =
+    useState<Date | null>(null);
   const handleTachoCalibrationDueChange = (selectedDates: Date[]) => {
     setSelectedTachoCalibrationDue(selectedDates[0]);
   };
 
   // COIF Certificate Date
-  const [selectedCOIFCertificateDate, setSelectedCOIFCertificateDate] = useState<Date | null>(null);
+  const [selectedCOIFCertificateDate, setSelectedCOIFCertificateDate] =
+    useState<Date | null>(null);
   const handleCOIFCertificateDateChange = (selectedDates: Date[]) => {
     setSelectedCOIFCertificateDate(selectedDates[0]);
   };
 
   // HP Start Date
-  const [selectedHPStartDate, setSelectedHPStartDate] = useState<Date | null>(null);
+  const [selectedHPStartDate, setSelectedHPStartDate] = useState<Date | null>(
+    null
+  );
   const handleHPStartDateChange = (selectedDates: Date[]) => {
     setSelectedHPStartDate(selectedDates[0]);
   };
@@ -111,9 +125,7 @@ const AddNewVehicle = () => {
 
   const [selectedModel, setSelectedModel] = useState<string>("");
   // This function is triggered when the select Model
-  const handleSelectModel = (
-    event: React.ChangeEvent<HTMLSelectElement>
-  ) => {
+  const handleSelectModel = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const value = event.target.value;
     setSelectedModel(value);
   };
@@ -147,9 +159,7 @@ const AddNewVehicle = () => {
 
   const [selectedStatus, setSelectedStatus] = useState<string>("");
   // This function is triggered when the select Max Passenger
-  const handleSelectStatus = (
-    event: React.ChangeEvent<HTMLSelectElement>
-  ) => {
+  const handleSelectStatus = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const value = event.target.value;
     setSelectedStatus(value);
   };
@@ -262,11 +272,11 @@ const AddNewVehicle = () => {
 
   const [extraOption, setExtraOption] = useState(initialExtraOption);
 
-  const {
-    name,
-  } = extraOption;
+  const { name } = extraOption;
 
-  const onChangeExtraOption = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const onChangeExtraOption = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     setExtraOption((prevState) => ({
       ...prevState,
       [e.target.id]: e.target.value,
@@ -279,7 +289,7 @@ const AddNewVehicle = () => {
       createExtra(extraOption)
         .then(() => setExtraOption(initialExtraOption))
         .then(() => notifyExtraOption())
-        .then(() => setmodal_AddExtra(!modal_AddExtra))
+        .then(() => setmodal_AddExtra(!modal_AddExtra));
     } catch (error) {
       notifyErrorExtraOption(error);
     }
@@ -336,7 +346,7 @@ const AddNewVehicle = () => {
     mot_file: "",
     tax_file: "",
     insurance_file: "",
-    insurance_expiry: ""
+    insurance_expiry: "",
   };
 
   const [vehicle, setVehicle] = useState(initialVehicle);
@@ -390,10 +400,12 @@ const AddNewVehicle = () => {
     mot_file,
     tax_file,
     insurance_file,
-    insurance_expiry
+    insurance_expiry,
   } = vehicle;
 
-  const onChangeVehicle = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const onChangeVehicle = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     setVehicle((prevState) => ({
       ...prevState,
       [e.target.id]: e.target.value,
@@ -410,7 +422,7 @@ const AddNewVehicle = () => {
     if (file) {
       const { base64Data, extension } = await convertToBase64(file);
       const vehicleImages = base64Data + "." + extension;
-      console.log(vehicleImages)
+      console.log(vehicleImages);
       setVehicle({
         ...vehicle,
         vehicle_images: vehicleImages,
@@ -430,7 +442,7 @@ const AddNewVehicle = () => {
     if (file) {
       const { base64Data, extension } = await convertToBase64(file);
       const motfile = base64Data + "." + extension;
-      console.log(motfile)
+      console.log(motfile);
       setVehicle({
         ...vehicle,
         mot_file: motfile,
@@ -441,14 +453,16 @@ const AddNewVehicle = () => {
   };
 
   // Tax File
-  const handleFileTaxFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileTaxFile = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = (
       document.getElementById("tax_file_base64_string") as HTMLFormElement
     ).files[0];
     if (file) {
       const { base64Data, extension } = await convertToBase64(file);
       const taxfile = base64Data + "." + extension;
-      console.log(taxfile)
+      console.log(taxfile);
       setVehicle({
         ...vehicle,
         tax_file: taxfile,
@@ -459,14 +473,16 @@ const AddNewVehicle = () => {
   };
 
   // insurance_file_base64_string
-  const handleFileInsurance = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileInsurance = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = (
       document.getElementById("insurance_file_base64_string") as HTMLFormElement
     ).files[0];
     if (file) {
       const { base64Data, extension } = await convertToBase64(file);
       const insurancefile = base64Data + "." + extension;
-      console.log(insurancefile)
+      console.log(insurancefile);
       setVehicle({
         ...vehicle,
         insurance_file: insurancefile,
@@ -487,8 +503,10 @@ const AddNewVehicle = () => {
       vehicle["insurance_expiry"] = selectedInsuranceExpiry!.toDateString();
       vehicle["inspection_due"] = selectedInsuranceDue!.toDateString();
       vehicle["service_due"] = selectedServiceDue!.toDateString();
-      vehicle["tacho_calibration_due"] = selectedTachoCalibrationDue!.toDateString();
-      vehicle["coif_certificate_date"] = selectedCOIFCertificateDate!.toDateString();
+      vehicle["tacho_calibration_due"] =
+        selectedTachoCalibrationDue!.toDateString();
+      vehicle["coif_certificate_date"] =
+        selectedCOIFCertificateDate!.toDateString();
       vehicle["hp_start_date"] = selectedHPStartDate!.toDateString();
       vehicle["hp_end_date"] = selectedHPEndDate!.toDateString();
       vehicle["model"] = selectedModel;
@@ -510,7 +528,7 @@ const AddNewVehicle = () => {
     }
   };
 
-  const { data = [] } = useGetAllVehicleTypesQuery()
+  const { data = [] } = useGetAllVehicleTypesQuery();
   return (
     <React.Fragment>
       <div className="page-content">
@@ -548,7 +566,10 @@ const AddNewVehicle = () => {
                                 <div className="mb-3">
                                   <Row>
                                     <Row className="mb-2">
-                                      <Col lg={12} className="d-flex justify-content-center mb-3">
+                                      <Col
+                                        lg={12}
+                                        className="d-flex justify-content-center mb-3"
+                                      >
                                         <Form.Label htmlFor="vehicle_images_base64_string">
                                           Vehicle Images
                                         </Form.Label>
@@ -576,19 +597,30 @@ const AddNewVehicle = () => {
                                                 name="vehicle_images_base64_string"
                                                 id="vehicle_images_base64_string"
                                                 accept="image/*"
-                                                onChange={(e) => handleVehicleImagesUpload(e)}
-                                                style={{ width: "210px", height: "120px" }}
+                                                onChange={(e) =>
+                                                  handleVehicleImagesUpload(e)
+                                                }
+                                                style={{
+                                                  width: "210px",
+                                                  height: "120px",
+                                                }}
                                               />
                                             </div>
                                             <div className="avatar-lg">
                                               <div className="avatar-title bg-light rounded-3">
-                                                <Link to={`http://localhost:3000/vehicleImages/${vehicle.vehicle_images}`}>
+                                                <Link
+                                                  to={`http://localhost:3000/vehicleImages/${vehicle.vehicle_images}`}
+                                                >
                                                   <img
                                                     src={`data:image/jpeg;base64, ${vehicle.vehicle_images_base64_string}`}
                                                     alt={vehicle.vehicle_images}
                                                     id="vehicle_images_base64_string"
                                                     className="avatar-xl h-auto rounded-3 object-fit-cover"
-                                                    style={{ width: "210px", height: "120px", zIndex: 5000 }}
+                                                    style={{
+                                                      width: "210px",
+                                                      height: "120px",
+                                                      zIndex: 5000,
+                                                    }}
                                                   />
                                                 </Link>
                                               </div>
@@ -596,7 +628,6 @@ const AddNewVehicle = () => {
                                           </div>
                                         </div>
                                       </Col>
-
                                     </Row>
                                     <Row>
                                       {/* Vehicle reg  == Done */}
@@ -628,15 +659,9 @@ const AddNewVehicle = () => {
                                             onChange={handleSelectModel}
                                           >
                                             <option value="">Model</option>
-                                            <option value="Tesla">
-                                              Tesla
-                                            </option>
-                                            <option value="BMW">
-                                              BMW
-                                            </option>
-                                            <option value="Ford">
-                                              Ford
-                                            </option>
+                                            <option value="Tesla">Tesla</option>
+                                            <option value="BMW">BMW</option>
+                                            <option value="Ford">Ford</option>
                                             <option value="Porsche">
                                               Porsche
                                             </option>
@@ -646,12 +671,8 @@ const AddNewVehicle = () => {
                                             <option value="Toyota">
                                               Toyota
                                             </option>
-                                            <option value="Audi">
-                                              Audi
-                                            </option>
-                                            <option value="Jeep">
-                                              Jeep
-                                            </option>
+                                            <option value="Audi">Audi</option>
+                                            <option value="Jeep">Jeep</option>
                                             <option value="Jaguar">
                                               Jaguar
                                             </option>
@@ -665,7 +686,6 @@ const AddNewVehicle = () => {
                                               Infiniti
                                             </option>
                                           </select>
-                                         
                                         </div>
                                       </Col>
                                     </Row>
@@ -704,10 +724,13 @@ const AddNewVehicle = () => {
                                           >
                                             <option value="">Type</option>
                                             {data.map((vehicleType) => (
-                                              <option value={`${vehicleType.type}`}>{vehicleType.type}</option>
+                                              <option
+                                                value={`${vehicleType.type}`}
+                                              >
+                                                {vehicleType.type}
+                                              </option>
                                             ))}
                                           </select>
-                                         
                                         </div>
                                       </Col>
                                     </Row>
@@ -775,7 +798,6 @@ const AddNewVehicle = () => {
                                             <option value="13">49</option>
                                           </select>
                                         </div>
-                                       
                                       </Col>
                                       {/* Fleet_Number == Done */}
                                       <Col lg={6}>
@@ -838,7 +860,9 @@ const AddNewVehicle = () => {
                                           <Flatpickr
                                             className="form-control flatpickr-input"
                                             value={selectedRegistrationDate!}
-                                            onChange={handleRegistrationDateChange}
+                                            onChange={
+                                              handleRegistrationDateChange
+                                            }
                                             placeholder="Select Date"
                                             options={{
                                               dateFormat: "d M, Y",
@@ -863,13 +887,14 @@ const AddNewVehicle = () => {
                                             <option value="">
                                               Select Depot
                                             </option>
-                                            <option value="Brimingham, West Midlands B35
-                                              7BT, UK">
-                                              Brimingham, West Midlands B35
-                                              7BT, UK
+                                            <option
+                                              value="Brimingham, West Midlands B35
+                                              7BT, UK"
+                                            >
+                                              Brimingham, West Midlands B35 7BT,
+                                              UK
                                             </option>
                                           </select>
-                                         
                                         </div>
                                       </Col>
                                     </Row>
@@ -951,7 +976,6 @@ const AddNewVehicle = () => {
                                             name="statusVehicle"
                                             id="statusVehicle"
                                             onChange={handleSelectStatus}
-
                                           >
                                             <option value="">Status</option>
                                             <option value="Active">
@@ -967,7 +991,6 @@ const AddNewVehicle = () => {
                                               On Road
                                             </option>
                                           </select>
-                                          
                                         </div>
                                       </Col>
                                     </Row>
@@ -1026,7 +1049,6 @@ const AddNewVehicle = () => {
                                             name="fuel_type"
                                             id="fuel_type"
                                             onChange={handleSelectFuelType}
-
                                           >
                                             <option value="">Type</option>
                                             <option value="Diesel">
@@ -1042,7 +1064,6 @@ const AddNewVehicle = () => {
                                               Full Electric
                                             </option>
                                           </select>
-                                         
                                         </div>
                                       </Col>
                                       {/* Speed_Limit  == Done */}
@@ -1061,14 +1082,11 @@ const AddNewVehicle = () => {
                                             onChange={handleSelectSpeedLimit}
                                           >
                                             <option value="">Limit</option>
-                                            <option value="60mph">
-                                              60mph
-                                            </option>
+                                            <option value="60mph">60mph</option>
                                             <option value="100mph">
                                               100mph
                                             </option>
                                           </select>
-                                         
                                         </div>
                                       </Col>
                                     </Row>
@@ -1099,7 +1117,6 @@ const AddNewVehicle = () => {
                                               Third party, fire and theft
                                             </option>
                                           </select>
-                                         
                                         </div>
                                       </Col>
                                       {/* Insurance_policy_number  == Done */}
@@ -1116,8 +1133,10 @@ const AddNewVehicle = () => {
                                             id="insurance_policy_number"
                                             name="insurance_policy_number"
                                             onChange={onChangeVehicle}
-                                            value={vehicle.insurance_policy_number}
-                                          // placeholder="Enter owner name"
+                                            value={
+                                              vehicle.insurance_policy_number
+                                            }
+                                            // placeholder="Enter owner name"
                                           />
                                         </div>
                                       </Col>
@@ -1139,9 +1158,7 @@ const AddNewVehicle = () => {
                                             onChange={handleSelectOwnership}
                                           >
                                             <option value="">Owner</option>
-                                            <option value="Owned">
-                                              Owned
-                                            </option>
+                                            <option value="Owned">Owned</option>
                                             <option value="Rented">
                                               Rented
                                             </option>
@@ -1149,7 +1166,8 @@ const AddNewVehicle = () => {
                                         </div>
                                       </Col>
                                       {/* Owner  == Done */}
-                                      {selectOwnership && selectOwnership === "Owned" ?
+                                      {selectOwnership &&
+                                      selectOwnership === "Owned" ? (
                                         <Col lg={6}>
                                           <div className="mb-3">
                                             <label
@@ -1164,8 +1182,12 @@ const AddNewVehicle = () => {
                                               name="owner_name"
                                               // onChange={onChangeVehicle}
                                               value="Bouden Travel Ltd"
-                                            // placeholder="Enter owner name"
-                                            /> </div></Col> : <Col lg={6}>
+                                              // placeholder="Enter owner name"
+                                            />{" "}
+                                          </div>
+                                        </Col>
+                                      ) : (
+                                        <Col lg={6}>
                                           <div className="mb-3">
                                             <label
                                               htmlFor="owner_name"
@@ -1179,11 +1201,11 @@ const AddNewVehicle = () => {
                                               name="owner_name"
                                               onChange={onChangeVehicle}
                                               value={vehicle.owner_name}
-                                            // placeholder="Enter owner name"
+                                              // placeholder="Enter owner name"
                                             />
                                           </div>
                                         </Col>
-                                      }
+                                      )}
                                     </Row>
                                     <Row>
                                       {/* Note  == Done */}
@@ -1216,9 +1238,16 @@ const AddNewVehicle = () => {
                                       </Col>
                                       <Col lg={9}>
                                         <div className="input-group gap-2 mb-3">
-                                          <select multiple size={5} onChange={handleSelectChange} className="select">
+                                          <select
+                                            multiple
+                                            size={5}
+                                            onChange={handleSelectChange}
+                                            className="select"
+                                          >
                                             {AllExtraOptions.map((extras) => (
-                                              <option value={`${extras.name}`}>{extras.name}</option>
+                                              <option value={`${extras.name}`}>
+                                                {extras.name}
+                                              </option>
                                             ))}
                                           </select>
                                           <button
@@ -1226,7 +1255,10 @@ const AddNewVehicle = () => {
                                             type="button"
                                             id="extra-addon2"
                                             onClick={() => tog_AddExtra()}
-                                            style={{ height: "38px", borderRadius: "4px" }}
+                                            style={{
+                                              height: "38px",
+                                              borderRadius: "4px",
+                                            }}
                                           >
                                             <span className="mdi mdi-plus"></span>
                                           </button>
@@ -1277,7 +1309,9 @@ const AddNewVehicle = () => {
                                               className="form-control mb-2"
                                               type="file"
                                               id="mot_file_base64_string"
-                                              onChange={(e) => handleMotFileUpload(e)}
+                                              onChange={(e) =>
+                                                handleMotFileUpload(e)
+                                              }
                                             />
                                           </td>
                                         </tr>
@@ -1309,7 +1343,9 @@ const AddNewVehicle = () => {
                                               className="form-control mb-2"
                                               type="file"
                                               id="tax_file_base64_string"
-                                              onChange={(e) => handleFileTaxFile(e)}
+                                              onChange={(e) =>
+                                                handleFileTaxFile(e)
+                                              }
                                             />
                                           </td>
                                         </tr>
@@ -1323,7 +1359,9 @@ const AddNewVehicle = () => {
                                           <td>
                                             <Flatpickr
                                               value={selectedInsuranceExpiry!}
-                                              onChange={handleInsuranceExpiryChange}
+                                              onChange={
+                                                handleInsuranceExpiryChange
+                                              }
                                               className="form-control flatpickr-input mb-2"
                                               placeholder="Select Date"
                                               options={{
@@ -1341,7 +1379,9 @@ const AddNewVehicle = () => {
                                               className="form-control mb-2"
                                               type="file"
                                               id="insurance_file_base64_string"
-                                              onChange={(e) => handleFileInsurance(e)}
+                                              onChange={(e) =>
+                                                handleFileInsurance(e)
+                                              }
                                             />
                                           </td>
                                         </tr>
@@ -1354,7 +1394,9 @@ const AddNewVehicle = () => {
                                           <td>
                                             <Flatpickr
                                               value={selectedInsuranceDue!}
-                                              onChange={handleInsuranceDueChange}
+                                              onChange={
+                                                handleInsuranceDueChange
+                                              }
                                               className="form-control flatpickr-input mb-2"
                                               placeholder="Select Date"
                                               options={{
@@ -1393,8 +1435,12 @@ const AddNewVehicle = () => {
                                           </td>
                                           <td>
                                             <Flatpickr
-                                              value={selectedTachoCalibrationDue!}
-                                              onChange={handleTachoCalibrationDueChange}
+                                              value={
+                                                selectedTachoCalibrationDue!
+                                              }
+                                              onChange={
+                                                handleTachoCalibrationDueChange
+                                              }
                                               className="form-control flatpickr-input mb-2"
                                               placeholder="Select Date"
                                               options={{
@@ -1423,7 +1469,9 @@ const AddNewVehicle = () => {
                                               // placeholder="Enter owner name"
                                               name="coif_certificate_number"
                                               onChange={onChangeVehicle}
-                                              value={vehicle.coif_certificate_number}
+                                              value={
+                                                vehicle.coif_certificate_number
+                                              }
                                             />
                                           </td>
                                         </tr>
@@ -1435,8 +1483,12 @@ const AddNewVehicle = () => {
                                           </td>
                                           <td>
                                             <Flatpickr
-                                              value={selectedCOIFCertificateDate!}
-                                              onChange={handleCOIFCertificateDateChange}
+                                              value={
+                                                selectedCOIFCertificateDate!
+                                              }
+                                              onChange={
+                                                handleCOIFCertificateDateChange
+                                              }
                                               className="form-control flatpickr-input mb-2"
                                               placeholder="Select Date"
                                               options={{
@@ -1519,7 +1571,9 @@ const AddNewVehicle = () => {
                                               placeholder="£"
                                               name="monthly_repayment_amount"
                                               onChange={onChangeVehicle}
-                                              value={vehicle.monthly_repayment_amount}
+                                              value={
+                                                vehicle.monthly_repayment_amount
+                                              }
                                             />
                                           </td>
                                         </tr>
@@ -1589,9 +1643,7 @@ const AddNewVehicle = () => {
                 <Row>
                   <Col lg={12}>
                     <div className="mb-3">
-                      <Form.Label htmlFor="name">
-                        Extra Name
-                      </Form.Label>
+                      <Form.Label htmlFor="name">Extra Name</Form.Label>
                       <Form.Control
                         autoFocus
                         type="text"

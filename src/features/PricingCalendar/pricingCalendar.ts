@@ -47,17 +47,17 @@ export const pricingCalendarSlice = createApi({
       }),
       deletePricingCalendar: builder.mutation<void, PricingCalendar>({
         query: (_id) => ({
-            url: `/deletePricingCalendar/${_id}`,
-            method: "Delete",
+          url: `/deletePricingCalendar/${_id}`,
+          method: "Delete",
         }),
         invalidatesTags: ["PricingCalendar"],
-    }),
+      }),
     };
   },
 });
 
 export const {
-useAddNewPricingCalendarMutation,
-useDeletePricingCalendarMutation,
-useGetAllPricingCalendarsQuery
+  useAddNewPricingCalendarMutation,
+  useDeletePricingCalendarMutation,
+  useGetAllPricingCalendarsQuery,
 } = pricingCalendarSlice;

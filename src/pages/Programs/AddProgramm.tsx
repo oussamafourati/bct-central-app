@@ -22,14 +22,31 @@ import {
   Autocomplete,
   useJsApiLoader,
 } from "@react-google-maps/api";
-
 import Swal from "sweetalert2";
 import "./AddProgram.css";
 import { useAddProgrammMutation } from "features/Programs/programSlice";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
-import { useFetchSchoolByIdQuery, useGetAllSchoolsQuery } from "features/Schools/schools";
-import { useFetchCompanyByIdQuery, useGetAllCompanyQuery } from "features/Company/companySlice";
+import {
+  useFetchSchoolByIdQuery,
+  useGetAllSchoolsQuery,
+} from "features/Schools/schools";
+import {
+  useFetchCompanyByIdQuery,
+  useGetAllCompanyQuery,
+} from "features/Company/companySlice";
+import {
+  useFetchVehicleTypeByIdQuery,
+  useGetAllVehicleTypesQuery,
+} from "features/VehicleType/vehicleTypeSlice";
+import {
+  useFetchLuggageByIdQuery,
+  useGetAllLuggageQuery,
+} from "features/luggage/luggageSlice";
+import {
+  useFetchJourneyByIdQuery,
+  useGetAllJourneyQuery,
+} from "features/Journeys/journeySlice";
 
 interface Option {
   value: string;
@@ -66,7 +83,6 @@ interface Recap {
   free_date: string[];
   pickUp_date: string;
   pickUp_time: string;
-  clientID: string;
 }
 
 interface Stop {
@@ -88,6 +104,14 @@ interface stopTime {
 const AddProgramm = (props: any) => {
   document.title = "Program | School Administration";
   const navigate = useNavigate();
+
+  // The selected Client Type
+  const [selectedClientType, setSelectedClientType] = useState<string>("");
+
+  // This function will be triggered when a radio button is selected
+  const radioHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSelectedClientType(event.target.value);
+  };
 
   const [distance, setDistance] = useState("");
   const [duration, setDuration] = useState("");
@@ -146,7 +170,6 @@ const AddProgramm = (props: any) => {
     free_date: [],
     pickUp_date: "",
     pickUp_time: "",
-    clientID: ""
   });
 
   const [test, setTest] = useState("");
@@ -170,6 +193,31 @@ const AddProgramm = (props: any) => {
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
 
   const [createProgram] = useAddProgrammMutation();
+
+  const { data: AllVehicleTypes = [] } = useGetAllVehicleTypesQuery();
+  const { data: AllLuggages = [] } = useGetAllLuggageQuery();
+  const { data: AllJourneys = [] } = useGetAllJourneyQuery();
+  const [selectedVehicleType, setSelectedVehicletype] = useState<string>("");
+  // This function is triggered when the select Vehicle Type
+  const handleSelectVehicleType = (
+    event: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    const value = event.target.value;
+    setSelectedVehicletype(value);
+  };
+  const [selectedLuggage, setSelectedLuggage] = useState<string>("");
+  // This function is triggered when the select Luggage
+  const handleSelectLuggage = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = event.target.value;
+    setSelectedLuggage(value);
+  };
+
+  const [selectedJourney, setSelectedJourney] = useState<string>("");
+  // This function is triggered when the select Journey
+  const handleSelectJourney = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = event.target.value;
+    setSelectedJourney(value);
+  };
   const [programmData, setProgrammData] = useState({
     programName: "",
     origin_point: {
@@ -200,10 +248,23 @@ const AddProgramm = (props: any) => {
     recommanded_capacity: "",
     extra: [""],
     notes: "",
+    vehiculeType: "",
+    luggage: "",
+    journeyType: "",
     dropOff_time: "",
     pickUp_Time: "",
     workDates: [""],
-    clientID: "",
+    company_id: "",
+    school_id: "",
+    invoiceFrequency: "",
+    total_price: "",
+    unit_price: "",
+    program_status: [
+      {
+        status: "",
+        date_status: "",
+      },
+    ],
   });
   const notify = () => {
     Swal.fire({
@@ -218,20 +279,28 @@ const AddProgramm = (props: any) => {
   const { data: allSchools = [] } = useGetAllSchoolsQuery();
   const { data: allCompanies = [] } = useGetAllCompanyQuery();
 
-  const [selectClientID, setSelectedClientID] = useState<string>("");
-  // This function is triggered when the select ClientID
-  const handleSelectClientID = (
+  const [selectSchoolID, setSelectedSchoolID] = useState<string>("");
+  // This function is triggered when the select SchoolID
+  const handleSelectSchoolID = (
     event: React.ChangeEvent<HTMLSelectElement>
   ) => {
     const value = event.target.value;
-    setSelectedClientID(value);
+    setSelectedSchoolID(value);
   };
 
-const {data: oneSchool} = useFetchSchoolByIdQuery(selectClientID)
+  const [selectCompanyID, setSelectedCompanyID] = useState<string>("");
+  // This function is triggered when the select CompanyID
+  const handleSelectCompanyID = (
+    event: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    const value = event.target.value;
+    setSelectedCompanyID(value);
+  };
 
-const {data: oneCompany} = useFetchCompanyByIdQuery(selectClientID)
-console.log(oneSchool)
-console.log(oneCompany)
+  const { data: oneSchool } = useFetchSchoolByIdQuery(selectSchoolID);
+
+  const { data: oneCompany } = useFetchCompanyByIdQuery(selectCompanyID);
+
   const onChangeProgramms = (e: React.ChangeEvent<HTMLInputElement>) => {
     setProgrammData((prevState) => ({
       ...prevState,
@@ -241,7 +310,6 @@ console.log(oneCompany)
   const onSubmitProgramm = (e: React.FormEvent<HTMLFormElement>) => {
     try {
       e.preventDefault();
-      programmData["clientID"] = selectClientID;
       createProgram(programmData)
         .then(() => notify())
         .then(() => navigate("/list-of-program"));
@@ -291,7 +359,6 @@ console.log(oneCompany)
           free_date.length > 0 ? free_date.map((date) => date.toString()) : [],
         pickUp_date: pickUp_date ? pickUp_date.toString() : "",
         pickUp_time: pickUp_time ? pickUp_time.toString() : "",
-        clientID: oneCompany === undefined ?  oneSchool?.name! : oneCompany?.name!
       }));
     }
   }, [
@@ -307,27 +374,7 @@ console.log(oneCompany)
     free_date,
     pickUp_date,
     pickUp_time,
-    oneCompany?.name!,
-    oneSchool?.name!
   ]);
-  var hours = String(
-    Math.floor(
-      (Number(test2!) / 60 +
-        pickUp_time?.getMinutes()! +
-        pickUp_time?.getHours()! * 60) /
-        60
-    )
-  ).padStart(2, "0");
-
-  var minutes = String(
-    Math.round(
-      (Number(test2!) / 60 +
-        pickUp_time?.getMinutes()! +
-        pickUp_time?.getHours()! * 60) %
-        60
-    )
-  ).padStart(2, "0");
-
   const handlePickupTime = (selectedDates: any) => {
     const formattedTime = selectedDates[0];
     setPickUp_time(formattedTime);
@@ -340,7 +387,7 @@ console.log(oneCompany)
     let tempStopTimes = [...stopTimes];
     let newSelectedTime =
       String(hour).padStart(2, "0") + ":" + String(minute).padStart(2, "0");
-  
+
     tempStopTimes[index] = {
       hours: hour,
       minutes: minute,
@@ -483,6 +530,10 @@ console.log(oneCompany)
     return null;
   };
 
+  const OneVehicleType = useFetchVehicleTypeByIdQuery(selectedVehicleType);
+  const OneLuggage = useFetchLuggageByIdQuery(selectedLuggage);
+  const OneJourney = useFetchJourneyByIdQuery(selectedJourney);
+
   const handleDayClick = (value: Date) => {
     const dayOfWeek = value.getDay();
     const selectedDayIndex = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
@@ -508,15 +559,19 @@ console.log(oneCompany)
           <span className="title"> Journey Name: </span>{" "}
           <span className="title-value">{programmData.programName}</span>
         </Row>
-        <Row className="d-flex justify-content-space-between">
+        <Row className="d-flex">
           <Col>
             <div className="table-responsive">
               <table className="table table-sm table-borderless align-middle description-table">
                 <tbody>
-                <tr>
+                  <tr>
                     <td>
                       <b>Client </b>
-                      <p>{programmData.clientID}</p>
+                      {oneCompany === undefined ? (
+                        <p>{oneSchool?.name!}</p>
+                      ) : (
+                        <p>{oneCompany?.name!}</p>
+                      )}
                     </td>
                   </tr>
                   <tr>
@@ -547,6 +602,14 @@ console.log(oneCompany)
                       <b>Drop Off Time </b> <p> {programmData.dropOff_time}</p>
                     </td>
                   </tr>
+                </tbody>
+              </table>
+            </div>
+          </Col>
+          <Col>
+            <div className="table-responsive">
+              <table className="table table-sm table-borderless align-middle description-table">
+                <tbody>
                   <tr>
                     <td>
                       <b>List of Stops</b>
@@ -555,7 +618,6 @@ console.log(oneCompany)
                       <b>Stop Time</b>
                     </td>
                   </tr>
-
                   {waypts.map((value, index) => (
                     <tr key={index}>
                       <td>{value.location?.toString()}</td>
@@ -579,6 +641,39 @@ console.log(oneCompany)
                       <b>Capacity Recommended</b>{" "}
                       <p> {programmData.recommanded_capacity}</p>
                     </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <b>Vehicle Type</b>{" "}
+                      <p>{OneVehicleType.currentData?.type}</p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <b>Luggage Details</b>{" "}
+                      <p>{OneLuggage.currentData?.description}</p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <b>Journey Type</b> <p>{OneJourney.currentData?.type}</p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <b> Selected Options </b>{" "}
+                      <p>{programmData.extra.join(", ")}</p>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </Col>
+          <Col>
+            <div className="table-responsive">
+              <table className="table table-sm table-borderless align-middle description-table">
+                <tbody>
+                  <tr>
                     <td>
                       <p className="legend-container">
                         Excepted days{" "}
@@ -588,17 +683,12 @@ console.log(oneCompany)
                   </tr>
                   <tr>
                     <td>
-                      <b> Selected Options </b>{" "}
-                      <p>{programmData.extra.join(", ")}</p>
-                    </td>
-                    <td>
                       <p className="legend-container">
                         Current day <span className="legend bg-now-day"></span>
                       </p>
                     </td>
                   </tr>
                   <tr>
-                    <td></td>
                     <td>
                       <p className="legend-container">
                         Free days <span className="legend bg-free-day"></span>
@@ -610,19 +700,25 @@ console.log(oneCompany)
             </div>
           </Col>
         </Row>
-        <b>Work Dates: </b>
-        <br />
-
-        <div className="calender-container">
-          <Calendar tileClassName={tileClassName} tileDisabled={tileDisabled} />
-        </div>
+        <Row>
+          <Col lg={3}>
+            <b>Work Dates: </b>
+          </Col>
+          <Col lg={9}>
+            <div className="calender-container">
+              <Calendar
+                tileClassName={tileClassName}
+                tileDisabled={tileDisabled}
+              />
+            </div>
+          </Col>
+        </Row>
       </>
     );
   };
   const isJourneyStepValid = () => {
     return programmData.programName.trim() !== "";
   };
-
   const isTripTimesStepValid = () => {
     const pickupTimeInput = document.getElementById(
       "pickUp_time"
@@ -684,9 +780,20 @@ console.log(oneCompany)
   const handleNextStep = (isResume: boolean) => {
     if (isResume === true) {
       programmData["extra"] = selected;
+      if (selectedClientType === "School") {
+        programmData["school_id"] = selectSchoolID;
+      }
+      if (selectedClientType === "Company") {
+        programmData["company_id"] = selectCompanyID;
+      }
       programmData["exceptDays"] = selected1;
       programmData["workDates"] = getWorkDates();
-
+      programmData["program_status"] = [
+        {
+          status: "Pending",
+          date_status: "",
+        },
+      ];
       let freeDates = [];
 
       for (let freeDay of free_date) {
@@ -705,7 +812,9 @@ console.log(oneCompany)
       }
 
       programmData["freeDays_date"] = freeDates;
-
+      programmData["journeyType"] = selectedJourney;
+      programmData["luggage"] = selectedLuggage;
+      programmData["vehiculeType"] = selectedVehicleType;
       const dropYear = dropOff_date!.getFullYear();
       const dropMonth = dropOff_date!.getMonth() + 1;
       const dropDay = dropOff_date!.getDate().toLocaleString();
@@ -1132,6 +1241,7 @@ console.log(oneCompany)
 
     return prevDate;
   };
+
   return (
     <React.Fragment>
       <div className="page-content">
@@ -1143,9 +1253,6 @@ console.log(oneCompany)
                 <Button variant="success" id="add-btn" className="btn-sm">
                   Save & Send
                 </Button>
-                {/* <Button variant="info" id="add-btn" className="btn-sm">
-                  Quick Save
-                </Button> */}
               </div>
             </Card.Header>
             <Card.Body className="form-steps">
@@ -1159,33 +1266,89 @@ console.log(oneCompany)
                       <Tab.Content>
                         <Tab.Pane eventKey="1">
                           <Row>
-                            <Col lg={4}>
-                              <div
-                                style={{
-                                  maxHeight: "calc(80vh - 80px)",
-                                  overflowX: "auto",
-                                }}
-                              >
-                                <Form.Label htmlFor="clientID">Name</Form.Label>
+                            <Col lg={2}>
+                              <div className="form-check mb-2">
+                                <input
+                                  className="form-check-input"
+                                  type="radio"
+                                  name="flexRadioDefault"
+                                  id="flexRadioDefault1"
+                                  onChange={radioHandler}
+                                  value="School"
+                                />
+                                <Form.Label
+                                  className="form-check-label fs-17"
+                                  htmlFor="flexRadioDefault1"
+                                >
+                                  School
+                                </Form.Label>
+                              </div>
+                            </Col>
+                            <Col lg={2}>
+                              <div className="form-check mb-2">
+                                <input
+                                  className="form-check-input"
+                                  type="radio"
+                                  name="flexRadioDefault"
+                                  id="flexRadioDefault1"
+                                  onChange={radioHandler}
+                                  value="Company"
+                                />
+                                <Form.Label
+                                  className="form-check-label fs-17"
+                                  htmlFor="flexRadioDefault1"
+                                >
+                                  Company
+                                </Form.Label>
+                              </div>
+                            </Col>
+                          </Row>
+                          {selectedClientType === "School" ? (
+                            <Row>
+                              <Col lg={4}>
+                                <Form.Label htmlFor="school_id">
+                                  Client Name
+                                </Form.Label>
                                 <div className="mb-3">
                                   <select
                                     className="form-select text-muted"
-                                    name="clientID"
-                                    id="clientID"
-                                    onChange={handleSelectClientID}
+                                    name="school_id"
+                                    id="school_id"
+                                    onChange={handleSelectSchoolID}
                                   >
                                     <option value="">Select</option>
                                     {allSchools.map((school) => (
                                       <option
-                                        value={`${school._id}`}
+                                        value={`${school?._id!}`}
                                         key={school?._id!}
                                       >
                                         {school.name}
                                       </option>
                                     ))}
+                                  </select>
+                                </div>
+                              </Col>
+                            </Row>
+                          ) : (
+                            ""
+                          )}
+                          {selectedClientType === "Company" ? (
+                            <Row>
+                              <Col lg={4}>
+                                <Form.Label htmlFor="company_id">
+                                  Client Name
+                                </Form.Label>
+                                <div className="mb-3">
+                                  <select
+                                    className="form-select text-muted"
+                                    name="company_id"
+                                    id="company_id"
+                                    onChange={handleSelectCompanyID}
+                                  >
+                                    <option value="">Select</option>
                                     {allCompanies.map((company) => (
                                       <option
-                                        value={`${company._id}`}
+                                        value={`${company?._id!}`}
                                         key={company?._id!}
                                       >
                                         {company.name}
@@ -1193,13 +1356,25 @@ console.log(oneCompany)
                                     ))}
                                   </select>
                                 </div>
+                              </Col>
+                            </Row>
+                          ) : (
+                            ""
+                          )}
+                          <Row>
+                            <Col lg={4}>
+                              <div
+                                style={{
+                                  maxHeight: "calc(80vh - 80px)",
+                                  overflowX: "auto",
+                                }}
+                              >
                                 <Form.Label htmlFor="programName">
-                                  Name
+                                  Program Name
                                 </Form.Label>
                                 <Form.Control
                                   type="text"
                                   id="programName"
-                                  style={{ width: "450px" }}
                                   required
                                   className="mb-2"
                                   placeholder="Add Program Name"
@@ -1208,14 +1383,14 @@ console.log(oneCompany)
                                   onChange={onChangeProgramms}
                                 />
                                 <Form.Label htmlFor="customerName-field">
-                                  coordinations
+                                  Coordinations
                                 </Form.Label>
 
                                 <InputGroup className="mb-3">
                                   <InputGroup.Text id="basic-addon1">
                                     From
                                   </InputGroup.Text>
-                                  <div className="d-flex">
+                                  <div className="d-flex gap-1">
                                     <Autocomplete
                                       onPlaceChanged={onPlaceChanged}
                                       onLoad={onLoad}
@@ -1256,7 +1431,7 @@ console.log(oneCompany)
                                   <InputGroup.Text id="basic-addon1">
                                     To
                                   </InputGroup.Text>
-                                  <div className="d-flex">
+                                  <div className="d-flex gap-2">
                                     <Autocomplete
                                       onPlaceChanged={onPlaceChangedDest}
                                       onLoad={onLoadDest}
@@ -1310,12 +1485,6 @@ console.log(oneCompany)
                                         time_24hr: true,
                                       }}
                                     />
-                                    {/* <p>
-                                      {String(stopTimes[stopTimes.length - 1]?.hours).padStart(2,'0') +
-                                          ":" +
-                                          String(stopTimes[stopTimes.length - 1]
-                                            ?.minutes).padStart(2,'0')}
-                                    </p> */}
                                   </div>
                                 </InputGroup>
 
@@ -1330,28 +1499,6 @@ console.log(oneCompany)
                                     Plan Route
                                   </Button>
                                 )}
-
-                                {/* <div className="flex">
-                                <Button
-                                  onClick={switchRoute}
-                                  className="btn btn-dark w-lg d-grid gap-2 btn-switch"
-                                >
-                                  Switch
-                                </Button>
-                              </div> */}
-
-                                {/* <Flatpickr
-                                  className="form-control"
-                                  id="dropOff_time"
-                                  options={{
-                                    enableTime: true,
-                                    noCalendar: true,
-                                    dateFormat: "H:i",
-                                    time_24hr: true,
-                                   
-                                  }}
-                                /> */}
-
                                 <div style={{ marginTop: "20px" }}>
                                   {stops2.map((stop, index) => (
                                     <Row>
@@ -1415,7 +1562,6 @@ console.log(oneCompany)
                                           }
                                         </div>
                                       </Col>
-
                                       <button
                                         type="button"
                                         className="btn btn-danger btn-icon"
@@ -1435,7 +1581,7 @@ console.log(oneCompany)
                                     <Link
                                       to="#"
                                       id="add-item"
-                                      className="btn btn-soft-dark fw-medium"
+                                      className="btn btn-soft-info fw-medium"
                                       onClick={handleAddStopClickWrapper(
                                         "New Stop Address"
                                       )}
@@ -1446,52 +1592,24 @@ console.log(oneCompany)
                                         Via
                                       </i>
                                     </Link>
-                                    {/* <Link
-                                      to="#"
-                                      id="add-item"
-                                      className="btn btn-soft-dark fw-medium link"
-                                      style={{
-                                        width: "150px",
-                                        marginLeft: "150px",
-                                      }}
-                                    >
-                                      <i className="ri-add-line label-icon align-middle rounded-pill fs-16 me-2">
-                                        {" "}
-                                        Options
-                                      </i>
-                                    </Link> */}
                                   </div>
                                 </div>
-
-                                {/* <div>
-                                {test && test2 && (
-                                  <div className="distance">
-                                    <Form.Label className="label">
-                                      Distance:{test}
-                                    </Form.Label>
-                                    <Form.Label className="label">
-                                      Duration: {test2}
-                                    </Form.Label>
-                                  </div>
-                                )}
-                              </div> */}
                               </div>
                             </Col>
-
                             <Col lg={8}>
                               <div
                                 style={{
                                   position: "absolute",
                                   left: "0",
-                                  height: "530px",
-                                  width: "2350px",
+                                  height: "460px",
+                                  width: "2060px",
                                 }}
                               >
                                 <GoogleMap
                                   center={center}
                                   zoom={15}
                                   mapContainerStyle={{
-                                    width: isMapFullScreen ? "100vw" : "43%",
+                                    width: isMapFullScreen ? "100vw" : "50%",
                                     height: isMapFullScreen ? "100vh" : "120%",
                                   }}
                                   options={{
@@ -1548,7 +1666,7 @@ console.log(oneCompany)
                               </div>
                               <div
                                 className="d-flex align-items-end"
-                                style={{ marginTop: "670px" }}
+                                style={{ marginTop: "570px" }}
                               >
                                 <Dropdown style={{ marginLeft: "0" }}>
                                   <Dropdown.Toggle
@@ -1748,7 +1866,7 @@ console.log(oneCompany)
                         </Tab.Pane>
                         <Tab.Pane eventKey="3">
                           <Row>
-                            <Col lg={4}>
+                            <Col lg={6}>
                               <div className="mb-3">
                                 <Form.Label htmlFor="recommanded_capacity">
                                   Recommanded Capacity
@@ -1762,6 +1880,82 @@ console.log(oneCompany)
                                   value={programmData.recommanded_capacity}
                                   onChange={onChangeProgramms}
                                 />
+                              </div>
+                            </Col>
+                            <Col lg={6}>
+                              <div className="mb-3">
+                                <Form.Label htmlFor="vehicleType">
+                                  Vehicle Type
+                                </Form.Label>
+                                <div>
+                                  <select
+                                    className="form-select text-muted"
+                                    name="vehicleType"
+                                    id="vehicleType"
+                                    onChange={handleSelectVehicleType}
+                                  >
+                                    <option value="">
+                                      Select Vehicle Type
+                                    </option>
+                                    {AllVehicleTypes.map((vehicleType) => (
+                                      <option
+                                        value={vehicleType._id}
+                                        key={vehicleType._id}
+                                      >
+                                        {vehicleType.type}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                              </div>
+                            </Col>
+                          </Row>
+                          <Row>
+                            <Col lg={6}>
+                              <div className="mb-4">
+                                <Form.Label htmlFor="journeyType">
+                                  Journey Type
+                                </Form.Label>
+                                <select
+                                  className="form-select text-muted"
+                                  name="journeyType"
+                                  id="journeyType"
+                                  onChange={handleSelectJourney}
+                                >
+                                  <option value="">Select Journey Type</option>
+                                  {AllJourneys.map((journeys) => (
+                                    <option
+                                      value={journeys._id}
+                                      key={journeys._id}
+                                    >
+                                      {journeys.type}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                            </Col>
+
+                            <Col lg={6}>
+                              <div className="mb-3">
+                                <Form.Label htmlFor="luggageDetails">
+                                  Luggage Details
+                                </Form.Label>
+                                <select
+                                  className="form-select text-muted"
+                                  name="luggageDetails"
+                                  id="luggageDetails"
+                                  onChange={handleSelectLuggage}
+                                >
+                                  <option value="">Select Luggage</option>
+                                  {AllLuggages.map((Luggage) => (
+                                    <option
+                                      value={Luggage._id}
+                                      key={Luggage._id}
+                                    >
+                                      {Luggage.description}
+                                    </option>
+                                  ))}
+                                </select>
                               </div>
                             </Col>
                           </Row>

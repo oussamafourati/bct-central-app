@@ -1,10 +1,12 @@
-import React, {useState} from "react";
+import React, { useState } from "react";
 import {
   Container,
   Row,
   Card,
   Col,
   Button,
+  Modal,
+  Form,
 } from "react-bootstrap";
 import DataTable from "react-data-table-component";
 import Breadcrumb from "Common/BreadCrumb";
@@ -13,20 +15,36 @@ import {
   Contract,
   useDeleteContractMutation,
   useGetAllContractsQuery,
-  useGetContractQuery,
   useUpdateContractMutation,
+  useUpdateContractStatusToApprovedMutation,
 } from "features/contract/contractSlice";
 import Swal from "sweetalert2";
+import Flatpickr from "react-flatpickr";
+import { useFetchSchoolByIdQuery } from "features/Schools/schools";
+import { useFetchCompanyByIdQuery } from "features/Company/companySlice";
 
 const NewContract = () => {
   document.title = "Contract | Bouden Coach Travel";
   const { data: AllContracts = [] } = useGetAllContractsQuery();
   const navigate = useNavigate();
 
+  const [modal_UpdateContractStatus, setmodal_UpdateContractStatus] =
+    useState<boolean>(false);
+  function tog_ModalToUpdateContractStatus() {
+    setmodal_UpdateContractStatus(!modal_UpdateContractStatus);
+  }
+
+  // Effective Date
+  const [selectedEffectiveDate, setSelectedEffectiveDate] =
+    useState<Date | null>(null);
+  const handleEffectiveDateChange = (selectedDates: Date[]) => {
+    setSelectedEffectiveDate(selectedDates[0]);
+  };
+
   function tog_AddContract() {
     navigate("/new-contract");
   }
-  const [updateContract] = useUpdateContractMutation();
+  const [updateContractStatusMutation] = useUpdateContractStatusToApprovedMutation();
   const [deleteContract] = useDeleteContractMutation();
 
   const swalWithBootstrapButtons = Swal.mixin({
@@ -69,76 +87,78 @@ const NewContract = () => {
       });
   };
 
-const contractLocation = useLocation()
-const [oneContract, setOneContract] = useState<Contract>()
-const handleOneContract = ()=> {
-  setOneContract(contractLocation.state)
-}
-const AlertUpdateStatus = async (_id: any) => {
-  handleOneContract(); // Start updating state
-
-  // Use a callback function to wait for the state update
-  const updateStatusCallback = () => {
-    updateContract({
-      _id,
-      accountEmail: oneContract?.accountEmail!,
-      accountName: oneContract?.accountName!,
-      accountPhone: oneContract?.accountPhone!,
-      accountRef: oneContract?.accountRef!,
-      contractName: oneContract?.contractName!,
-      invoiceFrequency: oneContract?.invoiceFrequency!,
-      customerNotes: oneContract?.customerNotes!,
-      staffNotes: oneContract?.staffNotes!,
-      prices: oneContract?.prices!,
-      salesperson: oneContract?.salesperson!,
-      idProgram: oneContract?.idProgram!,
-      idAccount: oneContract?.idAccount!,
-      vehicleType: oneContract?.vehicleType!,
-      journeyType: oneContract?.journeyType!,
-      luggageDetails: oneContract?.luggageDetails!,
-      contractStatus: "Approved",
-    }).then(() => {
-      swalWithBootstrapButtons.fire(
-        "Deleted !",
-        "Contract is Updated.",
-        "success"
-      );
+  const notifySuccess = () => {
+    Swal.fire({
+      position: "center",
+      icon: "success",
+      title: "Contract Status is updated successfully",
+      showConfirmButton: false,
+      timer: 2500,
     });
   };
 
-  swalWithBootstrapButtons
-    .fire({
-      title: "Are you sure?",
-      text: "You won't be able to go back?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Yes, update it !",
-      cancelButtonText: "No, cancel !",
-      reverseButtons: true,
-    })
-    .then((result) => {
-      if (result.isConfirmed) {
-        updateStatusCallback(); // Call the update function after state update
-      } else if (result.dismiss === Swal.DismissReason.cancel) {
-        swalWithBootstrapButtons.fire(
-          "Canceled",
-          "Contract is safe :)",
-          "info"
-        );
-      }
+  const notifyError = (err: any) => {
+    Swal.fire({
+      position: "center",
+      icon: "error",
+      title: `Sothing Wrong, ${err}`,
+      showConfirmButton: false,
+      timer: 2500,
     });
-};
+  };
 
+  const contractLocation = useLocation();
 
+  const initialUpdateContractStatus = {
+    contract_id: "",
+    effectiveDate: "",
+  };
+
+  const [updateContractStatusToContract, setUpdateContractStatusToContract] = useState(
+    initialUpdateContractStatus
+  );
+
+  const { contract_id, effectiveDate } = updateContractStatusToContract;
+
+  const onChangeUpdateContractStatus = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setUpdateContractStatusToContract((prevState) => ({
+      ...prevState,
+      [e.target.id]: e.target.value,
+    }));
+  };
+
+  const onSubmitUpdateContractStatusToApproved = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    try {
+      console.log(contractLocation.state?._id!)
+      updateContractStatusToContract["contract_id"] = contractLocation.state?._id!;
+      updateContractStatusToContract["effectiveDate"] = selectedEffectiveDate!.toDateString();
+      updateContractStatusMutation(updateContractStatusToContract)
+        .then(() => navigate("/contract"))
+        .then(() => notifySuccess());
+    } catch (error) {
+      notifyError(error);
+    }
+  };
+  
   const columns = [
+    {
+      name: <span className="font-weight-bold fs-13">Contract Ref</span>,
+      selector: (row: any) => row.contractRef,
+      sortable: true,
+      width: "140px",
+    },
     {
       name: <span className="font-weight-bold fs-13">Contract Name</span>,
       selector: (row: any) => row.contractName,
       sortable: true,
+      width: "300px",
     },
     {
       name: <span className="font-weight-bold fs-13">Customer</span>,
-      selector: (row: any) => row.accountRef,
+      selector: (row: any) => row.accountName,
       sortable: true,
     },
     {
@@ -147,11 +167,11 @@ const AlertUpdateStatus = async (_id: any) => {
         return (
           <div>
             <span>
-              <strong>{row.idProgram.pickUp_date}</strong>
+              <strong>{row?.idProgram?.pickUp_date!}</strong>
             </span>{" "}
             <span>at</span>{" "}
             <span>
-              <strong>{row.idProgram.pickUp_Time}</strong>
+              <strong>{row!.idProgram?.pickUp_Time!}</strong>
             </span>
           </div>
         );
@@ -164,11 +184,11 @@ const AlertUpdateStatus = async (_id: any) => {
         return (
           <div>
             <span>
-              <strong>{row.idProgram.droppOff_date}</strong>
+              <strong>{row?.idProgram?.droppOff_date!}</strong>
             </span>{" "}
             <span>at</span>{" "}
             <span>
-              <strong>{row.idProgram.dropOff_time}</strong>
+              <strong>{row?.idProgram?.dropOff_time!}</strong>
             </span>
           </div>
         );
@@ -179,16 +199,67 @@ const AlertUpdateStatus = async (_id: any) => {
       name: <span className="font-weight-bold fs-13">Price</span>,
       selector: (row: any) => "£ " + row.prices,
       sortable: true,
+      width: "160px",
     },
     {
       name: <span className="font-weight-bold fs-13">Invoice Frequency</span>,
-      selector: (row: any) => row.invoiceFrequency,
+      selector: (cell: any) => {
+        switch (cell.invoiceFrequency) {
+          case "Weekly":
+            return (
+              <span className="badge bg-primary">{cell.invoiceFrequency}</span>
+            );
+          case "Bi Weekly":
+            return (
+              <span className="badge bg-info"> {cell.invoiceFrequency} </span>
+            );
+          case "Daily":
+            return (
+              <span className="badge bg-success">
+                {" "}
+                {cell.invoiceFrequency}{" "}
+              </span>
+            );
+          case "Third Weekly":
+            return (
+              <span className="badge bg-secondary">
+                {" "}
+                {cell.invoiceFrequency}{" "}
+              </span>
+            );
+          case "Monthly":
+            return (
+              <span className="badge bg-dark"> {cell.invoiceFrequency} </span>
+            );
+          default:
+            return (
+              <span className="badge bg-primary">{cell.invoiceFrequency}</span>
+            );
+        }
+      },
       sortable: true,
+      width: "160px",
     },
     {
       name: <span className="font-weight-bold fs-13">Status</span>,
-      selector: (row: any) => row.contractStatus,
+      selector: (cell: any) => {
+        switch (cell.contractStatus) {
+          case "Pending":
+            return (
+              <span className="badge bg-warning"> {cell.contractStatus} </span>
+            );
+          case "Approved":
+            return (
+              <span className="badge bg-info"> {cell.contractStatus} </span>
+            );
+          default:
+            return (
+              <span className="badge bg-warning"> {cell.contractStatus} </span>
+            );
+        }
+      },
       sortable: true,
+      width: "98px",
     },
     {
       name: <span className="font-weight-bold fs-13">Action</span>,
@@ -197,18 +268,48 @@ const AlertUpdateStatus = async (_id: any) => {
         return (
           <ul className="hstack gap-2 list-unstyled mb-0">
             <li>
-              <Link to="#" className="badge badge-soft-primary edit-item-btn">
-                <i className="ri-eye-line"></i>
+              <Link
+                to={`/contract/${row?.contractName!}`}
+                className="badge badge-soft-primary edit-item-btn"
+                state={row}
+              >
+                <i
+                  className="ri-eye-line"
+                  style={{
+                    transition: "transform 0.3s ease-in-out",
+                    cursor: "pointer",
+                    fontSize: "1.6em",
+                  }}
+                ></i>
               </Link>
             </li>
             <li>
-              <Link to="#" className="badge badge-soft-dark edit-item-btn" state={row}  onClick={() => AlertUpdateStatus(row._id)}>
-                <i className="mdi mdi-update"></i>
+              <Link
+                to="#"
+                className="badge badge-soft-dark edit-item-btn"
+                state={row}
+                onClick={() => tog_ModalToUpdateContractStatus()}
+              >
+                <i
+                  className="mdi mdi-update"
+                  style={{
+                    transition: "transform 0.3s ease-in-out",
+                    cursor: "pointer",
+                    fontSize: "1.6em",
+                  }}
+                ></i>
               </Link>
             </li>
             <li>
               <Link to="#" className="badge badge-soft-success edit-item-btn">
-                <i className="ri-edit-2-line"></i>
+                <i
+                  className="ri-edit-2-line"
+                  style={{
+                    transition: "transform 0.3s ease-in-out",
+                    cursor: "pointer",
+                    fontSize: "1.6em",
+                  }}
+                ></i>
               </Link>
             </li>
             <li>
@@ -217,12 +318,20 @@ const AlertUpdateStatus = async (_id: any) => {
                 className="badge badge-soft-danger remove-item-btn"
                 onClick={() => AlertDelete(row._id)}
               >
-                <i className="ri-delete-bin-2-line"></i>
+                <i
+                  className="ri-delete-bin-2-line"
+                  style={{
+                    transition: "transform 0.3s ease-in-out",
+                    cursor: "pointer",
+                    fontSize: "1.6em",
+                  }}
+                ></i>
               </Link>
             </li>
           </ul>
         );
       },
+      width: "200px",
     },
   ];
 
@@ -279,6 +388,64 @@ const AlertUpdateStatus = async (_id: any) => {
             </Card>
           </Col>
         </Container>
+        <Modal
+          className="fade zoomIn"
+          size="sm"
+          show={modal_UpdateContractStatus}
+          onHide={() => {
+            tog_ModalToUpdateContractStatus();
+          }}
+          centered
+        >
+          <Modal.Header className="px-4 pt-4" closeButton>
+            <h5 className="modal-title fs-18" id="exampleModalLabel">
+              Add Effective Date To Contract n°{" "}
+              {contractLocation.state?.contractRef!}
+            </h5>
+          </Modal.Header>
+          <Modal.Body className="p-4">
+            <Form className="tablelist-form" onSubmit={onSubmitUpdateContractStatusToApproved}>
+              <Row>
+                <Col lg={12}>
+                  <div className="mb-3">
+                    <Form.Label htmlFor="registration_date">
+                      Effective Date
+                    </Form.Label>
+                    <Flatpickr
+                      className="form-control flatpickr-input"
+                      value={selectedEffectiveDate!}
+                      onChange={handleEffectiveDateChange}
+                      placeholder="Select Date"
+                      options={{
+                        dateFormat: "d M, Y",
+                      }}
+                      id="registration_date"
+                      name="registration_date"
+                    />
+                  </div>
+                </Col>
+                <Col lg={12}>
+                  <div className="hstack gap-2 justify-content-end">
+                    <Button
+                      className="btn-soft-danger"
+                      onClick={() => {
+                        tog_ModalToUpdateContractStatus();
+                      }}
+                      data-bs-dismiss="modal"
+                    >
+                      <i className="ri-close-line align-bottom me-1"></i> Close
+                    </Button>
+                    <Button className="btn-soft-primary" type="submit"  onClick={() => {
+                        tog_ModalToUpdateContractStatus();
+                      }}>
+                    <i className="ri-add-line align-bottom me-1"></i> Add
+                    </Button>
+                  </div>
+                </Col>
+              </Row>
+            </Form>
+          </Modal.Body>
+        </Modal>
       </div>
     </React.Fragment>
   );

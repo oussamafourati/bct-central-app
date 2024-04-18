@@ -1,8 +1,8 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 export interface Extra {
-    _id?: string;
-    name: string;
+  _id?: string;
+  name: string;
 }
 
 export const extraSlice = createApi({
@@ -33,7 +33,4 @@ export const extraSlice = createApi({
   },
 });
 
-export const {
-useAddNewExtraMutation,
-useGetAllExtrasQuery
-} = extraSlice;
+export const { useAddNewExtraMutation, useGetAllExtrasQuery } = extraSlice;

@@ -35,17 +35,17 @@ export const regionalPricingSlice = createApi({
       }),
       deleteRegionalPricing: builder.mutation<void, RegionalPricing>({
         query: (_id) => ({
-            url: `/deleteRegionalPricing/${_id}`,
-            method: "Delete",
+          url: `/deleteRegionalPricing/${_id}`,
+          method: "Delete",
         }),
         invalidatesTags: ["RegionalPricing"],
-    }),
+      }),
     };
   },
 });
 
 export const {
-useAddNewRegionalPricingMutation,
-useDeleteRegionalPricingMutation,
-useGetAllRegionalPricingsQuery
+  useAddNewRegionalPricingMutation,
+  useDeleteRegionalPricingMutation,
+  useGetAllRegionalPricingsQuery,
 } = regionalPricingSlice;

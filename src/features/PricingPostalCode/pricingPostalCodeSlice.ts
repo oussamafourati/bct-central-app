@@ -58,5 +58,5 @@ export const {
   useAddNewPricingPostalCodeMutation,
   useDeletePricingPostalCodeMutation,
   useGetAllPricingPostalCodesQuery,
-  useGetPricingPostalCodeQuery
+  useGetPricingPostalCodeQuery,
 } = pricingPostalCodeSlice;
