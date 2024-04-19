@@ -47,6 +47,7 @@ import {
   useFetchJourneyByIdQuery,
   useGetAllJourneyQuery,
 } from "features/Journeys/journeySlice";
+import { useGetAllPassengerAndLuggagesQuery } from "features/PassengerAndLuggageLimits/passengerAndLuggageSlice";
 
 interface Option {
   value: string;
@@ -105,6 +106,22 @@ const AddProgramm = (props: any) => {
   document.title = "Program | School Administration";
   const navigate = useNavigate();
 
+  const [recommandedCapacityState, setRecommandedCapacityState] =
+    useState<string>("");
+  const onChangeRecommandedCapacityState = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setRecommandedCapacityState(event.target.value);
+  };
+
+  const { data: AllPassengersLimit = [] } =
+    useGetAllPassengerAndLuggagesQuery();
+  const filteredVehicleType = AllPassengersLimit.filter(
+    (vehcileType) => recommandedCapacityState <= vehcileType.max_passengers
+  );
+  const filteredLuggageDetails = AllPassengersLimit.filter(
+    (vehcileType) => vehcileType.max_passengers === recommandedCapacityState
+  );
   // The selected Client Type
   const [selectedClientType, setSelectedClientType] = useState<string>("");
 
@@ -257,6 +274,7 @@ const AddProgramm = (props: any) => {
     company_id: "",
     school_id: "",
     invoiceFrequency: "",
+    within_payment_days: "",
     total_price: "",
     unit_price: "",
     program_status: [
@@ -301,7 +319,9 @@ const AddProgramm = (props: any) => {
 
   const { data: oneCompany } = useFetchCompanyByIdQuery(selectCompanyID);
 
-  const onChangeProgramms = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const onChangeProgramms = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     setProgrammData((prevState) => ({
       ...prevState,
       [e.target.id]: e.target.value,
@@ -548,6 +568,24 @@ const AddProgramm = (props: any) => {
     }
   };
 
+  const [quoteUnitPrice, setQuoteUnitPrice] = useState<number>();
+  const [contractTotalPrice, setContractTotalPrice] = useState<number>();
+
+  const onChangeUnitPrice = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setQuoteUnitPrice(parseInt(event.target.value));
+    setContractTotalPrice(parseInt(event.target.value) * getWorkDates().length);
+  };
+
+  const [selectedInvoiceFrequency, setSelectedInvoiceFrequency] =
+    useState<string>("");
+  // This function is triggered when the select Invoice Frequency
+  const handleSelectInvoiceFrequency = (
+    event: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    const value = event.target.value;
+    setSelectedInvoiceFrequency(value);
+  };
+
   const tileDisabled = ({ date }: any) => {
     return date < pickUp_date! || date > dropOff_date!;
   };
@@ -716,6 +754,7 @@ const AddProgramm = (props: any) => {
       </>
     );
   };
+
   const isJourneyStepValid = () => {
     return programmData.programName.trim() !== "";
   };
@@ -757,7 +796,7 @@ const AddProgramm = (props: any) => {
   };
 
   const isRecommandedCapacityStepValid = () => {
-    return programmData.recommanded_capacity.trim() !== "";
+    return recommandedCapacityState.trim() !== "";
   };
 
   const isNextButtonDisabled = () => {
@@ -787,6 +826,10 @@ const AddProgramm = (props: any) => {
         programmData["company_id"] = selectCompanyID;
       }
       programmData["exceptDays"] = selected1;
+      programmData["recommanded_capacity"] = recommandedCapacityState;
+      programmData["unit_price"] = quoteUnitPrice!.toFixed(2);
+      programmData["total_price"] = contractTotalPrice!.toFixed(2);
+      programmData["invoiceFrequency"] = selectedInvoiceFrequency;
       programmData["workDates"] = getWorkDates();
       programmData["program_status"] = [
         {
@@ -1248,16 +1291,9 @@ const AddProgramm = (props: any) => {
         <Container fluid>
           <Breadcrumb title="Program" pageTitle="Management" />
           <Card className="overflow-hidden">
-            <Card.Header className="border-0">
-              <div className="hstack gap-2 justify-content-end">
-                <Button variant="success" id="add-btn" className="btn-sm">
-                  Save & Send
-                </Button>
-              </div>
-            </Card.Header>
             <Card.Body className="form-steps">
               <Card>
-                <Card.Body className="form-steps" style={{ height: "80vh" }}>
+                <Card.Body className="form-steps" style={{ height: "70vh" }}>
                   <Form
                     className="vertical-navs-step"
                     onSubmit={onSubmitProgramm}
@@ -1773,7 +1809,7 @@ const AddProgramm = (props: any) => {
                             </Col>
                           </Row>
                           <Row>
-                            <Col lg={12}>
+                            <Col lg={6}>
                               <div className="mt-2">
                                 <h5 className="fs-14 mb-1">
                                   Days of week not running
@@ -1802,7 +1838,7 @@ const AddProgramm = (props: any) => {
                                     ],
                                     moveRight: (
                                       <span
-                                        className="mdi mdi-chevron-right"
+                                        className="bi bi-chevron-right"
                                         key="key"
                                       />
                                     ),
@@ -1877,8 +1913,8 @@ const AddProgramm = (props: any) => {
                                   required
                                   className="mb-2"
                                   name="recommanded_capacity"
-                                  value={programmData.recommanded_capacity}
-                                  onChange={onChangeProgramms}
+                                  value={recommandedCapacityState}
+                                  onChange={onChangeRecommandedCapacityState}
                                 />
                               </div>
                             </Col>
@@ -1897,12 +1933,12 @@ const AddProgramm = (props: any) => {
                                     <option value="">
                                       Select Vehicle Type
                                     </option>
-                                    {AllVehicleTypes.map((vehicleType) => (
+                                    {filteredVehicleType.map((vehicleType) => (
                                       <option
-                                        value={vehicleType._id}
-                                        key={vehicleType._id}
+                                        value={vehicleType.vehicle_type._id}
+                                        key={vehicleType.vehicle_type._id}
                                       >
-                                        {vehicleType.type}
+                                        {vehicleType.vehicle_type.type}
                                       </option>
                                     ))}
                                   </select>
@@ -1912,7 +1948,7 @@ const AddProgramm = (props: any) => {
                           </Row>
                           <Row>
                             <Col lg={6}>
-                              <div className="mb-4">
+                              <div className="mb-3">
                                 <Form.Label htmlFor="journeyType">
                                   Journey Type
                                 </Form.Label>
@@ -1934,7 +1970,6 @@ const AddProgramm = (props: any) => {
                                 </select>
                               </div>
                             </Col>
-
                             <Col lg={6}>
                               <div className="mb-3">
                                 <Form.Label htmlFor="luggageDetails">
@@ -1947,12 +1982,12 @@ const AddProgramm = (props: any) => {
                                   onChange={handleSelectLuggage}
                                 >
                                   <option value="">Select Luggage</option>
-                                  {AllLuggages.map((Luggage) => (
+                                  {filteredLuggageDetails.map((Luggage) => (
                                     <option
-                                      value={Luggage._id}
-                                      key={Luggage._id}
+                                      value={Luggage.max_luggage._id}
+                                      key={Luggage.max_luggage._id}
                                     >
-                                      {Luggage.description}
+                                      {Luggage.max_luggage.description}
                                     </option>
                                   ))}
                                 </select>
@@ -1960,9 +1995,11 @@ const AddProgramm = (props: any) => {
                             </Col>
                           </Row>
                           <Row>
-                            <Col lg={12}>
+                            <Col lg={6}>
                               <div>
-                                <h5 className="fs-14 mb-1">Extra</h5>
+                                <Form.Label htmlFor="VertiExtraInput">
+                                  Extra
+                                </Form.Label>
                                 <p className="text-muted">
                                   Slide the selected option to the right
                                 </p>
@@ -1985,7 +2022,7 @@ const AddProgramm = (props: any) => {
                                     ],
                                     moveRight: (
                                       <span
-                                        className="mdi mdi-chevron-right"
+                                        className="bi bi-chevron-right"
                                         key="key"
                                       />
                                     ),
@@ -2023,27 +2060,114 @@ const AddProgramm = (props: any) => {
                                 />
                               </div>
                             </Col>
-                          </Row>
-                          <Row>
-                            <Col lg={12}>
-                              <div className="mb-3">
-                                <Form.Label htmlFor="VertimeassageInput">
+                            <Col lg={6}>
+                              <div>
+                                <Form.Label htmlFor="notes" className="mb-5">
                                   Notes
                                 </Form.Label>
                                 <textarea
                                   className="form-control"
-                                  id="VertimeassageInput"
+                                  id="notes"
+                                  name="notes"
                                   rows={5}
                                   placeholder="Enter your notes"
+                                  value={programmData.notes}
+                                  onChange={onChangeProgramms}
                                 ></textarea>
                               </div>
                             </Col>
                           </Row>
-
-                          <div
-                            className="d-flex align-items-start gap-3"
-                            style={{ marginTop: "200px" }}
-                          >
+                          <Row className="mt-1">
+                            <Card.Header>
+                              <div className="d-flex align-items-center">
+                                <div className="flex-shrink-0 me-3">
+                                  <div className="avatar-sm">
+                                    <div className="avatar-title rounded-circle bg-light text-primary fs-20">
+                                      <i className="mdi mdi-currency-gbp"></i>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="flex-grow-1">
+                                  <h5 className="card-title mb-1">Price</h5>
+                                </div>
+                              </div>
+                            </Card.Header>
+                            <Card.Body>
+                              <Row>
+                                <Col lg={3}>
+                                  <div className="mb-2">
+                                    <Form.Label htmlFor="unit_price">
+                                      Unit Price
+                                    </Form.Label>
+                                    <Form.Control
+                                      type="text"
+                                      id="unit_price"
+                                      name="unit_price"
+                                      placeholder="£ 00.00"
+                                      onChange={onChangeUnitPrice}
+                                      value={quoteUnitPrice}
+                                    />
+                                  </div>
+                                </Col>
+                                <Col lg={3}>
+                                  <div className="mb-2">
+                                    <Form.Label htmlFor="prices">
+                                      Total Price
+                                    </Form.Label>
+                                    <Form.Control
+                                      type="text"
+                                      id="prices"
+                                      name="prices"
+                                      placeholder="£ 00.00"
+                                      onChange={onChangeUnitPrice}
+                                      defaultValue={contractTotalPrice}
+                                      readOnly
+                                    />
+                                  </div>
+                                </Col>
+                                <Col lg={3}>
+                                  <div className="mb-2">
+                                    <Form.Label htmlFor="invoiceFrequency">
+                                      Invoice Frequency
+                                    </Form.Label>
+                                    <select
+                                      className="form-select text-muted"
+                                      name="invoiceFrequency"
+                                      id="invoiceFrequency"
+                                      onChange={handleSelectInvoiceFrequency}
+                                    >
+                                      <option value="">Select</option>
+                                      <option value="Daily">Daily</option>
+                                      <option value="Weekly">Weekly</option>
+                                      <option value="Bi Weekly">
+                                        Bi Weekly
+                                      </option>
+                                      <option value="Third Weekly">
+                                        Third Weekly
+                                      </option>
+                                      <option value="Monthly">Monthly</option>
+                                    </select>
+                                  </div>
+                                </Col>
+                                <Col lg={3}>
+                                  <div className="mb-2">
+                                    <Form.Label htmlFor="within_payment_days">
+                                      Within Payment Days
+                                    </Form.Label>
+                                    <Form.Control
+                                      type="text"
+                                      id="within_payment_days"
+                                      name="within_payment_days"
+                                      placeholder="1 Day"
+                                      value={programmData.within_payment_days}
+                                      onChange={onChangeProgramms}
+                                    />
+                                  </div>
+                                </Col>
+                              </Row>
+                            </Card.Body>
+                          </Row>
+                          <div className="d-flex align-items-start gap-3">
                             <Button
                               type="button"
                               className="btn btn-light btn-label previestab"

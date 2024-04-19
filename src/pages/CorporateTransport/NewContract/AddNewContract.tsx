@@ -18,9 +18,18 @@ import {
   useFetchProgrammByIdQuery,
   useFetchProgrammsQuery,
 } from "features/Programs/programSlice";
-import { useFetchVehicleTypeByIdQuery, useGetAllVehicleTypesQuery } from "features/VehicleType/vehicleTypeSlice";
-import { useFetchLuggageByIdQuery, useGetAllLuggageQuery } from "features/luggage/luggageSlice";
-import { useFetchJourneyByIdQuery, useGetAllJourneyQuery } from "features/Journeys/journeySlice";
+import {
+  useFetchVehicleTypeByIdQuery,
+  useGetAllVehicleTypesQuery,
+} from "features/VehicleType/vehicleTypeSlice";
+import {
+  useFetchLuggageByIdQuery,
+  useGetAllLuggageQuery,
+} from "features/luggage/luggageSlice";
+import {
+  useFetchJourneyByIdQuery,
+  useGetAllJourneyQuery,
+} from "features/Journeys/journeySlice";
 import AddContractProgramm from "pages/Programs/AddContractProgramm";
 
 const AddNewContract = () => {
@@ -112,9 +121,15 @@ const AddNewContract = () => {
     return false;
   });
 
-  const { data: OneVehicleType } = useFetchVehicleTypeByIdQuery(OneProgram?.vehiculeType);
-  const { data: OneJourney } = useFetchJourneyByIdQuery(OneProgram?.journeyType);
-  const { data: OneLuggageDetails } = useFetchLuggageByIdQuery(OneProgram?.luggage);
+  const { data: OneVehicleType } = useFetchVehicleTypeByIdQuery(
+    OneProgram?.vehiculeType
+  );
+  const { data: OneJourney } = useFetchJourneyByIdQuery(
+    OneProgram?.journeyType
+  );
+  const { data: OneLuggageDetails } = useFetchLuggageByIdQuery(
+    OneProgram?.luggage
+  );
   const notifySuccess = () => {
     Swal.fire({
       position: "center",
@@ -267,32 +282,40 @@ const AddNewContract = () => {
                       </Col>
                       {/* Account == Done */}
                       {company_exist ? (
-                      <Col lg={4}>
-                        <div className="mb-3">
-                          <Form.Label htmlFor="accountRef">Account</Form.Label>
-                          <Form.Control
-                            type="text"
-                            id="accountRef"
-                            name="accountRef"
-                            placeholder="Enter account name"
-                            readOnly
-                            defaultValue={OneCompany?.name!}
-                          />
-                        </div>
-                      </Col>) : school_exist ? (
-                      <Col lg={4}>
-                        <div className="mb-3">
-                          <Form.Label htmlFor="accountRef">Account</Form.Label>
-                          <Form.Control
-                            type="text"
-                            id="accountRef"
-                            name="accountRef"
-                            placeholder="Enter account name"
-                            readOnly
-                            defaultValue={OneSchool?.name!}
-                          />
-                        </div>
-                      </Col>) : ""}
+                        <Col lg={4}>
+                          <div className="mb-3">
+                            <Form.Label htmlFor="accountRef">
+                              Account
+                            </Form.Label>
+                            <Form.Control
+                              type="text"
+                              id="accountRef"
+                              name="accountRef"
+                              placeholder="Enter account name"
+                              readOnly
+                              defaultValue={OneCompany?.name!}
+                            />
+                          </div>
+                        </Col>
+                      ) : school_exist ? (
+                        <Col lg={4}>
+                          <div className="mb-3">
+                            <Form.Label htmlFor="accountRef">
+                              Account
+                            </Form.Label>
+                            <Form.Control
+                              type="text"
+                              id="accountRef"
+                              name="accountRef"
+                              placeholder="Enter account name"
+                              readOnly
+                              defaultValue={OneSchool?.name!}
+                            />
+                          </div>
+                        </Col>
+                      ) : (
+                        ""
+                      )}
                       {/* Account Id Select */}
                       <Col lg={4}>
                         <div className="mb-3">
@@ -586,7 +609,12 @@ const AddNewContract = () => {
                             name="invoiceFrequency"
                             id="invoiceFrequency"
                           >
-                            <option value={`${OneProgram?.invoiceFrequency}`} selected>{OneProgram?.invoiceFrequency}</option>
+                            <option
+                              value={`${OneProgram?.invoiceFrequency}`}
+                              selected
+                            >
+                              {OneProgram?.invoiceFrequency}
+                            </option>
                           </select>
                         </div>
                       </Col>
@@ -615,7 +643,8 @@ const AddNewContract = () => {
                       <Col lg={12}>
                         <Form.Label htmlFor="idProgram">Program</Form.Label>
                         <div className="input-group mb-3">
-                          {filteredSchoolsProg.length === 0 && filteredCompaniesProg.length === 0 ? (
+                          {filteredSchoolsProg.length === 0 &&
+                          filteredCompaniesProg.length === 0 ? (
                             <>
                               <button
                                 className="btn btn-success btn-label"
@@ -631,7 +660,8 @@ const AddNewContract = () => {
                                 create a New One.{" "}
                               </small>
                             </>
-                          ) : filteredSchoolsProg.length !== 0 && filteredCompaniesProg.length === 0 ? (
+                          ) : filteredSchoolsProg.length !== 0 &&
+                            filteredCompaniesProg.length === 0 ? (
                             <>
                               <select
                                 className="form-select text-muted"
@@ -656,7 +686,8 @@ const AddNewContract = () => {
                                 New Program
                               </button>
                             </>
-                          ) : filteredCompaniesProg.length === 0 && filteredSchoolsProg.length === 0 ? (
+                          ) : filteredCompaniesProg.length === 0 &&
+                            filteredSchoolsProg.length === 0 ? (
                             <>
                               <button
                                 className="btn btn-success btn-label"
@@ -746,9 +777,15 @@ const AddNewContract = () => {
                               className="form-select text-muted"
                               name="vehicleType"
                               id="vehicleType"
-                              // onChange={handleSelectVehicleType}
+                              onChange={handleSelectVehicleType}
+                              defaultValue={OneVehicleType?._id!}
                             >
-                              <option value={`${OneVehicleType?._id!}`} selected>{OneVehicleType?.type!}</option>
+                              <option
+                                value={`${OneVehicleType?._id!}`}
+                                selected
+                              >
+                                {OneVehicleType?.type!}
+                              </option>
                             </select>
                           </div>
                         </div>
@@ -764,9 +801,15 @@ const AddNewContract = () => {
                             className="form-select text-muted"
                             name="luggageDetails"
                             id="luggageDetails"
-                            // onChange={handleSelectLuggage}
+                            onChange={handleSelectLuggage}
+                            defaultValue={OneLuggageDetails?._id!}
                           >
-                            <option value={`${OneLuggageDetails?._id!}`} selected>{OneLuggageDetails?.description!}</option>
+                            <option
+                              value={`${OneLuggageDetails?._id!}`}
+                              selected
+                            >
+                              {OneLuggageDetails?.description!}
+                            </option>
                           </select>
                         </div>
                       </Col>
@@ -782,8 +825,11 @@ const AddNewContract = () => {
                             name="journeyType"
                             id="journeyType"
                             onChange={handleSelectJourney}
+                            defaultValue={OneJourney?._id!}
                           >
-                            <option value={`${OneJourney?._id!}`} selected>{OneJourney?.type!}</option>
+                            <option value={`${OneJourney?._id!}`} selected>
+                              {OneJourney?.type!}
+                            </option>
                           </select>
                         </div>
                       </Col>

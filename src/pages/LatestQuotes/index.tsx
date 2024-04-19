@@ -1,100 +1,121 @@
 import React, { useState } from "react";
-import {
-  Container,
-  Form,
-  Row,
-  Card,
-  Col,
-  Button,
-  Modal,
-} from "react-bootstrap";
+import { Container, Row, Card, Col } from "react-bootstrap";
 import DataTable from "react-data-table-component";
 import Breadcrumb from "Common/BreadCrumb";
 import Flatpickr from "react-flatpickr";
 import { Link } from "react-router-dom";
+import {
+  Quote,
+  useDeleteQuoteMutation,
+  useGetAllQuoteQuery,
+} from "features/Quotes/quoteSlice";
+import Swal from "sweetalert2";
 
 const LatestQuotes = () => {
-  document.title = " Latest Quotes | Bouden Coach Travel";
+  document.title = "Latest Quotes | Bouden Coach Travel";
+
+  const { data: AllQuotes = [] } = useGetAllQuoteQuery();
+  const result = AllQuotes.filter(
+    (bookings) =>
+      bookings.progress === "On Route" ||
+      bookings.progress === "Picked Up" ||
+      bookings.progress === "On Site"
+  );
+
   const [modal_QuoteInfo, setmodal_QuoteInfo] = useState<boolean>(false);
   function tog_QuoteInfo() {
     setmodal_QuoteInfo(!modal_QuoteInfo);
   }
+
+  const [isChecked, setIsChecked] = useState<boolean>(false);
+  const [selectedRow, setSelectedRow] = useState<any>();
+  const handleChange = ({ selectedRows }: { selectedRows: Quote }) => {
+    setIsChecked(!isChecked);
+    setSelectedRow(selectedRows);
+  };
+
   const columns = [
     {
       name: <span className="font-weight-bold fs-13">Quote ID</span>,
-      selector: (cell: any) => {
+      selector: (cell: Quote) => {
         return (
           <span>
-            <Link to="#">
-              <span className="text-dark">{cell.Quote_ID}</span>
+            <Link to={`/new-quote/${cell?._id!}`} state={cell}>
+              <span className="text-dark">{cell?._id}</span>
             </Link>{" "}
             <i className="ph ph-eye" onClick={() => tog_QuoteInfo()}></i>
           </span>
         );
       },
       sortable: true,
+      width: "100px",
     },
     {
       name: (
         <span className="mdi mdi-account-tie-hat font-weight-bold fs-24"></span>
       ),
-      selector: (row: any) => row.driver,
+      selector: (row: any) => "No Driver",
       sortable: true,
+      width: "88px",
     },
     {
       name: <span className="font-weight-bold fs-13">Vehicle Type</span>,
-      selector: (row: any) => row.vehicletype,
+      selector: (row: any) => row.vehicle_type,
       sortable: true,
+      width: "160px",
     },
     {
       name: <span className="mdi mdi-car font-weight-bold fs-24"></span>,
-      selector: (row: any) => row.vehicle,
+      selector: (row: any) => "No Vehicle",
       sortable: true,
+      width: "95px",
     },
     {
       name: <span className="font-weight-bold fs-13">Date</span>,
-      selector: (row: any) => row.Date,
+      selector: (row: any) => (
+        <span>
+          <b>{row.date}</b> at <b>{row.pickup_time}</b>
+        </span>
+      ),
       sortable: true,
-    },
-    {
-      name: <span className="font-weight-bold fs-13">Time</span>,
-      selector: (row: any) => row.Time,
-      sortable: true,
+      width: "157px",
     },
     {
       name: <span className="font-weight-bold fs-13">Pax</span>,
-      selector: (row: any) => row.Pax,
+      selector: (row: any) => row.passengers_number,
       sortable: true,
+      width: "60px",
     },
     {
       name: <span className="font-weight-bold fs-13">Pick Up</span>,
-      selector: (row: any) => row.PickUp,
+      selector: (row: any) => row.start_point?.placeName!,
       sortable: true,
+      width: "270px",
     },
     {
       name: <span className="font-weight-bold fs-13">Destination</span>,
-      selector: (row: any) => row.Destination,
+      selector: (row: any) => row.destination_point?.placeName!,
       sortable: true,
+      width: "270px",
     },
     {
       name: <span className="font-weight-bold fs-13">Progress</span>,
       selector: (cell: any) => {
-        switch (cell.Progress) {
-          case "New":
-            return <span className="badge bg-danger"> {cell.Progress} </span>;
-          case "Medium":
-            return <span className="badge bg-info"> {cell.Progress} </span>;
-          case "Low":
-            return <span className="badge bg-success"> {cell.Progress} </span>;
-          default:
-            return <span className="badge bg-danger"> {cell.Progress} </span>;
+        switch (cell.progress) {
+          case "On Route":
+            return <span className="badge bg-success"> {cell.progress} </span>;
+          case "Picked Up":
+            return <span className="badge bg-info"> {cell.progress} </span>;
+          case "On Site":
+            return <span className="badge bg-dark"> {cell.progress} </span>;
         }
       },
       sortable: true,
+      width: "130px",
     },
     {
       name: <span className="font-weight-bold fs-13">Passenger Name</span>,
-      selector: (row: any) => row.PassengerName,
+      selector: (row: any) => row.id_visitor?.name!,
       sortable: true,
     },
     {
@@ -103,79 +124,72 @@ const LatestQuotes = () => {
       selector: (cell: any) => {
         return (
           <span
-            className="mdi mdi-phone-in-talk-outline"
-            title={cell.Mobile}
+            className="mdi mdi-phone-in-talk-outline d-flex align-items-center"
+            title={cell.id_visitor?.phone!}
           ></span>
         );
       },
+      width: "72px",
     },
     {
       name: <span className="font-weight-bold fs-13">Email</span>,
       sortable: true,
       selector: (cell: any) => {
         return (
-          <span className="mdi mdi-email-outline" title={cell.Email}></span>
+          <span
+            className="mdi mdi-email-outline d-flex align-items-center"
+            title={cell.id_visitor?.email!}
+          ></span>
         );
       },
-    },
-    {
-      name: <span className="font-weight-bold fs-13">Mileage</span>,
-      selector: (row: any) => row.Mileage,
-      sortable: true,
+      width: "70px",
     },
     {
       name: <span className="font-weight-bold fs-13">Arrival Date</span>,
-      selector: (row: any) => row.ArrivalDate,
+      selector: (row: any) => (
+        <span>
+          <b>{row.dropoff_date}</b> at <b>{row.dropoff_time}</b>
+        </span>
+      ),
       sortable: true,
+      width: "157px",
     },
     {
       name: <span className="font-weight-bold fs-13">Price</span>,
-      selector: (row: any) => row.Price,
+      selector: (row: any) => (
+        <span>
+          £ <b>{row?.manual_cost!}</b>
+        </span>
+      ),
       sortable: true,
     },
     {
       name: <span className="font-weight-bold fs-13">Balance</span>,
-      selector: (row: any) => row.Balance,
+      selector: (row: any) => "No Balance",
       sortable: true,
     },
     {
       name: <span className="font-weight-bold fs-13">Contract</span>,
-      selector: (row: any) => row.Contract,
+      selector: (row: any) => "No Contract",
       sortable: true,
     },
-    // {
-    //   name: <span className="font-weight-bold fs-13">Flight N°</span>,
-    //   selector: (row: any) => row.FlightNum,
-    //   sortable: true,
-    // },
-    // {
-    //   name: <span className="font-weight-bold fs-13">Flight Arrival N°</span>,
-    //   selector: (row: any) => row.FlightArrival,
-    //   sortable: true,
-    // },
-    // {
-    //   name: <span className="font-weight-bold fs-13">Flight In</span>,
-    //   selector: (row: any) => row.FlightIn,
-    //   sortable: true,
-    // },
-    // {
-    //   name: <span className="font-weight-bold fs-13">Flight Out</span>,
-    //   selector: (row: any) => row.FlightOut,
-    //   sortable: true,
-    // },
     {
       name: <span className="font-weight-bold fs-13">Enquiry Date</span>,
-      selector: (row: any) => row.EnquiryDate,
+      selector: (row: Quote) => {
+        const date = new Date(row.createdAt);
+        return <span>{date.toDateString()}</span>;
+      },
       sortable: true,
+      width: "157px",
     },
     {
       name: <span className="font-weight-bold fs-13">Affiliate</span>,
-      selector: (row: any) => row.Affiliate,
+      selector: (row: any) => "No Affiliate",
       sortable: true,
     },
     {
       name: <span className="font-weight-bold fs-13">Callback</span>,
-      selector: (row: any) => row.Callback,
+      selector: (row: any) => "No Callback",
       sortable: true,
     },
     {
@@ -196,146 +210,71 @@ const LatestQuotes = () => {
               <span className="badge bg-success"> {cell.PaymentStatus} </span>
             );
           default:
-            return (
-              <span className="badge bg-danger"> {cell.PaymentStatus} </span>
-            );
-        }
-      },
-    },
-    {
-      name: <span className="font-weight-bold fs-13">Status</span>,
-      sortable: true,
-      selector: (cell: any) => {
-        switch (cell.Status) {
-          case "Pending":
-            return <span className="badge bg-warning"> {cell.Status} </span>;
-          case "Medium":
-            return <span className="badge bg-info"> {cell.Status} </span>;
-          case "Low":
-            return <span className="badge bg-success"> {cell.Status} </span>;
-          default:
-            return <span className="badge bg-danger"> {cell.Status} </span>;
+            return <span className="badge bg-warning"> Not Paid </span>;
         }
       },
     },
     {
       name: <span className="font-weight-bold fs-13">Account Name</span>,
-      selector: (row: any) => row.AccountName,
+      selector: (row: any) => row.id_visitor?.name!,
       sortable: true,
     },
-    // {
-    //   name: <span className="font-weight-bold fs-13">External Reference</span>,
-    //   selector: (row: any) => row.ExternalReference,
-    //   sortable: true,
-    // },
+    {
+      name: <span className="font-weight-bold fs-13">Status</span>,
+      selector: (row: any) => row.status,
+      sortable: true,
+    },
     {
       name: <span className="font-weight-bold fs-13">Notes</span>,
-      selector: (row: any) => row.Notes,
+      selector: (row: any) => {
+        return row.notes !== "" ? <span>{row.notes}</span> : "No Notes";
+      },
       sortable: true,
     },
   ];
-  const data = [
-    {
-      Quote_ID: "89089",
-      driver: "No driver",
-      vehicletype: "10-16 Seat Standard Minibus",
-      vehicle: "No Vehicle",
-      Date: "21 Dec 2023",
-      Time: "18:00",
-      Pax: "7",
-      PickUp: "Dwyran, Wales LL61 6AX",
-      Destination: "BIRMINGHAM NEW STREET STATION",
-      Progress: "New",
-      PassengerName: "Erica",
-      Mobile: "07990547241",
-      Email: "erica7018@gmail.com",
-      Mileage: "37",
-      ArrivalDate: "24 Dec 2023 09:00",
-      Price: "£0.00",
-      Balance: "£0.00",
-      Contract: "None",
-      EnquiryDate: "10th Nov 2023",
-      Affiliate: "No affiliate",
-      Callback: "10th Nov 2023 14:29",
-      PaymentStatus: "Not Paid",
-      Status: "Pending",
-      AccountName: "N/A",
-      Notes: "The next day pick up point might be changing (within London)",
-      // FlightNum: "Joseph Parker",
-      // FlightArrival: "Alexis Clarke",
-      // FlightIn: "Joseph Parker",
-      // FlightOut: "03 Oct, 2021",
-      // ExternalReference: "Re-open",
+
+  const [deleteQuote] = useDeleteQuoteMutation();
+  const swalWithBootstrapButtons = Swal.mixin({
+    customClass: {
+      confirmButton: "btn btn-success",
+      cancelButton: "btn btn-danger",
     },
-    {
-      Quote_ID: "90262",
-      driver: "No driver",
-      vehicletype: "53 Seat Standard Coach",
-      vehicle: "No Vehicle",
-      Date: "13 Dec 2023",
-      Time: "10:00",
-      Pax: "50",
-      PickUp:
-        "The Little Theatre Dover Street Leicester England LE1 6PT United Kingdom",
-      Destination: "Wigston Road Oadby Leicester LE2 5QF United Kingdom",
-      Progress: "New",
-      PassengerName: "Georgina illston",
-      Mobile: "07745090368",
-      Email: "Oadby-50plus@outlook.com",
-      Mileage: "26",
-      ArrivalDate: "Wed 13th Dec 2023 16:00",
-      Price: "£0.00",
-      Balance: "£0.00",
-      Contract: "N/A",
-      // FlightNum: "Joseph Parker",
-      // FlightArrival: "Alexis Clarke",
-      // FlightIn: "Joseph Parker",
-      // FlightOut: "03 Oct, 2021",
-      EnquiryDate: "Wed 2nd Aug 2023",
-      Affiliate: "N/A",
-      Callback: "Not set",
-      PaymentStatus: "Not Paid",
-      Status: "Pending",
-      AccountName: "N/A",
-      // ExternalReference: "Re-open",
-      Notes:
-        "We wondered if it would be possible to pick up from every ones homes or if this is not possible?",
-    },
-    {
-      Quote_ID: "86563",
-      driver: "No driver",
-      vehicletype: "29 Seat Standard Midi Coach",
-      vehicle: "No Vehicle",
-      Date: "15 Dec 2023",
-      Time: "09:30",
-      Pax: "24",
-      PickUp:
-        "Becketts Farm A435 Alcester Road Birmingham England B47 6AJ United Kingdom",
-      Destination: "ONeills Poplar Rd Solihull England B91 3AJ United Kingdom",
-      Progress: "New",
-      PassengerName: "Simon Ray",
-      Mobile: "07828250084",
-      Email: "simon@touchwoodbuilding.co.uk",
-      Mileage: "46",
-      ArrivalDate: "Fri 15th Dec 2023 19:00",
-      Price: "£450.00",
-      Balance: "£450.00",
-      Contract: "None",
-      EnquiryDate: "Tue 19th Sep 2023",
-      Affiliate: "No affiliate",
-      Callback: "Not Set",
-      PaymentStatus: "Not Paid",
-      Status: "Pending",
-      AccountName: "N/A",
-      Notes:
-        "Hi, I would also like a quote for the same journey on 16/12 for approx 12 with an 11am collection - 4pm return, & them 6pm that evening for 6pm drop off 11.30pm collection for approx 24 (these are just rough times & numbers at the moment to get an idea of costs)  Thank you in advance, ",
-    },
-  ];
+    buttonsStyling: false,
+  });
+
+  const AlertDelete = async () => {
+    swalWithBootstrapButtons
+      .fire({
+        title: "Are you sure?",
+        text: "You won't be able to go back?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, delete it !",
+        cancelButtonText: "No, cancel !",
+        reverseButtons: true,
+      })
+      .then((result: any) => {
+        if (result.isConfirmed) {
+          deleteQuote(selectedRow[0]._id);
+          setIsChecked(!isChecked);
+          swalWithBootstrapButtons.fire(
+            "Deleted !",
+            "Quote is deleted.",
+            "success"
+          );
+        } else if (
+          /* Read more about handling dismissals below */
+          result.dismiss === Swal.DismissReason.cancel
+        ) {
+          swalWithBootstrapButtons.fire("Canceled", "Quote is safe :)", "info");
+        }
+      });
+  };
   return (
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
-          <Breadcrumb title="Latest Quotes" pageTitle="Jobs" />
+          <Breadcrumb title="Pending Quotes" pageTitle="Jobs" />
           <Col lg={12}>
             <Card>
               <Card.Body>
@@ -358,7 +297,6 @@ const LatestQuotes = () => {
                     </select>
                   </Col>
                   <Col lg={2}>
-                    {/* <input type="text" className="form-control" data-provider="flatpickr" data-date-format="d M, Y" data-range-date="true" id="demo-datepicker" placeholder="Select date" /> */}
                     <Flatpickr
                       className="form-control flatpickr-input"
                       placeholder="Select Date"
@@ -470,8 +408,25 @@ const LatestQuotes = () => {
             </Card>
             <Card id="shipmentsList">
               <Card.Header className="border-bottom-dashed">
-                <Row className="g-3">
-                  <Col xxl={3} lg={6}>
+                <Row className="g-2">
+                  <Col lg={2} className="d-flex justify-content-center">
+                    {isChecked ? (
+                      <ul className="hstack gap-2 list-unstyled mb-0">
+                        <li>
+                          <Link
+                            to="#"
+                            className="badge badge-soft-danger edit-item-btn fs-16"
+                            onClick={() => AlertDelete()}
+                          >
+                            <i className="bi bi-trash-fill fs-20"></i> Delete
+                          </Link>
+                        </li>
+                      </ul>
+                    ) : (
+                      ""
+                    )}
+                  </Col>
+                  <Col lg={8} className="d-flex justify-content-center">
                     <div className="search-box">
                       <input
                         type="text"
@@ -481,8 +436,7 @@ const LatestQuotes = () => {
                       <i className="ri-search-line search-icon"></i>
                     </div>
                   </Col>
-                  <Col lg={7}></Col>
-                  <Col>
+                  <Col lg={2} className="d-flex justify-content-end">
                     <div
                       className="btn-group btn-group-sm mt-2"
                       role="group"
@@ -502,186 +456,18 @@ const LatestQuotes = () => {
                 </Row>
               </Card.Header>
               <Card.Body>
-                <DataTable columns={columns} data={data} pagination />
+                <DataTable
+                  columns={columns}
+                  data={result}
+                  selectableRows
+                  onSelectedRowsChange={handleChange}
+                  pagination
+                />
               </Card.Body>
             </Card>
           </Col>
         </Container>
       </div>
-      <Modal
-        className="fade zoomIn"
-        size="lg"
-        show={modal_QuoteInfo}
-        onHide={() => {
-          tog_QuoteInfo();
-        }}
-        centered
-      >
-        <Modal.Header className="px-4 pt-4" closeButton>
-          <h5 className="modal-title fs-18" id="exampleModalLabel">
-            Add Station
-          </h5>
-        </Modal.Header>
-        <Modal.Body className="p-4">
-          <div
-            id="alert-error-msg"
-            className="d-none alert alert-danger py-2"
-          ></div>
-          <Form className="tablelist-form">
-            <input type="hidden" id="id-field" />
-            <Row>
-              <Col lg={12}>
-                <div className="mb-3">
-                  <Form.Label htmlFor="customerName-field">Name</Form.Label>
-                  <Form.Control
-                    type="text"
-                    id="customerName-field"
-                    placeholder="Enter customer name"
-                    required
-                  />
-                </div>
-              </Col>
-              <Col lg={12}>
-                <div className="mb-3">
-                  <Form.Label htmlFor="supplierName-field">City</Form.Label>
-                  <Form.Control
-                    type="text"
-                    id="supplierName-field"
-                    placeholder="Enter supplier name"
-                    required
-                  />
-                </div>
-              </Col>
-
-              <Col lg={6}>
-                <div className="mb-3">
-                  <Form.Label htmlFor="orderDate-field">Region</Form.Label>
-                  <Flatpickr
-                    className="form-control flatpickr-input"
-                    placeholder="Select Date"
-                    options={{
-                      dateFormat: "d M, Y",
-                    }}
-                  />
-                  {/* <Form.Control type="text" id="orderDate-field" data-provider="flatpickr" data-date-format="d M, Y" placeholder="Select date" required /> */}
-                </div>
-              </Col>
-              <Col lg={6}>
-                <div className="mb-3">
-                  <Form.Label htmlFor="arrivalDate-field">Postcode</Form.Label>
-                  <Flatpickr
-                    className="form-control flatpickr-input"
-                    placeholder="Select Date"
-                    options={{
-                      dateFormat: "d M, Y",
-                    }}
-                  />
-                  {/* <Form.Control type="text" id="arrivalDate-field" data-provider="flatpickr" data-date-format="d M, Y" placeholder="Select date" required /> */}
-                </div>
-              </Col>
-              <div className="col-lg-6">
-                <div className="mb-3">
-                  <label htmlFor="locationSelect" className="form-label">
-                    Country
-                  </label>
-                  <select
-                    className="form-select"
-                    name="choices-single-default"
-                    id="locationSelect"
-                    required
-                  >
-                    <option value="">Location</option>
-                    <option value="Ascension Island">Ascension Island</option>
-                    <option value="Andorra">Andorra</option>
-                    <option value="United Arab Emirates">
-                      United Arab Emirates
-                    </option>
-                    <option value="Afghanistan">Afghanistan</option>
-                    <option value="Antigua and Barbuda">
-                      Antigua and Barbuda
-                    </option>
-                    <option value="Armenia">Armenia</option>
-                    <option value="Antarctica">Antarctica</option>
-                    <option value="Argentina">Argentina</option>
-                    <option value="Australia">Australia</option>
-                    <option value="Bangladesh">Bangladesh</option>
-                    <option value="Belgium">Belgium</option>
-                    <option value="Benin">Benin</option>
-                    <option value="Bermuda">Bermuda</option>
-                    <option value="Brazil">Brazil</option>
-                    <option value="Belarus">Belarus</option>
-                    <option value="Canada">Canada</option>
-                    <option value="Switzerland">Switzerland</option>
-                    <option value="Cook Islands">Cook Islands</option>
-                    <option value="Chile">Chile</option>
-                    <option value="China">China</option>
-                    <option value="Christmas Island">Christmas Island</option>
-                    <option value="Cyprus">Cyprus</option>
-                    <option value="Germany">Germany</option>
-                    <option value="Denmark">Denmark</option>
-                    <option value="Egypt">Egypt</option>
-                    <option value="Estonia">Estonia</option>
-                    <option value="Spain">Spain</option>
-                    <option value="Ethiopia">Ethiopia</option>
-                    <option value="Europe">Europe</option>
-                    <option value="Finland">Finland</option>
-                    <option value="Faroe Islands">Faroe Islands</option>
-                    <option value="France">France</option>
-                    <option value="England">England</option>
-                    <option value="Scotland">Scotland</option>
-                    <option value="Georgia">Georgia</option>
-                    <option value="UA">UA</option>
-                    <option value="Poland">Poland</option>
-                    <option value="Italy">Italy</option>
-                    <option value="Ukraine">Ukraine</option>
-                    <option value="Serbia">Serbia</option>
-                    <option value="Sweden">Sweden</option>
-                    <option value="Albania">Albania</option>
-                    <option value="Spain">Spain</option>
-                    <option value="Jersey">Jersey</option>
-                  </select>
-                </div>
-              </div>
-              <Col lg={6}>
-                <div className="mb-3">
-                  <label htmlFor="statusSelect" className="form-label">
-                    Postion
-                  </label>
-                  <select
-                    className="form-select"
-                    name="choices-single-default"
-                    id="statusSelect"
-                    required
-                  >
-                    <option value="">Status</option>
-                    <option value="Pickups">Pickups</option>
-                    <option value="Pending">Pending</option>
-                    <option value="Shipping">Shipping</option>
-                    <option value="Delivered">Delivered</option>
-                    <option value="Out Of Delivery">Out Of Delivery</option>
-                  </select>
-                </div>
-              </Col>
-              <Col lg={12}>
-                <div className="hstack gap-2 justify-content-end">
-                  <Button
-                    className="btn-ghost-danger"
-                    onClick={() => {
-                      tog_QuoteInfo();
-                    }}
-                    data-bs-dismiss="modal"
-                  >
-                    <i className="ri-close-line align-bottom me-1"></i> Close
-                  </Button>
-                  <Button variant="primary" id="add-btn">
-                    Add Station
-                  </Button>
-                </div>
-              </Col>
-            </Row>
-          </Form>
-        </Modal.Body>
-      </Modal>
     </React.Fragment>
   );
 };

@@ -34,7 +34,10 @@ const Bookings = () => {
   const [modal_AssignVehicle, setModal_AssignVehicle] =
     useState<boolean>(false);
   const { data: AllQuotes = [] } = useGetAllQuoteQuery();
-  const result = AllQuotes.filter((bookings) => bookings.progress !== "New");
+  const result = AllQuotes.filter(
+    (bookings) =>
+      bookings.progress !== "New" && bookings.progress !== "Completed"
+  );
   const privateHiredJobs = result.filter(
     (privateHired) => privateHired?.category === "Private"
   );
@@ -70,8 +73,7 @@ const Bookings = () => {
     journeyTwo.push(
       {
         estimated_start_time: locationQuote?.state?.date!,
-        estimated_return_start_time:
-          locationQuote?.state?.pickup_time!,
+        estimated_return_start_time: locationQuote?.state?.pickup_time!,
         destination_point: locationQuote!.state?.destination_point!,
         start_point: locationQuote?.state?.start_point!,
       },
@@ -267,7 +269,7 @@ const Bookings = () => {
       name: <span className="font-weight-bold fs-13">Pax</span>,
       selector: (row: any) => row.passengers_number,
       sortable: true,
-      width: "60px"
+      width: "60px",
     },
     {
       name: <span className="font-weight-bold fs-13">Pick Up</span>,
@@ -283,50 +285,39 @@ const Bookings = () => {
     },
     {
       name: <span className="font-weight-bold fs-13">Progress</span>,
+      selector: (cell: any) => {
+        switch (cell.progress) {
+          case "Booked":
+            return <span className="badge bg-warning"> {cell.progress} </span>;
+          case "Accepted":
+            return <span className="badge bg-success"> {cell.progress} </span>;
+          case "Refused":
+            return <span className="badge bg-info"> {cell.progress} </span>;
+          default:
+            return <span className="badge bg-danger"> {cell.progress} </span>;
+        }
+      },
       sortable: true,
-      selector: (row: any) => (
-        <span
-          className={`badge ${
-            row.progress === "Booked"
-              ? "bg-warning"
-              : row.progress === "Allocated"
-              ? "bg-info"
-              : row.progress === "Driver Allocated"
-              ? "bg-primary"
-              : row.progress === "Vehicle Allocated"
-              ? "bg-secondary"
-              : "bg-danger"
-          } ${row.progress === "Cancel" ? "line-through" : ""}`}
-        >
-          {row.progress}
-        </span>
-      ),
-      width: "140px"
+      width: "120px",
     },
     {
-      name: <span className="font-weight-bold fs-13">Passenger Name</span>,
+      name: <span className="font-weight-bold fs-13">Status</span>,
       sortable: true,
-      selector: (row: any) => row.id_visitor?.name!,
-    },
-    {
-      name: <span className="font-weight-bold fs-13">Mobile</span>,
-      sortable: true,
-      selector: (row: any) => row.id_visitor?.phone!,
-    },
-    {
-      name: <span className="font-weight-bold fs-13">Email</span>,
-      sortable: true,
-      selector: (row: any) => row.id_visitor?.email!,
-    },
-    {
-      name: <span className="font-weight-bold fs-13">Arrival Date</span>,
-      sortable: true,
-      selector: (row: any) => (
-        <span>
-          <b>{row.dropoff_date}</b> at <b>{row.dropoff_time}</b>
-        </span>
-      ),
-      width: "160px"
+      selector: (cell: any) => {
+        switch (cell.status) {
+          case "Booked":
+            return <span className="badge bg-warning"> {cell.status} </span>;
+          case "Allocated":
+            return <span className="badge bg-info"> {cell.status} </span>;
+          case "Vehicle Allocated":
+            return <span className="badge bg-secondary"> {cell.status} </span>;
+          case "Driver Allocated":
+            return <span className="badge bg-primary"> {cell.status} </span>;
+          default:
+            return <span className="badge bg-danger"> {cell.status} </span>;
+        }
+      },
+      width: "140px",
     },
     {
       name: <span className="font-weight-bold fs-13">Price</span>,
@@ -337,6 +328,53 @@ const Bookings = () => {
         </span>
       ),
     },
+    {
+      name: <span className="font-weight-bold fs-13">Passenger Name</span>,
+      sortable: true,
+      selector: (row: any) =>
+        row.school_id! === null && row.company_id! === null ? (
+          <span>{row.id_visitor?.name!}</span>
+        ) : row.id_visitor! === null && row.company_id! === null ? (
+          <span>{row.school_id?.name!}</span>
+        ) : (
+          <span>{row.company_id?.name!}</span>
+        ),
+    },
+    {
+      name: <span className="font-weight-bold fs-13">Mobile</span>,
+      sortable: true,
+      selector: (row: any) =>
+        row.school_id! === null && row.company_id! === null ? (
+          <span>{row.id_visitor?.phone!}</span>
+        ) : row.id_visitor! === null && row.company_id! === null ? (
+          <span>{row.school_id?.phone!}</span>
+        ) : (
+          <span>{row.company_id?.phone!}</span>
+        ),
+    },
+    {
+      name: <span className="font-weight-bold fs-13">Email</span>,
+      sortable: true,
+      selector: (row: any) =>
+        row.school_id! === null && row.company_id! === null ? (
+          <span>{row.id_visitor?.email!}</span>
+        ) : row.id_visitor! === null && row.company_id! === null ? (
+          <span>{row.school_id?.email!}</span>
+        ) : (
+          <span>{row.company_id?.email!}</span>
+        ),
+    },
+    {
+      name: <span className="font-weight-bold fs-13">Arrival Date</span>,
+      sortable: true,
+      selector: (row: any) => (
+        <span>
+          <b>{row.dropoff_date}</b> at <b>{row.dropoff_time}</b>
+        </span>
+      ),
+      width: "160px",
+    },
+
     {
       name: <span className="font-weight-bold fs-13">Balance</span>,
       sortable: true,
@@ -368,27 +406,18 @@ const Bookings = () => {
         return <span className="badge bg-danger"> Not Paid </span>;
       },
     },
-    {
-      name: <span className="font-weight-bold fs-13">Status</span>,
-      sortable: true,
-      selector: (cell: any) => {
-        switch (cell.status) {
-          case "Booked":
-            return <span className="badge bg-warning"> {cell.status} </span>;
-          case "Medium":
-            return <span className="badge bg-info"> {cell.status} </span>;
-          case "Low":
-            return <span className="badge bg-success"> {cell.status} </span>;
-          default:
-            return <span className="badge bg-danger"> {cell.status} </span>;
-        }
-      },
-      width: "160px"
-    },
+
     {
       name: <span className="font-weight-bold fs-13">Account Name</span>,
       sortable: true,
-      selector: (row: any) => row?.id_visitor?.name!,
+      selector: (row: any) =>
+        row.school_id! === null && row.company_id! === null ? (
+          <span>{row.id_visitor?.name!}</span>
+        ) : row.id_visitor! === null && row.company_id! === null ? (
+          <span>{row.school_id?.name!}</span>
+        ) : (
+          <span>{row.company_id?.name!}</span>
+        ),
     },
     {
       name: <span className="font-weight-bold fs-13">Notes</span>,
@@ -461,33 +490,46 @@ const Bookings = () => {
     setSelectedCancelCause(event.target.value);
   };
 
-  const [selectVehicleWhenAssignDriverAndVehicle, setSelectedVehicleWhenAssignDriverAndVehicle] = useState<string>("");
+  const [
+    selectVehicleWhenAssignDriverAndVehicle,
+    setSelectedVehicleWhenAssignDriverAndVehicle,
+  ] = useState<string>("");
   // This function is triggered when the select Vehicle
-  const handleSelectVehicleWhenAssignDriverAndVehicle = (event: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleSelectVehicleWhenAssignDriverAndVehicle = (
+    event: React.ChangeEvent<HTMLSelectElement>
+  ) => {
     const value = event.target.value;
     setSelectedVehicleWhenAssignDriverAndVehicle(value);
   };
 
-  const [selectDriverWhenAssignDriverAndVehicle, setSelectedDriverWhenAssignDriverAndVehicle] = useState<string>("");
+  const [
+    selectDriverWhenAssignDriverAndVehicle,
+    setSelectedDriverWhenAssignDriverAndVehicle,
+  ] = useState<string>("");
   // This function is triggered when the select Driver
-  const handleSelectDriverWhenAssignDriverAndVehicle = (event: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleSelectDriverWhenAssignDriverAndVehicle = (
+    event: React.ChangeEvent<HTMLSelectElement>
+  ) => {
     const value = event.target.value;
     setSelectedDriverWhenAssignDriverAndVehicle(value);
   };
 
-  const [assignDriverAndVehicleToQuoteMutation] = useAssignDriverAndVehicleToQuoteMutation()
+  const [assignDriverAndVehicleToQuoteMutation] =
+    useAssignDriverAndVehicleToQuoteMutation();
 
   const initialAssginDriverAndVehicleToQuote = {
     quote_ID: "",
     vehicle_ID: "",
-    driver_ID: ""
+    driver_ID: "",
   };
 
-  const [assignDriverAndVehicleToQuoteState, setAssignDriverAndVehicleToQuoteState] = useState(
-    initialAssginDriverAndVehicleToQuote
-  );
+  const [
+    assignDriverAndVehicleToQuoteState,
+    setAssignDriverAndVehicleToQuoteState,
+  ] = useState(initialAssginDriverAndVehicleToQuote);
 
-  const { quote_ID, vehicle_ID, driver_ID } = assignDriverAndVehicleToQuoteState;
+  const { quote_ID, vehicle_ID, driver_ID } =
+    assignDriverAndVehicleToQuoteState;
 
   const onSubmitAssignDriverAndVehicleToQuote = (
     e: React.FormEvent<HTMLFormElement>
@@ -495,12 +537,14 @@ const Bookings = () => {
     e.preventDefault();
     try {
       assignDriverAndVehicleToQuoteState["quote_ID"] = selectedRow[0]._id;
-      assignDriverAndVehicleToQuoteState["vehicle_ID"] = selectVehicleWhenAssignDriverAndVehicle;
-      assignDriverAndVehicleToQuoteState["driver_ID"] = selectDriverWhenAssignDriverAndVehicle;
+      assignDriverAndVehicleToQuoteState["vehicle_ID"] =
+        selectVehicleWhenAssignDriverAndVehicle;
+      assignDriverAndVehicleToQuoteState["driver_ID"] =
+        selectDriverWhenAssignDriverAndVehicle;
       assignDriverAndVehicleToQuoteMutation(assignDriverAndVehicleToQuoteState)
         .then(() => navigate("/bookings"))
         .then(() => notifySuccess())
-        .then(()=> setIsChecked(!isChecked))
+        .then(() => setIsChecked(!isChecked));
     } catch (error) {
       notifyError(error);
     }
@@ -1142,7 +1186,10 @@ const Bookings = () => {
             centered
           >
             <Modal.Body className="p-4">
-              <Form className="tablelist-form" onSubmit={onSubmitAssignDriverAndVehicleToQuote}>
+              <Form
+                className="tablelist-form"
+                onSubmit={onSubmitAssignDriverAndVehicleToQuote}
+              >
                 <Row>
                   <Col lg={3}>
                     <div className="mb-3">
@@ -1207,7 +1254,11 @@ const Bookings = () => {
                         <i className="ri-close-fill align-bottom me-1"></i>{" "}
                         Close
                       </Button>
-                      <Button className="btn-soft-primary" type="submit" onClick={() => tog_DriverVehicleAssign()}>
+                      <Button
+                        className="btn-soft-primary"
+                        type="submit"
+                        onClick={() => tog_DriverVehicleAssign()}
+                      >
                         <i className="ri-add-line align-bottom me-1"></i> Assign
                       </Button>
                     </div>

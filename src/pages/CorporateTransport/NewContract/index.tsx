@@ -20,8 +20,6 @@ import {
 } from "features/contract/contractSlice";
 import Swal from "sweetalert2";
 import Flatpickr from "react-flatpickr";
-import { useFetchSchoolByIdQuery } from "features/Schools/schools";
-import { useFetchCompanyByIdQuery } from "features/Company/companySlice";
 
 const NewContract = () => {
   document.title = "Contract | Bouden Coach Travel";
@@ -44,7 +42,8 @@ const NewContract = () => {
   function tog_AddContract() {
     navigate("/new-contract");
   }
-  const [updateContractStatusMutation] = useUpdateContractStatusToApprovedMutation();
+  const [updateContractStatusMutation] =
+    useUpdateContractStatusToApprovedMutation();
   const [deleteContract] = useDeleteContractMutation();
 
   const swalWithBootstrapButtons = Swal.mixin({
@@ -114,9 +113,8 @@ const NewContract = () => {
     effectiveDate: "",
   };
 
-  const [updateContractStatusToContract, setUpdateContractStatusToContract] = useState(
-    initialUpdateContractStatus
-  );
+  const [updateContractStatusToContract, setUpdateContractStatusToContract] =
+    useState(initialUpdateContractStatus);
 
   const { contract_id, effectiveDate } = updateContractStatusToContract;
 
@@ -129,12 +127,16 @@ const NewContract = () => {
     }));
   };
 
-  const onSubmitUpdateContractStatusToApproved = (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmitUpdateContractStatusToApproved = (
+    e: React.FormEvent<HTMLFormElement>
+  ) => {
     e.preventDefault();
     try {
-      console.log(contractLocation.state?._id!)
-      updateContractStatusToContract["contract_id"] = contractLocation.state?._id!;
-      updateContractStatusToContract["effectiveDate"] = selectedEffectiveDate!.toDateString();
+      console.log(contractLocation.state?._id!);
+      updateContractStatusToContract["contract_id"] =
+        contractLocation.state?._id!;
+      updateContractStatusToContract["effectiveDate"] =
+        selectedEffectiveDate!.toDateString();
       updateContractStatusMutation(updateContractStatusToContract)
         .then(() => navigate("/contract"))
         .then(() => notifySuccess());
@@ -142,7 +144,7 @@ const NewContract = () => {
       notifyError(error);
     }
   };
-  
+
   const columns = [
     {
       name: <span className="font-weight-bold fs-13">Contract Ref</span>,
@@ -404,7 +406,10 @@ const NewContract = () => {
             </h5>
           </Modal.Header>
           <Modal.Body className="p-4">
-            <Form className="tablelist-form" onSubmit={onSubmitUpdateContractStatusToApproved}>
+            <Form
+              className="tablelist-form"
+              onSubmit={onSubmitUpdateContractStatusToApproved}
+            >
               <Row>
                 <Col lg={12}>
                   <div className="mb-3">
@@ -435,10 +440,14 @@ const NewContract = () => {
                     >
                       <i className="ri-close-line align-bottom me-1"></i> Close
                     </Button>
-                    <Button className="btn-soft-primary" type="submit"  onClick={() => {
+                    <Button
+                      className="btn-soft-primary"
+                      type="submit"
+                      onClick={() => {
                         tog_ModalToUpdateContractStatus();
-                      }}>
-                    <i className="ri-add-line align-bottom me-1"></i> Add
+                      }}
+                    >
+                      <i className="ri-add-line align-bottom me-1"></i> Add
                     </Button>
                   </div>
                 </Col>

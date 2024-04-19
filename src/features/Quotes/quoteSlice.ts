@@ -22,6 +22,8 @@ export interface Quote {
   };
   vehicle_type: string;
   id_visitor: string;
+  school_id?: string;
+  company_id?: string;
   notes: string;
   createdAt: Date;
   luggage_details: string;

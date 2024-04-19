@@ -114,7 +114,7 @@ const ProgramDetail = () => {
         </Card.Header>
         <Card.Body>
           <Row>
-            <Col xxl={3} lg={6}>
+            <Col xxl={4} lg={6}>
               <Card className="bg-secondary bg-opacity-10 border-0">
                 <Card.Body>
                   <div className="d-flex gap-3">
@@ -144,7 +144,7 @@ const ProgramDetail = () => {
                 </Card.Body>
               </Card>
             </Col>
-            <Col xxl={3} lg={6}>
+            <Col xxl={4} lg={6}>
               <Card className="bg-warning bg-opacity-10 border-0">
                 <Card.Body>
                   <div className="d-flex gap-3">
@@ -178,7 +178,7 @@ const ProgramDetail = () => {
                 </Card.Body>
               </Card>
             </Col>
-            <Col xxl={3} lg={6}>
+            <Col xxl={4} lg={6}>
               <Card className="bg-success bg-opacity-10 border-0">
                 <Card.Body>
                   <div className="d-flex gap-3">
@@ -210,41 +210,9 @@ const ProgramDetail = () => {
                 </Card.Body>
               </Card>
             </Col>
-            <Col xxl={3} lg={6}>
-              <Card className="bg-primary bg-opacity-10 border-0">
-                <Card.Body>
-                  <div className="d-flex gap-3">
-                    <div className="flex-grow-1">
-                      <h6 className="fs-18 mb-3">Options</h6>
-                      <p className="mb-0 fw-medium">
-                        Capacity:{" "}
-                        <span className="fw-medium">
-                          {program.recommanded_capacity}
-                        </span>
-                      </p>
-                      <p className="mb-0">
-                        Note: <span className="fw-medium">{program.notes}</span>
-                      </p>
-                      <p className="mb-1">
-                        Extra :{" "}
-                        <span className="fw-medium">
-                          {program.extra.join(" , ")}
-                        </span>
-                      </p>
-                      {/* <p className="mb-1">Extra</p> */}
-                    </div>
-                    <div className="avatar-sm flex-shrink-0">
-                      <div className="avatar-title bg-primary-subtle text-primary rounded fs-3">
-                        <i className="bi bi-boxes"></i>
-                      </div>
-                    </div>
-                  </div>
-                </Card.Body>
-              </Card>
-            </Col>
           </Row>
           <Row>
-            <Col xxl={3} lg={6}>
+            <Col xxl={4} lg={6}>
               <Card className="bg-danger bg-opacity-10 border-0">
                 <Card.Body>
                   <div className="d-flex gap-3">
@@ -294,7 +262,7 @@ const ProgramDetail = () => {
                 </Card.Body>
               </Card>
             </Col>
-            <Col xxl={3} lg={6}>
+            <Col xxl={4} lg={6}>
               <Card className="bg-info bg-opacity-10 border-0">
                 <Card.Body>
                   <div className="d-flex gap-3">
@@ -323,6 +291,38 @@ const ProgramDetail = () => {
                     <div className="avatar-sm flex-shrink-0">
                       <div className="avatar-title bg-info-subtle text-info rounded fs-3">
                         <i className="ph ph-bus"></i>
+                      </div>
+                    </div>
+                  </div>
+                </Card.Body>
+              </Card>
+            </Col>
+            <Col xxl={4} lg={6}>
+              <Card className="bg-primary bg-opacity-10 border-0">
+                <Card.Body>
+                  <div className="d-flex gap-3">
+                    <div className="flex-grow-1">
+                      <h6 className="fs-18 mb-3">Options</h6>
+                      <p className="mb-0 fw-medium">
+                        Passenger Number:{" "}
+                        <span className="fw-medium">
+                          {program.recommanded_capacity}
+                        </span>
+                      </p>
+                      <p className="mb-0">
+                        Note: <span className="fw-medium">{program.notes}</span>
+                      </p>
+                      <p className="mb-1">
+                        Extra :{" "}
+                        <span className="fw-medium">
+                          {program.extra.join(" , ")}
+                        </span>
+                      </p>
+                      {/* <p className="mb-1">Extra</p> */}
+                    </div>
+                    <div className="avatar-sm flex-shrink-0">
+                      <div className="avatar-title bg-primary-subtle text-primary rounded fs-3">
+                        <i className="bi bi-boxes"></i>
                       </div>
                     </div>
                   </div>

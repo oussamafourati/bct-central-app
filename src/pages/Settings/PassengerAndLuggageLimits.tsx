@@ -3,9 +3,7 @@ import { Row, Card, Col, Modal, Form, Button } from "react-bootstrap";
 import DataTable from "react-data-table-component";
 
 import { Link } from "react-router-dom";
-import {
-  useGetAllJourneyQuery,
-} from "features/Journeys/journeySlice";
+import { useGetAllJourneyQuery } from "features/Journeys/journeySlice";
 import Swal from "sweetalert2";
 import { useGetAllVehicleTypesQuery } from "features/VehicleType/vehicleTypeSlice";
 import {
@@ -16,7 +14,7 @@ import {
 import { useGetAllLuggageQuery } from "features/luggage/luggageSlice";
 
 const PassengerAndLuggageLimits = () => {
-  const { data: AllLuggages = [] } = useGetAllLuggageQuery()
+  const { data: AllLuggages = [] } = useGetAllLuggageQuery();
   const { data: AllVehicleTypes = [] } = useGetAllVehicleTypesQuery();
   const { data: AllPassengerLuggageLimit = [] } =
     useGetAllPassengerAndLuggagesQuery();
@@ -108,9 +106,13 @@ const PassengerAndLuggageLimits = () => {
   const [createPassengerLuggageLimit] = useAddNewPassengerAndLuggageMutation();
 
   const initialPassengerLuggageLimit = {
-    vehicle_type: "",
+    vehicle_type: {
+      _id: "",
+    },
     max_passengers: "",
-    max_luggage: "",
+    max_luggage: {
+      _id: "",
+    },
   };
 
   const [passengerLuggageLimit, setPassengerLuggageLimit] = useState(
@@ -133,11 +135,11 @@ const PassengerAndLuggageLimits = () => {
   ) => {
     e.preventDefault();
     try {
-      passengerLuggageLimit["max_luggage"] = selectJourney
-      passengerLuggageLimit["vehicle_type"] = selectvehicleType
-      createPassengerLuggageLimit(passengerLuggageLimit).then(() =>
-        notifySuccess()
-      ).then(()=>setPassengerLuggageLimit(initialPassengerLuggageLimit))
+      passengerLuggageLimit["max_luggage"]._id = selectJourney;
+      passengerLuggageLimit["vehicle_type"]._id = selectvehicleType;
+      createPassengerLuggageLimit(passengerLuggageLimit)
+        .then(() => notifySuccess())
+        .then(() => setPassengerLuggageLimit(initialPassengerLuggageLimit));
     } catch (error) {
       notifyError(error);
     }
@@ -343,7 +345,6 @@ const PassengerAndLuggageLimits = () => {
                       </option>
                     ))}
                   </select>
-
                 </div>
               </Col>
             </Row>

@@ -2,9 +2,18 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 export interface PassengerAndLuggage {
   _id?: string;
-  vehicle_type: string;
+  vehicle_type: {
+    _id?: string;
+    type?: string;
+    base_change?: string;
+    coverage_mile?: string;
+  };
   max_passengers: string;
-  max_luggage: string;
+  max_luggage: {
+    _id?: string;
+    size?: string;
+    description?: string;
+  };
 }
 
 export const passengerAndLuggageSlice = createApi({

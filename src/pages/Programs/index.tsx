@@ -83,7 +83,7 @@ const ProgramList = () => {
     setmodal_Destination(!modal_Destination);
   }
   function tog_AddShippingModals() {
-    navigate("/programming/add-program");
+    navigate("/program");
   }
 
   const programLocation = useLocation();
@@ -147,6 +147,7 @@ const ProgramList = () => {
       name: <span className="font-weight-bold fs-13">Name</span>,
       selector: (row: any) => row.programName,
       sortable: true,
+      width: "180px",
     },
     {
       name: <span className="font-weight-bold fs-13">Pickup</span>,
@@ -158,7 +159,7 @@ const ProgramList = () => {
         );
       },
       sortable: true,
-      width: "140px",
+      width: "200px",
     },
     {
       name: <span className="font-weight-bold fs-13">Destination</span>,
@@ -200,7 +201,7 @@ const ProgramList = () => {
                 className="badge badge-soft-success text-uppercase"
                 onClick={() => AlertConfirm(row?._id!)}
               >
-                Converted To Contract
+                Convert To Contract
               </Link>
             ) : latestStatus === "Pending" ? (
               <span className="badge bg-danger-subtle text-danger">
@@ -566,8 +567,8 @@ const ProgramList = () => {
     try {
       sendResponse["id"] = programLocation.state?._id!;
       sendResponse["notes_for_client"] = responseMsg;
-      sendResponse["unit_price"] = quoteUnitPrice!.toFixed(2);
-      sendResponse["total_price"] = contractTotalPrice!.toFixed(2);
+      sendResponse["unit_price"] = quoteUnitPrice?.toFixed(2)!;
+      sendResponse["total_price"] = contractTotalPrice?.toFixed(2)!;
       let newResponseStatus: ResponseStatus = { status: "", date_status: "" };
       let prev_status: any = [];
       programLocation?.state?.program_status!.forEach((element: any) => {
@@ -669,7 +670,7 @@ const ProgramList = () => {
                       className="add-btn"
                     >
                       <i className="bi bi-plus-circle me-1 align-middle "></i>{" "}
-                      Add Programm
+                      Add Program
                     </Button>
                   </Col>
                 </Row>
@@ -874,7 +875,8 @@ const ProgramList = () => {
                         className="form-select text-muted"
                         name="invoiceFrequency"
                         id="invoiceFrequency"
-                        // onChange={handleSelectInvoiceFrequency}
+                        defaultValue={programLocation?.state?.invoiceFrequency!}
+                        onChange={handleSelectInvoiceFrequency}
                       >
                         <option
                           value={`${programLocation?.state?.invoiceFrequency!}`}
@@ -882,11 +884,6 @@ const ProgramList = () => {
                         >
                           {programLocation?.state?.invoiceFrequency!}
                         </option>
-                        {/* <option value="Daily">Daily</option>
-                  <option value="Weekly">Weekly</option>
-                  <option value="Bi Weekly">Bi Weekly</option>
-                  <option value="Third Weekly">Third Weekly</option>
-                  <option value="Monthly">Monthly</option> */}
                       </select>
                     </div>
                   </Col>
@@ -1072,19 +1069,30 @@ const ProgramList = () => {
               </Col>
             </Form> */}
             {programLocation?.state?.notes_for_client!.map((notes: any) => (
-              <Card>
-                <Card.Header>
-                  <h6>{notes.sender}</h6>
-                </Card.Header>
-                <Card.Body>
-                  <Form.Control
-                    type="text"
-                    defaultValue={notes.msg}
-                    className="mb-2"
-                  />
-                  <Form.Control type="text" defaultValue={notes.date} />
-                </Card.Body>
-              </Card>
+              <Row>
+                <Col
+                  className={
+                    "d-flex" +
+                    (notes.sender === "Bouden Coach Travel"
+                      ? " justify-content-end mb-2"
+                      : " justify-content-start")
+                  }
+                >
+                  <Card>
+                    <Card.Header>
+                      <h6>{notes.sender}</h6>
+                    </Card.Header>
+                    <Card.Body>
+                      <Form.Control
+                        className="mb-2"
+                        type="text"
+                        defaultValue={notes.msg}
+                      />
+                      <Form.Control type="text" defaultValue={notes.date} />
+                    </Card.Body>
+                  </Card>
+                </Col>
+              </Row>
             ))}
           </Modal.Body>
         </Modal>

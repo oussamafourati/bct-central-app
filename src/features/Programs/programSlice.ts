@@ -42,6 +42,7 @@ export interface Programm {
     status: string;
     date_status: string;
   }[];
+  within_payment_days?: string;
   invoiceFrequency?: string;
   notes_for_client?: {
     msg: string;
