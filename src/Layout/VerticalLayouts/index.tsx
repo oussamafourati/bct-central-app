@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import withRouter from "Common/withRouter";
 import { Col, Collapse, Row, Modal } from "react-bootstrap";
-import CountUp from "react-countup";
 import Swal from "sweetalert2";
 
 import { withTranslation } from "react-i18next";
@@ -181,7 +180,9 @@ const VerticalLayout = (props: any) => {
                   <span data-key="t-apps">{props.t(item.label)}</span>
                   {item.badgeName ? (
                     <span
-                      className={"badge badge-pill rounded-5 bg-" + item.badgeColor}
+                      className={
+                        "badge badge-pill rounded-5 bg-" + item.badgeColor
+                      }
                       data-key="t-new"
                     >
                       {item.badgeName}
@@ -189,18 +190,22 @@ const VerticalLayout = (props: any) => {
                   ) : null}
                   {item.badgeName1 ? (
                     <span
-                      className={"badge badge-pill rounded-5 bg-" + item.badgeColor1}
+                      className={
+                        "badge badge-pill rounded-5 bg-" + item.badgeColor1
+                      }
                       data-key="t-new"
-                      style={{marginLeft: "10px"}}
+                      style={{ marginLeft: "10px" }}
                     >
                       {item.badgeName1}
                     </span>
                   ) : null}
                   {item.badgeName2 ? (
                     <span
-                      className={"badge badge-pill rounded-5 bg-" + item.badgeColor2}
+                      className={
+                        "badge badge-pill rounded-5 bg-" + item.badgeColor2
+                      }
                       data-key="t-new"
-                      style={{marginLeft: "10px"}}
+                      style={{ marginLeft: "10px" }}
                     >
                       {item.badgeName2}
                     </span>
@@ -352,9 +357,7 @@ const VerticalLayout = (props: any) => {
                   <span>{props.t(item.label)}</span>
                   {item.badgeName ? (
                     <span
-                      className={
-                        "badge badge-pill badge-" + item.badgeColor
-                      }
+                      className={"badge badge-pill badge-" + item.badgeColor}
                       data-key="t-new"
                     >
                       {item.badgeName}
@@ -392,7 +395,7 @@ const VerticalLayout = (props: any) => {
               onClick={() => tog_AddModalAffiliate()}
             >
               <i
-                className="mdi mdi-account-group"
+                className="mdi mdi-hands-pray"
                 style={{ fontSize: "24px" }}
               ></i>
               <span className="text-secondary mt-1 fs-12">Affiliates</span>

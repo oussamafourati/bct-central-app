@@ -27,7 +27,7 @@ import img14 from "assets/images/brands/img-14.png";
 import { Link } from "react-router-dom";
 
 const Delayschanges = () => {
-    document.title = " Delays & Changes | Bouden Coach Travel";
+  document.title = " Delays & Changes | Bouden Coach Travel";
   const columns = [
     {
       name: <span className="font-weight-bold fs-13">Date</span>,
@@ -80,7 +80,7 @@ const Delayschanges = () => {
               <i className="ri-more-fill align-middle"></i>
             </Dropdown.Toggle>
             <Dropdown.Menu className="dropdown-menu-end">
-              <Dropdown.Item to="#">
+              <Dropdown.Item href="#">
                 <i className="ri-eye-fill align-bottom me-2 text-muted"></i>View
               </Dropdown.Item>
               <Dropdown.Item className="edit-item-btn">

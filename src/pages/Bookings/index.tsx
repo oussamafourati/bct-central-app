@@ -14,6 +14,7 @@ import Flatpickr from "react-flatpickr";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Quote,
+  useAddAffilaiteToQuoteMutation,
   useAddDriverToQuoteMutation,
   useAssignDriverAndVehicleToQuoteMutation,
   useDeleteQuoteMutation,
@@ -27,16 +28,52 @@ import {
   useGetDriverByIDQuery,
 } from "features/Driver/driverSlice";
 import { useGetAllVehiclesQuery } from "features/Vehicles/vehicleSlice";
+import {
+  useFetchAffiliateByIdQuery,
+  useGetAllAffiliatesQuery,
+} from "features/Affiliate/affiliateSlice";
+
+import Select from "react-select";
 
 const Bookings = () => {
   document.title = "Bookings | Bouden Coach Travel";
+  const customStyles = {
+    multiValue: (styles: any, { data }: any) => {
+      return {
+        ...styles,
+        backgroundColor: "#4b93ff",
+      };
+    },
+    multiValueLabel: (styles: any, { data }: any) => ({
+      ...styles,
+      backgroundColor: "#4b93ff",
+      color: "white",
+      //    borderRadius: "50px"
+    }),
+    multiValueRemove: (styles: any, { data }: any) => ({
+      ...styles,
+      color: "white",
+      backgroundColor: "#4b93ff",
+      ":hover": {
+        backgroundColor: "#4b93ff",
+        color: "white",
+      },
+    }),
+  };
+
   const [modal_AssignDriver, setModal_AssignDriver] = useState<boolean>(false);
+  const [modal_PushJob, setModal_PushJob] = useState<boolean>(false);
+  function tog_PushJob() {
+    setModal_PushJob(!modal_PushJob);
+  }
   const [modal_AssignVehicle, setModal_AssignVehicle] =
     useState<boolean>(false);
   const { data: AllQuotes = [] } = useGetAllQuoteQuery();
   const result = AllQuotes.filter(
     (bookings) =>
-      bookings.progress !== "New" && bookings.progress !== "Completed"
+      bookings.progress !== "New" &&
+      bookings.progress !== "Completed" &&
+      bookings.status !== "Pushed"
   );
   const privateHiredJobs = result.filter(
     (privateHired) => privateHired?.category === "Private"
@@ -595,6 +632,81 @@ const Bookings = () => {
     (vehicles) => vehicles.statusVehicle === "Active"
   );
 
+  const { data: AllAffiliates = [] } = useGetAllAffiliatesQuery();
+  const completeAffiliate = AllAffiliates.filter(
+    (affiliates) => affiliates.statusAffiliate === "Accepted"
+  );
+  const options = completeAffiliate.map((affiliate) => ({
+    value: affiliate?._id!,
+    label: affiliate.name,
+  }));
+
+  // State to store the selected options
+  const [selectedOptions, setSelectedOptions] = useState([]);
+  // Event handler to handle changes in selected options
+  const handleSelectChange = (selectedOption: any) => {
+    setSelectedOptions(selectedOption);
+  };
+  console.log("selectedOptions", selectedOptions);
+  const [selectAffiliate, setSelectedAffiliate] = useState<string>("");
+  // This function is triggered when the select Affiliate
+  const handleSelectAffiliate = (
+    event: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    const value = event.target.value;
+    setSelectedAffiliate(value);
+  };
+
+  // const [selectedValues, setSelectedValues] = useState<string[]>([]);
+  // const handleSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+  //   const selectedOptions = event.currentTarget.selectedOptions;
+
+  //   const newColors = [];
+  //   for (let i = 0; i < selectedOptions.length; i++) {
+  //     newColors.push(selectedOptions[i].value);
+  //   }
+
+  //   setSelectedValues(newColors);
+  // };
+
+  const date = new Date();
+
+  const [assignAffiliateToQuote] = useAddAffilaiteToQuoteMutation();
+
+  const initialPushJob = {
+    idQuote: "",
+    white_list: [""],
+    pushedDate: "",
+  };
+
+  const [assignAffiliateToQuoteStatus, setAffiliateToQuoteStatus] =
+    useState(initialPushJob);
+
+  const { idQuote, white_list, pushedDate } = assignAffiliateToQuoteStatus;
+
+  const onChangeAssignAffiliate = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setAffiliateToQuoteStatus((prevState) => ({
+      ...prevState,
+      [e.target.id]: e.target.value,
+    }));
+  };
+
+  const onSubmitAssignAffiliate = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    try {
+      assignAffiliateToQuoteStatus["idQuote"] = selectedRow[0]._id;
+      assignAffiliateToQuoteStatus["white_list"] = selectedOptions;
+      assignAffiliateToQuoteStatus["pushedDate"] = date.toDateString();
+      assignAffiliateToQuote(assignAffiliateToQuoteStatus)
+        .then(() => navigate("/current-push-jobs"))
+        .then(() => notifySuccess());
+    } catch (error) {
+      notifyError(error);
+    }
+  };
+
+  const { data: OneAffiliate } = useFetchAffiliateByIdQuery(selectAffiliate);
+
   return (
     <React.Fragment>
       <div className="page-content">
@@ -749,6 +861,16 @@ const Bookings = () => {
                           >
                             <i className="bi bi-plus-square-dotted fs-18"></i>{" "}
                             Assign Vehicle/Driver
+                          </Link>
+                        </li>
+                        <li>
+                          <Link
+                            to="#"
+                            className="badge badge-soft-secondary remove-item-btn fs-16"
+                            state={selectedRow}
+                            onClick={() => tog_PushJob()}
+                          >
+                            <i className="bi bi-send-check fs-18"></i> Push Job
                           </Link>
                         </li>
                         <li>
@@ -1260,6 +1382,148 @@ const Bookings = () => {
                         onClick={() => tog_DriverVehicleAssign()}
                       >
                         <i className="ri-add-line align-bottom me-1"></i> Assign
+                      </Button>
+                    </div>
+                  </Col>
+                </Row>
+              </Form>
+            </Modal.Body>
+          </Modal>
+          {/* Modal To Push Job */}
+          <Modal
+            className="fade zoomIn"
+            size="lg"
+            show={modal_PushJob}
+            onHide={() => {
+              tog_PushJob();
+            }}
+            centered
+          >
+            <Modal.Header className="px-4 pt-4" closeButton>
+              <h5 className="modal-title fs-18" id="exampleModalLabel">
+                Push Job
+              </h5>
+            </Modal.Header>
+            <Modal.Body className="p-4">
+              <div
+                id="alert-error-msg"
+                className="d-none alert alert-danger py-2"
+              ></div>
+              <Form
+                className="tablelist-form"
+                onSubmit={onSubmitAssignAffiliate}
+              >
+                <Row>
+                  <Col lg={12} className="d-flex justify-content-center">
+                    <div className="mb-3">
+                      <Col lg={12}>
+                        <Form.Label htmlFor="vehicle_type">
+                          Affiliate
+                        </Form.Label>
+                      </Col>
+                      <Col lg={12}>
+                        <small className="text-muted">
+                          You can choose one or many affiliates.
+                        </small>
+                      </Col>
+                      <Col lg={12}>
+                        <div className="mb-3">
+                          <Select
+                            closeMenuOnSelect={false}
+                            // defaultValue={[options[1]]}
+                            isMulti
+                            options={options}
+                            styles={customStyles}
+                            onChange={handleSelectChange} // Set the onChange event handler
+                          />
+                        </div>
+                        <div>
+                          Selected value(s):{" "}
+                          {selectedOptions
+                            .map((option: any) => option.label)
+                            .join(", ")}
+                        </div>
+                      </Col>
+                    </div>
+                  </Col>
+                </Row>
+                {selectAffiliate ? (
+                  <>
+                    <Row>
+                      <Col lg={3}>
+                        <h5>Name : </h5>
+                      </Col>
+                      <Col lg={3}>
+                        <h6>{OneAffiliate?.name}</h6>
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col lg={3}>
+                        <h5>Phone : </h5>
+                      </Col>
+                      <Col lg={3}>
+                        <h6>{OneAffiliate?.phone}</h6>
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col lg={3}>
+                        <h5>Address : </h5>
+                      </Col>
+                      <Col lg={3}>
+                        <h6>{OneAffiliate?.address}</h6>
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col lg={3}>
+                        <h5>Regions of Work : </h5>
+                      </Col>
+                      <Col lg={3}>
+                        <h6>{OneAffiliate?.region.join(" , ")}</h6>
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col lg={3}>
+                        <h5>Fleet Number : </h5>
+                      </Col>
+                      <Col lg={3}>
+                        <h6>{OneAffiliate?.fleetNumber}</h6>
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col lg={3}>
+                        <h5>Vehicles: </h5>
+                      </Col>
+                      <Col lg={3}>
+                        {OneAffiliate?.vehicles.map((vehicles: any) => (
+                          <h6>{vehicles?.type!}</h6>
+                        ))}
+                      </Col>
+                    </Row>
+                  </>
+                ) : (
+                  ""
+                )}
+
+                <Row>
+                  <Col lg={12}>
+                    <div className="hstack gap-2 justify-content-end">
+                      <Button
+                        className="btn-soft-danger"
+                        onClick={() => {
+                          tog_PushJob();
+                        }}
+                        data-bs-dismiss="modal"
+                      >
+                        <i className="ri-close-line align-bottom me-1"></i>{" "}
+                        Close
+                      </Button>
+                      <Button
+                        className="btn-soft-info"
+                        id="add-btn"
+                        type="submit"
+                      >
+                        <i className="ri-send-plane-line align-bottom me-1"></i>{" "}
+                        Push
                       </Button>
                     </div>
                   </Col>

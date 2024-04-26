@@ -12,10 +12,8 @@ import DataTable from "react-data-table-component";
 import Breadcrumb from "Common/BreadCrumb";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
-  Contract,
   useDeleteContractMutation,
   useGetAllContractsQuery,
-  useUpdateContractMutation,
   useUpdateContractStatusToApprovedMutation,
 } from "features/contract/contractSlice";
 import Swal from "sweetalert2";

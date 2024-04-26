@@ -1,328 +1,720 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Container,
-  Dropdown,
-  Form,
   Row,
   Card,
   Col,
+  Modal,
+  Form,
   Button,
 } from "react-bootstrap";
 import DataTable from "react-data-table-component";
 import Breadcrumb from "Common/BreadCrumb";
-import img1 from "assets/images/brands/img-1.png";
-import img2 from "assets/images/brands/img-2.png";
-import img3 from "assets/images/brands/img-3.png";
-import img4 from "assets/images/brands/img-4.png";
-import img5 from "assets/images/brands/img-5.png";
-import img6 from "assets/images/brands/img-6.png";
-import img7 from "assets/images/brands/img-7.png";
-import img8 from "assets/images/brands/img-8.png";
-import img9 from "assets/images/brands/img-9.png";
-import img10 from "assets/images/brands/img-10.png";
-import img11 from "assets/images/brands/img-11.png";
-import img12 from "assets/images/brands/img-12.png";
-import img13 from "assets/images/brands/img-13.png";
-import img14 from "assets/images/brands/img-14.png";
-import { Link } from "react-router-dom";
+import Flatpickr from "react-flatpickr";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import {
+  Quote,
+  useAddDriverToQuoteMutation,
+  useAssignDriverAndVehicleToQuoteMutation,
+  useDeleteQuoteMutation,
+  useGetAllQuoteQuery,
+  useUpdateStatusQuoteToCancelMutation,
+} from "features/Quotes/quoteSlice";
+
+import Swal from "sweetalert2";
+import {
+  useGetAllDriverQuery,
+  useGetDriverByIDQuery,
+} from "features/Driver/driverSlice";
+import { useGetAllVehiclesQuery } from "features/Vehicles/vehicleSlice";
 
 const CurrentTable = () => {
-  const columns = [
+  document.title = "Bookings | Bouden Coach Travel";
+  const [modal_AssignDriver, setModal_AssignDriver] = useState<boolean>(false);
+  const [modal_AssignVehicle, setModal_AssignVehicle] =
+    useState<boolean>(false);
+  const { data: AllQuotes = [] } = useGetAllQuoteQuery();
+  const result = AllQuotes.filter((bookings) => bookings.status === "Pushed");
+  const privateHiredJobs = result.filter(
+    (privateHired) => privateHired?.category === "Private"
+  );
+  const contractJobs = result.filter(
+    (contract) => contract?.category === "Regular"
+  );
+  const [isChecked, setIsChecked] = useState<boolean>(false);
+  const [selectedRow, setSelectedRow] = useState<any>();
+  const handleChange = ({ selectedRows }: { selectedRows: Quote }) => {
+    setIsChecked(!isChecked);
+    setSelectedRow(selectedRows);
+  };
+  const [modal_DriverVehicleAssign, setmodal_DriverVehicleAssign] =
+    useState<boolean>(false);
+  function tog_DriverVehicleAssign() {
+    setmodal_DriverVehicleAssign(!modal_DriverVehicleAssign);
+  }
+  const [modal_UpdateQuote, setmodal_UpdateQuote] = useState<boolean>(false);
+  const tog_ModalUpdateQuote = () => {
+    setmodal_UpdateQuote(!modal_UpdateQuote);
+  };
+  const locationQuote = useLocation();
+  const navigate = useNavigate();
+  const { data: AllDrivers = [] } = useGetAllDriverQuery();
+  let filterdDrivers = AllDrivers.filter(
+    (driver) => driver.driverStatus === "Active"
+  );
+  let journeyOne = [];
+  let journeyTwo: any[] = [];
+  if (locationQuote!.state?.type! === "One way") {
+    journeyOne.push(locationQuote?.state!);
+  } else {
+    journeyTwo.push(
+      {
+        estimated_start_time: locationQuote?.state?.date!,
+        estimated_return_start_time: locationQuote?.state?.pickup_time!,
+        destination_point: locationQuote!.state?.destination_point!,
+        start_point: locationQuote?.state?.start_point!,
+      },
+      {
+        estimated_start_time:
+          locationQuote?.state?.estimated_return_start_time!,
+        estimated_return_start_time:
+          locationQuote?.state?.estimated_start_time!,
+        destination_point: locationQuote?.state?.start_point!,
+        start_point: locationQuote?.state?.destination_point!,
+      }
+    );
+  }
+
+  const columns1 = [
     {
-      name: <span className="font-weight-bold fs-13">ID Quote</span>,
-      selector: (row: any) => row.modalId,
+      name: <span className="font-weight-bold fs-13">Journey</span>,
+      selector: (row: any, index: number) => <span>Journey {index + 1}</span>,
       sortable: true,
     },
     {
-      name: <span className="font-weight-bold fs-13">Date Pushed</span>,
-      selector: (row: any) => row.purchaseId,
+      name: <span className="font-weight-bold fs-13">Date</span>,
+      selector: (row: any) => row.pickup_time,
       sortable: true,
     },
     {
-      name: <span className="font-weight-bold fs-13">Company</span>,
-      selector: (row: any) => <Link to="#!">{row.title}</Link>,
+      name: <span className="font-weight-bold fs-13">Pickup</span>,
+      selector: (row: any) => row.start_point?.placeName!,
       sortable: true,
     },
     {
-      name: <span className="font-weight-bold fs-13">Date Out</span>,
-      selector: (row: any) => row.user,
+      name: <span className="font-weight-bold fs-13">Destination</span>,
+      selector: (row: any) => row.destination_point?.placeName!,
       sortable: true,
     },
     {
-      name: <span className="font-weight-bold fs-13">Date Back</span>,
-      selector: (row: any) => row.assigned,
+      name: (
+        <span className="mdi mdi-account-tie-hat font-weight-bold fs-24"></span>
+      ),
+      selector: (row: any) =>
+        row!.id_driver! === undefined ? (
+          <span>No Driver</span>
+        ) : (
+          <span>
+            {row!.id_driver?.firstname!} {row!.id_driver?.surname!}
+          </span>
+        ),
       sortable: true,
     },
     {
       name: <span className="mdi mdi-car font-weight-bold fs-24"></span>,
-      selector: (row: any) => row.createdBy,
+      selector: (row: any) =>
+        row.id_vehicle?.registration_number! === undefined ? (
+          <span>No Vehicle</span>
+        ) : (
+          <span>{row.id_vehicle?.registration_number!}</span>
+        ),
       sortable: true,
+    },
+  ];
+
+  const notifySuccess = () => {
+    Swal.fire({
+      position: "center",
+      icon: "success",
+      title: "Assign Done successfully",
+      showConfirmButton: false,
+      timer: 2500,
+    });
+  };
+
+  const notifyError = (err: any) => {
+    Swal.fire({
+      position: "center",
+      icon: "error",
+      title: `Sothing Wrong, ${err}`,
+      showConfirmButton: false,
+      timer: 2500,
+    });
+  };
+
+  const [selectVehicle, setSelectedVehicle] = useState<string>("");
+  // This function is triggered when the select Vehicle
+  const handleSelectVehicle = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = event.target.value;
+    setSelectedVehicle(value);
+  };
+
+  let { data: oneDriver } = useGetDriverByIDQuery(selectVehicle);
+
+  const [assignDriverToQuoteMutation] = useAddDriverToQuoteMutation();
+
+  const initialAssignDriverToQuote = {
+    quote_id: "",
+    id_driver: "",
+  };
+
+  const [assignDriverToDriver, setAssignDriverToQuote] = useState(
+    initialAssignDriverToQuote
+  );
+
+  const { quote_id, id_driver } = assignDriverToDriver;
+
+  const onChangeAssignDriverToQuote = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setAssignDriverToQuote((prevState) => ({
+      ...prevState,
+      [e.target.id]: e.target.value,
+    }));
+  };
+
+  const onSubmitAssignDriverToQuote = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    try {
+      assignDriverToDriver["quote_id"] = locationQuote.state?._id!;
+      assignDriverToDriver["id_driver"] = selectVehicle;
+      assignDriverToQuoteMutation(assignDriverToDriver)
+        .then(() => navigate("/bookings"))
+        .then(() => notifySuccess());
+    } catch (error) {
+      notifyError(error);
+    }
+  };
+
+  const openModalAssignDriver = () => {
+    setModal_AssignDriver(!modal_AssignDriver);
+  };
+
+  const openModalAssignVehicle = () => {
+    setModal_AssignVehicle(!modal_AssignVehicle);
+  };
+
+  const columns = [
+    {
+      name: <span className="font-weight-bold fs-13">Quote ID</span>,
+      selector: (cell: Quote) => {
+        return (
+          <span>
+            <Link to={`/assign-quote/${cell?._id!}`} state={cell}>
+              <span className="text-dark">{cell?._id}</span>
+            </Link>{" "}
+          </span>
+        );
+      },
+      sortable: true,
+      width: "160px",
+    },
+    {
+      name: (
+        <span className="mdi mdi-account-tie-hat font-weight-bold fs-24"></span>
+      ),
+      selector: (row: any) =>
+        row?.id_affiliate_driver === undefined ? (
+          <span className="font-weight-meduim text-danger">No Driver</span>
+        ) : (
+          <span>
+            {row?.id_driver?.firstname!} {row?.id_driver?.surname!}
+          </span>
+        ),
+      sortable: true,
+    },
+    {
+      name: <span className="mdi mdi-car font-weight-bold fs-24"></span>,
+      selector: (row: any) => row?.vehicle_type!,
+      sortable: true,
+    },
+    {
+      name: <span className="mdi mdi-car font-weight-bold fs-24"></span>,
+      selector: (row: any) =>
+        row?.id_affiliate_vehicle! === undefined ? (
+          <span className="font-weight-meduim text-danger">No Vehicle</span>
+        ) : (
+          <span>{row.id_vehicle?.registration_number!}</span>
+        ),
+      sortable: true,
+    },
+    {
+      name: <span className="font-weight-bold fs-13">Go Date</span>,
+      selector: (row: any) => (
+        <div>
+          <strong>{row?.date!}</strong> at <strong>{row?.pickup_time!}</strong>
+        </div>
+      ),
+      sortable: true,
+      width: "160px",
     },
     {
       name: <span className="font-weight-bold fs-13">Pax</span>,
-      selector: (row: any) => row.createDate,
+      selector: (row: any) => row.passengers_number,
       sortable: true,
+      width: "60px",
     },
     {
-      name: <span className="font-weight-bold fs-13">Category</span>,
-      selector: (row: any) => row.createDate,
+      name: <span className="font-weight-bold fs-13">Pick Up</span>,
+      selector: (row: any) => row.start_point?.placeName!,
       sortable: true,
+      width: "120px",
     },
     {
-      name: <span className="font-weight-bold fs-13">Type</span>,
-      selector: (row: any) => row.createDate,
+      name: <span className="font-weight-bold fs-13">Destination</span>,
       sortable: true,
+      selector: (row: any) => row.destination_point?.placeName!,
+      width: "120px",
     },
     {
-      name: <span className="font-weight-bold fs-13">Pay</span>,
-      sortable: true,
+      name: <span className="font-weight-bold fs-13">Progress</span>,
       selector: (cell: any) => {
-        switch (cell.priority) {
-          case "High":
-            return <span className="badge bg-danger"> {cell.priority} </span>;
-          case "Medium":
-            return <span className="badge bg-info"> {cell.priority} </span>;
-          case "Low":
-            return <span className="badge bg-success"> {cell.priority} </span>;
+        switch (cell.progress) {
+          case "Booked":
+            return <span className="badge bg-warning"> {cell.progress} </span>;
+          case "Accepted":
+            return <span className="badge bg-success"> {cell.progress} </span>;
+          case "Refused":
+            return <span className="badge bg-info"> {cell.progress} </span>;
           default:
-            return <span className="badge bg-danger"> {cell.priority} </span>;
+            return <span className="badge bg-danger"> {cell.progress} </span>;
         }
       },
+      sortable: true,
+      width: "120px",
     },
     {
       name: <span className="font-weight-bold fs-13">Status</span>,
       sortable: true,
       selector: (cell: any) => {
         switch (cell.status) {
-          case "Re-open":
-            return (
-              <span className="badge badge-soft-info"> {cell.status} </span>
-            );
-          case "On-Hold":
-            return (
-              <span className="badge badge-soft-secondary">
-                {" "}
-                {cell.status}{" "}
-              </span>
-            );
-          case "Closed":
-            return (
-              <span className="badge badge-soft-danger"> {cell.status} </span>
-            );
-          case "Inprogress":
-            return (
-              <span className="badge badge-soft-warning"> {cell.status} </span>
-            );
-          case "Open":
-            return (
-              <span className="badge badge-soft-primary"> {cell.status} </span>
-            );
-          case "New":
-            return (
-              <span className="badge badge-soft-success"> {cell.status} </span>
-            );
+          case "Pushed":
+            return <span className="badge bg-success"> New </span>;
+          case "Allocated":
+            return <span className="badge bg-info"> {cell.status} </span>;
+          case "Vehicle Allocated":
+            return <span className="badge bg-secondary"> {cell.status} </span>;
+          case "Driver Allocated":
+            return <span className="badge bg-primary"> {cell.status} </span>;
           default:
-            return (
-              <span className="badge badge-soft-success"> {cell.status} </span>
-            );
+            return <span className="badge bg-danger"> {cell.status} </span>;
         }
       },
+      width: "140px",
     },
-
     {
-      name: <span className="font-weight-bold fs-13">Action</span>,
+      name: <span className="font-weight-bold fs-13">Price</span>,
       sortable: true,
-
-      cell: () => {
-        return (
-          <ul className="hstack gap-2 list-unstyled mb-0">
-            <li>
-              <Link to="#" className="badge badge-soft-primary edit-item-btn">
-                Delete
-              </Link>
-            </li>
-          </ul>
-        );
+      selector: (row: any) => (
+        <span>
+          £ <b>{row?.manual_cost!}</b>
+        </span>
+      ),
+    },
+    {
+      name: <span className="font-weight-bold fs-13">Passenger Name</span>,
+      sortable: true,
+      selector: (row: any) =>
+        row.school_id! === null && row.company_id! === null ? (
+          <span>{row.id_visitor?.name!}</span>
+        ) : row.id_visitor! === null && row.company_id! === null ? (
+          <span>{row.school_id?.name!}</span>
+        ) : (
+          <span>{row.company_id?.name!}</span>
+        ),
+    },
+    {
+      name: <span className="font-weight-bold fs-13">Mobile</span>,
+      sortable: true,
+      selector: (row: any) =>
+        row.school_id! === null && row.company_id! === null ? (
+          <span>{row.id_visitor?.phone!}</span>
+        ) : row.id_visitor! === null && row.company_id! === null ? (
+          <span>{row.school_id?.phone!}</span>
+        ) : (
+          <span>{row.company_id?.phone!}</span>
+        ),
+    },
+    {
+      name: <span className="font-weight-bold fs-13">Email</span>,
+      sortable: true,
+      selector: (row: any) =>
+        row.school_id! === null && row.company_id! === null ? (
+          <span>{row.id_visitor?.email!}</span>
+        ) : row.id_visitor! === null && row.company_id! === null ? (
+          <span>{row.school_id?.email!}</span>
+        ) : (
+          <span>{row.company_id?.email!}</span>
+        ),
+    },
+    {
+      name: <span className="font-weight-bold fs-13">Arrival Date</span>,
+      sortable: true,
+      selector: (row: any) => (
+        <span>
+          <b>{row.dropoff_date}</b> at <b>{row.dropoff_time}</b>
+        </span>
+      ),
+      width: "160px",
+    },
+    {
+      name: <span className="font-weight-bold fs-13">Enquiry Date</span>,
+      sortable: true,
+      selector: (row: Quote) => {
+        const date = new Date(row.createdAt);
+        return <span>{date.toDateString()}</span>;
+      },
+      width: "125px",
+    },
+    {
+      name: <span className="font-weight-bold fs-13">Affiliate</span>,
+      sortable: true,
+      selector: (row: any) => row?.id_affiliate?.name!,
+    },
+    {
+      name: <span className="font-weight-bold fs-13">Payment Status</span>,
+      sortable: true,
+      selector: (cell: any) => {
+        return <span className="badge bg-danger"> Not Paid </span>;
       },
     },
-  ];
-  const data = [
     {
-      srNo: "01",
-      modalId: "VLZ-452",
-      purchaseId: "VLZ1400087402",
-      title: "Post launch reminder/ post list",
-      user: "Joseph Parker",
-      assigned: "Alexis Clarke",
-      createdBy: "Joseph Parker",
-      createDate: "03 Oct, 2021",
-      status: "Re-open",
-      priority: "High",
-    },
-    {
-      srNo: "02",
-      modalId: "VLZ-453",
-      purchaseId: "VLZ1400087425",
-      title: "Additional Calendar",
-      user: "Diana Kohler",
-      assigned: "Admin",
-      createdBy: "Mary Rucker",
-      createDate: "05 Oct, 2021",
-      status: "On-Hold",
-      priority: "Medium",
-    },
-    {
-      srNo: "03",
-      modalId: "VLZ-454",
-      purchaseId: "VLZ1400087438",
-      title: "Make a creating an account profile",
-      user: "Tonya Noble",
-      assigned: "Admin",
-      createdBy: "Tonya Noble",
-      createDate: "27 April, 2022",
-      status: "Closed",
-      priority: "Low",
-    },
-    {
-      srNo: "04",
-      modalId: "VLZ-455",
-      purchaseId: "VLZ1400087748",
-      title: "Apologize for shopping Error!",
-      user: "Joseph Parker",
-      assigned: "Alexis Clarke",
-      createdBy: "Joseph Parker",
-      createDate: "14 June, 2021",
-      status: "Inprogress",
-      priority: "Medium",
-    },
-    {
-      srNo: "05",
-      modalId: "VLZ-456",
-      purchaseId: "VLZ1400087547",
-      title: "Support for theme",
-      user: "Donald Palmer",
-      assigned: "Admin",
-      createdBy: "Donald Palmer",
-      createDate: "25 June, 2021",
-      status: "Closed",
-      priority: "Low",
-    },
-    {
-      srNo: "06",
-      modalId: "VLZ-457",
-      purchaseId: "VLZ1400087245",
-      title: "Benner design for FB & Twitter",
-      user: "Mary Rucker",
-      assigned: "Jennifer Carter",
-      createdBy: "Mary Rucker",
-      createDate: "14 Aug, 2021",
-      status: "Inprogress",
-      priority: "Medium",
-    },
-    {
-      srNo: "07",
-      modalId: "VLZ-458",
-      purchaseId: "VLZ1400087785",
-      title: "Change email option process",
-      user: "James Morris",
-      assigned: "Admin",
-      createdBy: "James Morris",
-      createDate: "12 March, 2022",
-      status: "Open",
-      priority: "High",
-    },
-    {
-      srNo: "08",
-      modalId: "VLZ-460",
-      purchaseId: "VLZ1400087745",
-      title: "Support for theme",
-      user: "Nathan Cole",
-      assigned: "Nancy Martino",
-      createdBy: "Nathan Cole",
-      createDate: "28 Feb, 2022",
-      status: "On-Hold",
-      priority: "Low",
-    },
-    {
-      srNo: "09",
-      modalId: "VLZ-461",
-      purchaseId: "VLZ1400087179",
-      title: "Form submit issue",
-      user: "Grace Coles",
-      assigned: "Admin",
-      createdBy: "Grace Coles",
-      createDate: "07 Jan, 2022",
-      status: "New",
-      priority: "High",
-    },
-    {
-      srNo: "10",
-      modalId: "VLZ-462",
-      purchaseId: "VLZ140008856",
-      title: "Edit customer testimonial",
-      user: "Freda",
-      assigned: "Alexis Clarke",
-      createdBy: "Freda",
-      createDate: "16 Aug, 2021",
-      status: "Closed",
-      priority: "Medium",
-    },
-    {
-      srNo: "11",
-      modalId: "VLZ-463",
-      purchaseId: "VLZ1400078031",
-      title: "Ca i have an e-copy invoice",
-      user: "Williams",
-      assigned: "Admin",
-      createdBy: "Williams",
-      createDate: "24 Feb, 2022",
-      status: "Open",
-      priority: "Low",
-    },
-    {
-      srNo: "12",
-      modalId: "VLZ-464",
-      purchaseId: "VLZ1400087416",
-      title: "Brand logo design",
-      user: "Richard V.",
-      assigned: "Admin",
-      createdBy: "Richard V.",
-      createDate: "16 March, 2021",
-      status: "Inprogress",
-      priority: "High",
-    },
-    {
-      srNo: "13",
-      modalId: "VLZ-466",
-      purchaseId: "VLZ1400089015",
-      title: "Issue with finding information about order ?",
-      user: "Olive Gunther",
-      assigned: "Alexis Clarke",
-      createdBy: "Schaefer",
-      createDate: "32 March, 2022",
-      status: "New",
-      priority: "High",
-    },
-    {
-      srNo: "14",
-      modalId: "VLZ-467",
-      purchaseId: "VLZ1400090324",
-      title: "Make a creating an account profile",
-      user: "Edwin",
-      assigned: "Admin",
-      createdBy: "Edwin",
-      createDate: "05 April, 2022",
-      status: "Inprogress",
-      priority: "Low",
+      name: <span className="font-weight-bold fs-13">Account Name</span>,
+      sortable: true,
+      selector: (row: any) =>
+        row.school_id! === null && row.company_id! === null ? (
+          <span>{row.id_visitor?.name!}</span>
+        ) : row.id_visitor! === null && row.company_id! === null ? (
+          <span>{row.school_id?.name!}</span>
+        ) : (
+          <span>{row.company_id?.name!}</span>
+        ),
     },
   ];
+
+  const [isPrivateHiredChecked, setIsPrivateHiredChecked] = useState(false);
+  const handlePrivateHiredCheckboxChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setIsPrivateHiredChecked(event.target.checked);
+  };
+
+  const [isContractChecked, setIsContractChecked] = useState(false);
+  const handleContractCheckboxChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setIsContractChecked(event.target.checked);
+  };
+
+  const [deleteQuote] = useDeleteQuoteMutation();
+  const swalWithBootstrapButtons = Swal.mixin({
+    customClass: {
+      confirmButton: "btn btn-success",
+      cancelButton: "btn btn-danger",
+    },
+    buttonsStyling: false,
+  });
+
+  const AlertDelete = async () => {
+    swalWithBootstrapButtons
+      .fire({
+        title: "Are you sure?",
+        text: "You won't be able to go back?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, delete it !",
+        cancelButtonText: "No, cancel !",
+        reverseButtons: true,
+      })
+      .then((result: any) => {
+        if (result.isConfirmed) {
+          deleteQuote(selectedRow[0]._id);
+          setIsChecked(!isChecked);
+          swalWithBootstrapButtons.fire(
+            "Deleted !",
+            "Quote is deleted.",
+            "success"
+          );
+        } else if (
+          /* Read more about handling dismissals below */
+          result.dismiss === Swal.DismissReason.cancel
+        ) {
+          swalWithBootstrapButtons.fire("Canceled", "Quote is safe :)", "info");
+        }
+      });
+  };
+
+  // The selected Reglement
+  const [selectedCancelCause, setSelectedCancelCause] = useState<string>("");
+
+  // This function will be triggered when a radio button is selected
+  const radioHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSelectedCancelCause(event.target.value);
+  };
+
+  const [
+    selectVehicleWhenAssignDriverAndVehicle,
+    setSelectedVehicleWhenAssignDriverAndVehicle,
+  ] = useState<string>("");
+  // This function is triggered when the select Vehicle
+  const handleSelectVehicleWhenAssignDriverAndVehicle = (
+    event: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    const value = event.target.value;
+    setSelectedVehicleWhenAssignDriverAndVehicle(value);
+  };
+
+  const [
+    selectDriverWhenAssignDriverAndVehicle,
+    setSelectedDriverWhenAssignDriverAndVehicle,
+  ] = useState<string>("");
+  // This function is triggered when the select Driver
+  const handleSelectDriverWhenAssignDriverAndVehicle = (
+    event: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    const value = event.target.value;
+    setSelectedDriverWhenAssignDriverAndVehicle(value);
+  };
+
+  const [assignDriverAndVehicleToQuoteMutation] =
+    useAssignDriverAndVehicleToQuoteMutation();
+
+  const initialAssginDriverAndVehicleToQuote = {
+    quote_ID: "",
+    vehicle_ID: "",
+    driver_ID: "",
+  };
+
+  const [
+    assignDriverAndVehicleToQuoteState,
+    setAssignDriverAndVehicleToQuoteState,
+  ] = useState(initialAssginDriverAndVehicleToQuote);
+
+  const { quote_ID, vehicle_ID, driver_ID } =
+    assignDriverAndVehicleToQuoteState;
+
+  const onSubmitAssignDriverAndVehicleToQuote = (
+    e: React.FormEvent<HTMLFormElement>
+  ) => {
+    e.preventDefault();
+    try {
+      assignDriverAndVehicleToQuoteState["quote_ID"] = selectedRow[0]._id;
+      assignDriverAndVehicleToQuoteState["vehicle_ID"] =
+        selectVehicleWhenAssignDriverAndVehicle;
+      assignDriverAndVehicleToQuoteState["driver_ID"] =
+        selectDriverWhenAssignDriverAndVehicle;
+      assignDriverAndVehicleToQuoteMutation(assignDriverAndVehicleToQuoteState)
+        .then(() => navigate("/bookings"))
+        .then(() => notifySuccess())
+        .then(() => setIsChecked(!isChecked));
+    } catch (error) {
+      notifyError(error);
+    }
+  };
+
+  const [updateStatusQuoteToCancelMutation] =
+    useUpdateStatusQuoteToCancelMutation();
+
+  const initialUpdateStatusQuoteToCancel = {
+    quoteId: "",
+    status: "",
+  };
+
+  const [updateStatusToCancel, setUpdateStatusToCancel] = useState(
+    initialUpdateStatusQuoteToCancel
+  );
+
+  const { quoteId, status } = updateStatusToCancel;
+
+  const onChangeStatusToCancel = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUpdateStatusToCancel((prevState) => ({
+      ...prevState,
+      [e.target.id]: e.target.value,
+    }));
+  };
+
+  const onSubmitUpdateStatusToCancel = (
+    e: React.FormEvent<HTMLFormElement>
+  ) => {
+    e.preventDefault();
+    try {
+      updateStatusToCancel["quoteId"] = selectedRow[0]._id;
+      updateStatusToCancel["status"] = selectedCancelCause;
+      updateStatusQuoteToCancelMutation(updateStatusToCancel)
+        .then(() => navigate("/bookings"))
+        .then(() => notifySuccess());
+    } catch (error) {
+      notifyError(error);
+    }
+  };
+
+  const activeDrivers = AllDrivers.filter(
+    (drivers) => drivers.driverStatus === "Active"
+  );
+
+  const { data: AllVehicles = [] } = useGetAllVehiclesQuery();
+  const activeVehicles = AllVehicles.filter(
+    (vehicles) => vehicles.statusVehicle === "Active"
+  );
+
   return (
     <React.Fragment>
       <Col lg={12}>
+        <Card>
+          <Card.Body>
+            <Row className="g-lg-2 g-4">
+              <Col sm={9} className="col-lg-auto">
+                <select
+                  className="form-select text-muted"
+                  data-choices
+                  data-choices-search-false
+                  name="choices-single-default"
+                  id="idStatus"
+                >
+                  <option value="all">All</option>
+                  <option value="Today">Today</option>
+                  <option value="Yesterday">Yesterday</option>
+                  <option value="Last 7 Days">Last 7 Days</option>
+                  <option value="Last 30 Days">Last 30 Days</option>
+                  <option defaultValue="This Month">This Month</option>
+                  <option value="Last Month">Last Month</option>
+                </select>
+              </Col>
+              <Col sm={9} className="col-lg-auto">
+                <select
+                  className="form-select text-muted"
+                  data-choices
+                  data-choices-search-false
+                  name="choices-single-default"
+                  id="idStatus"
+                >
+                  <option value="all">All Payment</option>
+                  <option value="Today">Not paid</option>
+                  <option value="Yesterday">Part paid</option>
+                  <option value="Last 7 Days">Paid</option>
+                  <option value="Last 30 Days">Pay Cash</option>
+                </select>
+              </Col>
+              <Col sm={9} className="col-lg-auto">
+                <select
+                  className="form-select text-muted"
+                  data-choices
+                  data-choices-search-false
+                  name="choices-single-default"
+                  id="idStatus"
+                >
+                  <option value="all">All Progress</option>
+                  <option value="Today">Accepted</option>
+                  <option value="Yesterday">Allocated</option>
+                  <option value="Last 7 Days">Confirmed</option>
+                  <option value="Last 30 Days">Ended</option>
+                  <option value="Today">In Progress</option>
+                  <option value="Yesterday">Internal Job</option>
+                  <option value="Last 7 Days">New</option>
+                  <option value="Today">On route</option>
+                  <option value="Yesterday">On site</option>
+                  <option value="Last 7 Days">Under bid</option>
+                </select>
+              </Col>
+              <Col sm={9} className="col-lg-auto">
+                <select
+                  className="form-select text-muted"
+                  data-choices
+                  data-choices-search-false
+                  name="choices-single-default"
+                  id="idStatus"
+                >
+                  <option value="all">All Priority</option>
+                  <option value="Today">1</option>
+                  <option value="Yesterday">2</option>
+                  <option value="Last 7 Days">3</option>
+                  <option value="Last 30 Days">4</option>
+                  <option value="Today">5</option>
+                </select>
+              </Col>
+              <Col lg={2}>
+                <Flatpickr
+                  className="form-control flatpickr-input"
+                  placeholder="Select Date"
+                  options={{
+                    mode: "range",
+                    dateFormat: "d M, Y",
+                  }}
+                />
+              </Col>
+              <Col className="d-flex align-items-center">
+                <div className="form-check form-check-inline">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    id="inlineCheckbox1"
+                    value="option1"
+                    checked={isPrivateHiredChecked}
+                    onChange={handlePrivateHiredCheckboxChange}
+                  />
+                  <label className="form-check-label" htmlFor="inlineCheckbox1">
+                    Private Hire
+                  </label>
+                </div>
+                <div className="form-check form-check-inline">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    id="inlineCheckbox2"
+                    value="option2"
+                    checked={isContractChecked}
+                    onChange={handleContractCheckboxChange}
+                  />
+                  <label className="form-check-label" htmlFor="inlineCheckbox2">
+                    Contract
+                  </label>
+                </div>
+                <div className="form-check form-check-inline">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    id="inlineCheckbox3"
+                    value="option3"
+                  />
+                  <label className="form-check-label" htmlFor="inlineCheckbox3">
+                    Non Invoiced
+                  </label>
+                </div>
+              </Col>
+            </Row>
+          </Card.Body>
+        </Card>
         <Card id="shipmentsList">
           <Card.Header className="border-bottom-dashed">
             <Row className="g-3">
-              <Col xxl={3} lg={6}>
+              <Col lg={3} className="d-flex justify-content-start">
+                {isChecked ? (
+                  <ul className="hstack gap-2 list-unstyled mb-0">
+                    <li>
+                      <Link
+                        to="#"
+                        className="badge badge-soft-danger edit-item-btn fs-16"
+                        onClick={() => AlertDelete()}
+                      >
+                        <i className="bi bi-trash2 fs-18"></i> Delete Job
+                      </Link>
+                    </li>
+                  </ul>
+                ) : (
+                  ""
+                )}
+              </Col>
+              <Col lg={7} className="d-flex justify-content-center">
                 <div className="search-box">
                   <input
                     type="text"
@@ -332,36 +724,51 @@ const CurrentTable = () => {
                   <i className="ri-search-line search-icon"></i>
                 </div>
               </Col>
-              <Col sm={9} className="d-flex col-lg-auto justify-content-end">
-                <select
-                  className="form-select text-muted"
-                  data-choices
-                  data-choices-search-false
-                  name="choices-single-default"
-                  id="idStatus"
+              <Col lg={2} className="d-flex justify-content-end">
+                <div
+                  className="btn-group btn-group-sm mt-2"
+                  role="group"
+                  aria-label="Basic example"
                 >
-                  <option value="all">All Type</option>
-                  <option value="Today">Sent</option>
-                  <option value="Yesterday">Recieved</option>
-                </select>
-              </Col>
-              <Col sm={9} className="d-flex col-lg-auto justify-content-end">
-                <select
-                  className="form-select text-muted"
-                  data-choices
-                  data-choices-search-false
-                  name="choices-single-default"
-                  id="idStatus"
-                >
-                  <option value="all">All Category</option>
-                  <option value="Today">Basic</option>
-                  <option value="Yesterday">Journey</option>
-                </select>
+                  <button type="button" className="btn btn-outline-dark">
+                    Excel
+                  </button>
+                  <button type="button" className="btn btn-outline-dark">
+                    PDF
+                  </button>
+                  <button type="button" className="btn btn-outline-dark">
+                    Print
+                  </button>
+                </div>
               </Col>
             </Row>
           </Card.Header>
           <Card.Body>
-            <DataTable columns={columns} data={data} pagination />
+            {isPrivateHiredChecked && !isContractChecked ? (
+              <DataTable
+                columns={columns}
+                data={privateHiredJobs}
+                selectableRows
+                pagination
+                onSelectedRowsChange={handleChange}
+              />
+            ) : !isPrivateHiredChecked && isContractChecked ? (
+              <DataTable
+                columns={columns}
+                data={contractJobs}
+                pagination
+                selectableRows
+                onSelectedRowsChange={handleChange}
+              />
+            ) : (
+              <DataTable
+                columns={columns}
+                data={result}
+                pagination
+                selectableRows
+                onSelectedRowsChange={handleChange}
+              />
+            )}
           </Card.Body>
         </Card>
       </Col>

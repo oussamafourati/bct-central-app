@@ -462,6 +462,7 @@ const LatestQuotes = () => {
                   selectableRows
                   onSelectedRowsChange={handleChange}
                   pagination
+                  bordred
                 />
               </Card.Body>
             </Card>

@@ -21,7 +21,9 @@ const Navdata = () => {
     (pendingQuotes) => pendingQuotes.progress === "New"
   );
   const { data: allVisitors = [] } = useGetAllVisitorsQuery();
-  const new_visitor = allVisitors.filter((visitors) => visitors?.status === "new")
+  const new_visitor = allVisitors.filter(
+    (visitors) => visitors?.status === "new"
+  );
   // Multi Level
   const [isLevel1, setIsLevel1] = useState(false);
   const [isLevel2, setIsLevel2] = useState(false);
@@ -210,8 +212,8 @@ const Navdata = () => {
     },
     {
       id: "Programming",
-      label: "Programming",
-      icon: "mdi mdi-map-marker-multiple",
+      label: "Suggested Routes",
+      icon: "mdi mdi-routes",
       link: "/#",
       click: function (e: any) {
         e.preventDefault();
@@ -248,7 +250,7 @@ const Navdata = () => {
           link: "/offers",
           icon: "mdi mdi-bullhorn",
           parentId: "Programming",
-        }
+        },
       ],
     },
     {

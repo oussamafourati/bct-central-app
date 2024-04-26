@@ -24,6 +24,9 @@ export interface Quote {
   id_visitor: string;
   school_id?: string;
   company_id?: string;
+  id_affiliate?: string;
+  id_affiliate_driver?: string;
+  id_affiliate_vehicle?: string;
   notes: string;
   createdAt: Date;
   luggage_details: string;
@@ -83,6 +86,12 @@ export interface AssignVehicleToQuote {
   id_vehicle: string;
 }
 
+export interface AssignAffiliateToQuote {
+  idQuote: string;
+  white_list: string[];
+  pushedDate: string;
+}
+
 export interface CancelQuote {
   quoteId: string;
   status: string;
@@ -102,6 +111,7 @@ export const quoteSlice = createApi({
     "CancelQuote",
     "ConvertTo",
     "AssignDriverAndVehicleToQuoteInterface",
+    "AssignAffiliateToQuote"
   ],
   endpoints(builder) {
     return {
@@ -192,6 +202,16 @@ export const quoteSlice = createApi({
         },
         invalidatesTags: ["Quote", "AssignVehicleToQuote"],
       }),
+      addAffilaiteToQuote: builder.mutation<void, AssignAffiliateToQuote>({
+        query({ idQuote, white_list, pushedDate }) {
+          return {
+            url: "/assignAffiliate",
+            method: "POST",
+            body: { idQuote, white_list, pushedDate },
+          };
+        },
+        invalidatesTags: ["Quote", "AssignAffiliateToQuote"],
+      }),
       deleteQuote: builder.mutation<void, Quote>({
         query: (_id) => ({
           url: `/deleteQuote/${_id}`,
@@ -226,5 +246,6 @@ export const {
   useUpdateStatusQuoteToCancelMutation,
   useGetQuoteByIdScheduleQuery,
   useDeleteQuoteMutation,
-  useAssignDriverAndVehicleToQuoteMutation
+  useAssignDriverAndVehicleToQuoteMutation,
+  useAddAffilaiteToQuoteMutation
 } = quoteSlice;

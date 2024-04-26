@@ -18,6 +18,7 @@ import offerbanner from "../../../../assets/images/ecommerce/offer-banner.jpg";
 import { transaction } from "Common/data";
 import SimpleBar from "simplebar-react";
 import { newcustomers } from "Common/data";
+import { useGetAllAffiliatesQuery } from "features/Affiliate/affiliateSlice";
 
 const Status = ({ status }: any) => {
   switch (status) {
@@ -32,7 +33,10 @@ const Status = ({ status }: any) => {
 
 const ModalAffiliate = () => {
   const [paymentDetails, setPaymentDetails] = useState<any>({});
-
+  const { data: allAffiliates = [] } = useGetAllAffiliatesQuery();
+  const acceptedAffiliates = allAffiliates.filter(
+    (affiliates) => affiliates.statusAffiliate === "Accepted"
+  );
   const [openTab, setOpenTab] = useState(false);
   function open() {
     setOpenTab(true);
@@ -66,7 +70,7 @@ const ModalAffiliate = () => {
         <div className="col-xxl-6 col-lg-6">
           <div className="card card-height-100">
             <SimpleBar style={{ maxHeight: "445px" }}>
-              {(newcustomers || []).map((item, key) => (
+              {(acceptedAffiliates || []).map((item, key) => (
                 <div
                   className="p-3 border-bottom border-bottom-dashed"
                   key={key}
@@ -74,7 +78,7 @@ const ModalAffiliate = () => {
                 >
                   <div className="d-flex align-items-center gap-2">
                     <div className="flex-grow-1">
-                      <h6 className="mb-1">{item.productName}</h6>
+                      <h6 className="mb-1">{item.name}</h6>
                     </div>
                   </div>
                 </div>
