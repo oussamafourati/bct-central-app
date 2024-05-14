@@ -9,6 +9,7 @@ import {
   Button,
   InputGroup,
   Dropdown,
+  Table,
 } from "react-bootstrap";
 import Breadcrumb from "Common/BreadCrumb";
 import { Link, useNavigate } from "react-router-dom";
@@ -90,6 +91,27 @@ interface Stop {
   id: number;
   address: string;
 }
+
+interface GroupCompany {
+  groupName: string;
+  passenger_number: string;
+  id_company: string;
+  vehicle_type: string;
+  luggage_details: string;
+  passenger_limit: any[];
+  program: string;
+}
+
+interface GroupSchool {
+  groupName: string;
+  student_number: string;
+  id_school: string;
+  vehicle_type: string;
+  luggage_details: string;
+  passenger_limit: any[];
+  program: string;
+}
+
 interface RouteSegment {
   segment: number;
   startAddress: string;
@@ -103,8 +125,12 @@ interface stopTime {
 }
 
 const AddProgramm = (props: any) => {
-  document.title = "Program | School Administration";
+  document.title = "Program | Bouden Coach Travel";
+  const { data: AllPassengersLimit = [] } =
+    useGetAllPassengerAndLuggagesQuery();
+
   const navigate = useNavigate();
+  const [affectedCounter, setAffectedCounter] = useState<string>("0");
 
   const [recommandedCapacityState, setRecommandedCapacityState] =
     useState<string>("");
@@ -113,11 +139,158 @@ const AddProgramm = (props: any) => {
   ) => {
     setRecommandedCapacityState(event.target.value);
   };
+  const onChangeSchoolGroupName = (
+    event: React.ChangeEvent<any>,
+    index: any
+  ) => {
+    const name = event.target.value;
+    const tempArray = [...schoolGroups];
+    tempArray[index].groupName = name;
+    setSchoolGroups(tempArray);
+  };
 
-  const { data: AllPassengersLimit = [] } =
-    useGetAllPassengerAndLuggagesQuery();
+  const onChangeSchoolGroupPax = (
+    event: React.ChangeEvent<any>,
+    index: any
+  ) => {
+    if (recommandedCapacityState === "") {
+      alert("Fill the total passengers number first");
+    } else {
+      const pax = event.target.value;
+      const tempArray = [...schoolGroups];
+      let prevNumber = tempArray[index].student_number;
+      let prevAffectedCounter = Number(affectedCounter) - Number(prevNumber);
+      if (prevAffectedCounter !== 0) {
+        if (
+          prevAffectedCounter + Number(pax) >
+          Number(recommandedCapacityState)
+        ) {
+          alert(
+            "The number of group(s) passengers exceed the estimated total number"
+          );
+          tempArray[index].student_number = "";
+          setAffectedCounter(prevAffectedCounter.toString());
+        } else {
+          setAffectedCounter((prevAffectedCounter + Number(pax)).toString());
+          tempArray[index].student_number = pax;
+          const customFilteredLimit = AllPassengersLimit.filter(
+            (vehcileType) => Number(pax) <= Number(vehcileType.max_passengers)
+          );
+          tempArray[index].passenger_limit = customFilteredLimit;
+        }
+      } else {
+        if (
+          prevAffectedCounter + Number(pax) >
+          Number(recommandedCapacityState)
+        ) {
+          alert(
+            "The number of group passengers exceed the estimated total number"
+          );
+          tempArray[index].student_number = "";
+          prevAffectedCounter = Number(affectedCounter) - Number(prevNumber);
+          setAffectedCounter(prevAffectedCounter.toString());
+        } else {
+          setAffectedCounter((prevAffectedCounter + Number(pax)).toString());
+          tempArray[index].student_number = pax;
+          const customFilteredVehicleType = AllPassengersLimit.filter(
+            (vehcileType) => Number(pax) <= Number(vehcileType.max_passengers)
+          );
+          tempArray[index].passenger_limit = customFilteredVehicleType;
+        }
+      }
+
+      setSchoolGroups(tempArray);
+    }
+  };
+
+  const onChangeCompanyGroupName = (
+    event: React.ChangeEvent<any>,
+    index: any
+  ) => {
+    const name = event.target.value;
+    const tempArray = [...companyGroups];
+    tempArray[index].groupName = name;
+    setCompanyGroups(tempArray);
+  };
+
+  const onChangeCompanyGroupPax = (
+    event: React.ChangeEvent<any>,
+    index: any
+  ) => {
+    if (recommandedCapacityState === "") {
+      alert("Fill the total passengers number first");
+    } else {
+      const pax = event.target.value;
+      const tempArray = [...companyGroups];
+      let prevNumber = tempArray[index].passenger_number;
+
+      let prevAffectedCounter = Number(affectedCounter) - Number(prevNumber);
+      if (prevAffectedCounter !== 0) {
+        if (
+          prevAffectedCounter + Number(pax) >
+          Number(recommandedCapacityState)
+        ) {
+          alert(
+            "The number of group(s) passengers exceed the estimated total number"
+          );
+          tempArray[index].passenger_number = "";
+          setDisabledNext(true);
+          setAffectedCounter(prevAffectedCounter.toString());
+        } else {
+          setAffectedCounter((prevAffectedCounter + Number(pax)).toString());
+          tempArray[index].passenger_number = pax;
+          const customFilteredLimit = AllPassengersLimit.filter(
+            (vehcileType) => Number(pax) <= Number(vehcileType.max_passengers)
+          );
+          tempArray[index].passenger_limit = customFilteredLimit;
+          if (Number(affectedCounter) < Number(recommandedCapacityState)) {
+            console.log("Affected counter < rc");
+            setDisabledNext(true);
+          } else if (
+            Number(affectedCounter) === Number(recommandedCapacityState)
+          ) {
+            console.log("Affected counter === rc");
+            setDisabledNext(false);
+          }
+        }
+      } else {
+        if (
+          prevAffectedCounter + Number(pax) >
+          Number(recommandedCapacityState)
+        ) {
+          alert(
+            "The number of group passengers exceed the estimated total number"
+          );
+          setDisabledNext(true);
+          tempArray[index].passenger_number = "";
+          prevAffectedCounter = Number(affectedCounter) - Number(prevNumber);
+          setAffectedCounter(prevAffectedCounter.toString());
+        } else {
+          setAffectedCounter((prevAffectedCounter + Number(pax)).toString());
+          tempArray[index].passenger_number = pax;
+          const customFilteredVehicleType = AllPassengersLimit.filter(
+            (vehcileType) => Number(pax) <= Number(vehcileType.max_passengers)
+          );
+          tempArray[index].passenger_limit = customFilteredVehicleType;
+          if (Number(affectedCounter) < Number(recommandedCapacityState)) {
+            console.log("af < rc");
+            setDisabledNext(true);
+          } else if (
+            Number(affectedCounter) === Number(recommandedCapacityState)
+          ) {
+            console.log("af === rc");
+            setDisabledNext(false);
+          }
+        }
+      }
+
+      setCompanyGroups(tempArray);
+    }
+  };
+
   const filteredVehicleType = AllPassengersLimit.filter(
-    (vehcileType) => recommandedCapacityState <= vehcileType.max_passengers
+    (vehcileType) =>
+      Number(recommandedCapacityState) <= Number(vehcileType.max_passengers)
   );
   const filteredLuggageDetails = AllPassengersLimit.filter(
     (vehcileType) => vehcileType.max_passengers === recommandedCapacityState
@@ -128,6 +301,21 @@ const AddProgramm = (props: any) => {
   // This function will be triggered when a radio button is selected
   const radioHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSelectedClientType(event.target.value);
+  };
+
+  // The selected Group Creation Mode
+  const [selectedGroupCreationMode, setSelectedGroupCreationMode] =
+    useState<string>("");
+
+  // This function will be triggered when a radio button is selected
+  const radioHandlerGroupCreationMode = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setSelectedGroupCreationMode(event.target.value);
+    setRecommandedCapacityState("");
+    setSchoolGroups([]);
+    setCompanyGroups([]);
+    setRows([]);
   };
 
   const [distance, setDistance] = useState("");
@@ -174,6 +362,8 @@ const AddProgramm = (props: any) => {
   const [pickUp_date, setPickUp_date] = useState<Date | null>(null);
 
   const [stops2, setStops2] = useState<Stop[]>([]);
+  const [schoolGroups, setSchoolGroups] = useState<GroupSchool[]>([]);
+  const [companyGroups, setCompanyGroups] = useState<GroupCompany[]>([]);
   const [recap, setRecap] = useState<Recap>({
     programName: "",
     capacityRecommanded: "",
@@ -201,7 +391,7 @@ const AddProgramm = (props: any) => {
 
   const [stops, setStops] = useState<google.maps.LatLng[]>([]);
 
-  const [waypts, setWaypts] = useState<google.maps.DirectionsWaypoint[]>([]);
+  const [waypts, setWaypts] = useState<any[]>([]);
 
   const [stopTimes, setStopTimes] = useState<stopTime[]>([]);
 
@@ -215,18 +405,121 @@ const AddProgramm = (props: any) => {
   const { data: AllLuggages = [] } = useGetAllLuggageQuery();
   const { data: AllJourneys = [] } = useGetAllJourneyQuery();
   const [selectedVehicleType, setSelectedVehicletype] = useState<string>("");
+  const [selectedLuggage, setSelectedLuggage] = useState<string>("");
+  const [disabledNext, setDisabledNext] = useState<boolean>(true);
   // This function is triggered when the select Vehicle Type
   const handleSelectVehicleType = (
     event: React.ChangeEvent<HTMLSelectElement>
   ) => {
     const value = event.target.value;
     setSelectedVehicletype(value);
+    setDisabledNext(true);
+    console.log(disabledNext);
   };
-  const [selectedLuggage, setSelectedLuggage] = useState<string>("");
+  const generateGroups = () => {
+    const filteredVehicleTypeID = AllPassengersLimit.filter(
+      (vehcileType) => selectedVehicleType === vehcileType.vehicle_type._id
+    );
+    let prevRows = [];
+    let divisionResult = Math.floor(
+      Number(
+        Number(recommandedCapacityState) /
+          Number(filteredVehicleTypeID[0]?.max_passengers!)
+      )
+    );
+    let restResult = Number(
+      Number(recommandedCapacityState) %
+        Number(filteredVehicleTypeID[0]?.max_passengers!)
+    );
+    let totalGroupNumber = 0;
+    if (restResult !== 0) {
+      totalGroupNumber = divisionResult + 1;
+    } else {
+      totalGroupNumber = divisionResult;
+    }
+    let prevSchoolGroups = [...schoolGroups];
+    let prevCompanyGroups = [...companyGroups];
+    for (let index = 0; index < totalGroupNumber; index++) {
+      if (selectedClientType === "School") {
+        prevSchoolGroups.push({
+          groupName: programm_name + "_" + "group" + [index + 1],
+          id_school: selectSchoolID,
+          luggage_details: selectedLuggage,
+          vehicle_type: selectedVehicleType,
+          student_number: totalGroupNumber.toString(),
+          passenger_limit: AllPassengersLimit,
+          program: "",
+        });
+      }
+      if (selectedClientType === "Company") {
+        prevCompanyGroups.push({
+          groupName: programm_name + "_" + "group" + [index + 1],
+          id_company: selectCompanyID,
+          luggage_details: selectedLuggage,
+          vehicle_type: selectedVehicleType,
+          passenger_number: totalGroupNumber.toString(),
+          passenger_limit: AllPassengersLimit,
+          program: "",
+        });
+      }
+      prevRows.push(<h5>{programm_name + "_" + "group" + [index + 1]}</h5>);
+    }
+    if (selectedClientType === "Company") {
+      setCompanyGroups(prevCompanyGroups);
+    }
+    if (selectedClientType === "School") {
+      setSchoolGroups(prevSchoolGroups);
+    }
+    setRows(prevRows);
+    setDisabledNext(false);
+  };
+
+  const handleCustomSelectSchoolVehicleType = (
+    event: React.ChangeEvent<HTMLSelectElement>,
+    index: any
+  ) => {
+    const value = event.target.value;
+    let prevSchoolGroups = [...schoolGroups];
+    prevSchoolGroups[index].vehicle_type = value;
+  };
+
+  const handleCustomSelectSchoolLuggageDetails = (
+    event: React.ChangeEvent<HTMLSelectElement>,
+    index: any
+  ) => {
+    const value = event.target.value;
+    let prevSchoolGroups = [...schoolGroups];
+    prevSchoolGroups[index].luggage_details = value;
+  };
+
+  const handleCustomSelectCompanyVehicleType = (
+    event: React.ChangeEvent<HTMLSelectElement>,
+    index: any
+  ) => {
+    const value = event.target.value;
+
+    let prevCompanyGroups = [...companyGroups];
+    prevCompanyGroups[index].vehicle_type = value;
+  };
+
+  const handleCustomSelectCompanyLuggageDetails = (
+    event: React.ChangeEvent<HTMLSelectElement>,
+    index: any
+  ) => {
+    const value = event.target.value;
+
+    let prevCompanyGroups = [...companyGroups];
+    prevCompanyGroups[index].luggage_details = value;
+  };
+
+  const [rows, setRows] = useState<any[]>([]);
+
   // This function is triggered when the select Luggage
   const handleSelectLuggage = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const value = event.target.value;
     setSelectedLuggage(value);
+    setDisabledNext(true);
+    console.log(disabledNext);
   };
 
   const [selectedJourney, setSelectedJourney] = useState<string>("");
@@ -236,53 +529,70 @@ const AddProgramm = (props: any) => {
     setSelectedJourney(value);
   };
   const [programmData, setProgrammData] = useState({
-    programName: "",
-    origin_point: {
-      placeName: "",
-      coordinates: {
-        lat: 1,
-        lng: 1,
+    programDetails: {
+      programName: "",
+      origin_point: {
+        placeName: "",
+        coordinates: {
+          lat: 1,
+          lng: 1,
+        },
       },
+      stops: [
+        {
+          id: "",
+          address: {
+            placeName: "",
+            coordinates: {
+              lat: 0,
+              lng: 0,
+            },
+          },
+          time: "",
+        },
+      ],
+      destination_point: {
+        placeName: "",
+        coordinates: {
+          lat: 1,
+          lng: 1,
+        },
+      },
+      pickUp_date: "",
+      droppOff_date: "",
+      freeDays_date: [""],
+      exceptDays: [""],
+      recommanded_capacity: "",
+      extra: [""],
+      notes: "",
+      journeyType: "",
+      dropOff_time: "",
+      pickUp_Time: "",
+      workDates: [""],
+      company_id: "",
+      school_id: "",
+      invoiceFrequency: "",
+      within_payment_days: "",
+      total_price: "",
+      unit_price: "",
+      program_status: [
+        {
+          status: "",
+          date_status: "",
+        },
+      ],
     },
-    stops: [
-      {
-        id: "",
-        address: "",
-        time: "",
-      },
-    ],
-    destination_point: {
-      placeName: "",
-      coordinates: {
-        lat: 1,
-        lng: 1,
-      },
+    groups: {
+      type: "",
+      groupCollection: [
+        {
+          groupName: "",
+          program: "",
+          vehicle_type: "",
+          luggage_details: "",
+        },
+      ],
     },
-    pickUp_date: "",
-    droppOff_date: "",
-    freeDays_date: [""],
-    exceptDays: [""],
-    recommanded_capacity: "",
-    extra: [""],
-    notes: "",
-    vehiculeType: "",
-    luggage: "",
-    journeyType: "",
-    dropOff_time: "",
-    pickUp_Time: "",
-    workDates: [""],
-    company_id: "",
-    school_id: "",
-    invoiceFrequency: "",
-    within_payment_days: "",
-    total_price: "",
-    unit_price: "",
-    program_status: [
-      {
-        status: "",
-        date_status: "",
-      },
-    ],
   });
   const notify = () => {
     Swal.fire({
@@ -314,7 +624,24 @@ const AddProgramm = (props: any) => {
     const value = event.target.value;
     setSelectedCompanyID(value);
   };
+  const [programm_name, setProgrammName] = useState<string>("");
+  const onChangeProgramName = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setProgrammName(event.target.value);
+  };
 
+  const [programm_notes, setProgrammNotes] = useState<string>("");
+  const onChangeProgramNotes = (
+    event: React.ChangeEvent<HTMLTextAreaElement>
+  ) => {
+    setProgrammNotes(event.target.value);
+  };
+
+  const [programm_paymentDays, setProgrammPaymentDays] = useState<string>("");
+  const onChangeProgramPaymentDays = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setProgrammPaymentDays(event.target.value);
+  };
   const { data: oneSchool } = useFetchSchoolByIdQuery(selectSchoolID);
 
   const { data: oneCompany } = useFetchCompanyByIdQuery(selectCompanyID);
@@ -345,10 +672,44 @@ const AddProgramm = (props: any) => {
     ]);
   };
 
+  const handleAddGroupClick = () => {
+    if (selectedClientType === "School") {
+      let prevG = [...schoolGroups];
+      let name = programm_name + "_" + "group" + (prevG.length + 1);
+      setSchoolGroups((prevGroups) => [
+        ...prevGroups,
+        {
+          groupName: name,
+          student_number: "",
+          id_school: selectSchoolID,
+          vehicle_type: "",
+          luggage_details: "",
+          passenger_limit: [],
+          program: "",
+        },
+      ]);
+    }
+    if (selectedClientType === "Company") {
+      let prevG = [...companyGroups];
+      let name = programm_name + "_" + "group" + (prevG.length + 1);
+      setCompanyGroups((prevGroups) => [
+        ...prevGroups,
+        {
+          groupName: name,
+          passenger_number: "",
+          id_company: selectCompanyID,
+          vehicle_type: "",
+          luggage_details: "",
+          passenger_limit: [],
+          program: "",
+        },
+      ]);
+    }
+  };
+
   const handleRemoveStopClick = (idToRemove: any) => {
     setStops2((prevStops) => {
       const updatedStops = prevStops.filter((stop) => stop.id !== idToRemove);
-
       return updatedStops;
     });
 
@@ -356,6 +717,36 @@ const AddProgramm = (props: any) => {
     newWaypts.splice(idToRemove - 1, 1);
     setWaypts(newWaypts);
     calculateRoute();
+  };
+
+  const handleRemoveStudentGroupClick = (index: any) => {
+    let prevGroups = [...schoolGroups];
+
+    let prevAffectedNumber = Number(affectedCounter);
+    prevAffectedNumber -= Number(prevGroups[index]?.student_number!);
+    setAffectedCounter(String(prevAffectedNumber));
+
+    if (prevGroups.length === 0) {
+      prevGroups = [];
+    } else {
+      prevGroups.splice(index, 1);
+    }
+    setSchoolGroups(prevGroups);
+  };
+
+  const handleRemoveCompanyGroupClick = (index: any) => {
+    let prevGroups = [...companyGroups];
+
+    let prevAffectedNumber = Number(affectedCounter);
+    prevAffectedNumber -= Number(prevGroups[index]?.passenger_number!);
+    setAffectedCounter(String(prevAffectedNumber));
+
+    if (prevGroups.length === 0) {
+      prevGroups = [];
+    } else {
+      prevGroups.splice(index, 1);
+    }
+    setCompanyGroups(prevGroups);
   };
 
   const handleAddStopClickWrapper = (address: string) => {
@@ -524,7 +915,7 @@ const AddProgramm = (props: any) => {
     }
 
     let testDays = [];
-    for (let freeDay of programmData.freeDays_date) {
+    for (let freeDay of programmData.programDetails.freeDays_date) {
       let day = createDateFromStrings(freeDay, "00:00:00");
 
       let year = day.getFullYear();
@@ -595,7 +986,9 @@ const AddProgramm = (props: any) => {
       <>
         <Row className="d-flex resume-title">
           <span className="title"> Journey Name: </span>{" "}
-          <span className="title-value">{programmData.programName}</span>
+          <span className="title-value">
+            {programmData.programDetails.programName}
+          </span>
         </Row>
         <Row className="d-flex">
           <Col>
@@ -615,29 +1008,39 @@ const AddProgramm = (props: any) => {
                   <tr>
                     <td>
                       <b>Start Date </b>
-                      <p>{programmData.pickUp_date}</p>
+                      <p>{programmData.programDetails.pickUp_date}</p>
                     </td>
                     <td>
                       <b>End Date </b>
-                      <p>{programmData.droppOff_date}</p>
+                      <p>{programmData.programDetails.droppOff_date}</p>
                     </td>
                   </tr>
                   <tr>
                     <td>
                       <b>Origin Address</b>
-                      <p>{programmData.origin_point.placeName}</p>
+                      <p>
+                        {programmData.programDetails.origin_point.placeName}
+                      </p>
                     </td>
                     <td>
-                      <b>Pick Up Time </b> <p> {programmData.pickUp_Time}</p>
+                      <b>Pick Up Time </b>{" "}
+                      <p> {programmData.programDetails.pickUp_Time}</p>
                     </td>
                   </tr>
                   <tr>
                     <td>
                       <b> Destination Address: </b>
-                      <p> {programmData.destination_point.placeName}</p>
+                      <p>
+                        {" "}
+                        {
+                          programmData.programDetails.destination_point
+                            .placeName
+                        }
+                      </p>
                     </td>
                     <td>
-                      <b>Drop Off Time </b> <p> {programmData.dropOff_time}</p>
+                      <b>Drop Off Time </b>{" "}
+                      <p> {programmData.programDetails.dropOff_time}</p>
                     </td>
                   </tr>
                 </tbody>
@@ -677,7 +1080,7 @@ const AddProgramm = (props: any) => {
                   <tr>
                     <td>
                       <b>Capacity Recommended</b>{" "}
-                      <p> {programmData.recommanded_capacity}</p>
+                      <p> {programmData.programDetails.recommanded_capacity}</p>
                     </td>
                   </tr>
                   <tr>
@@ -700,7 +1103,7 @@ const AddProgramm = (props: any) => {
                   <tr>
                     <td>
                       <b> Selected Options </b>{" "}
-                      <p>{programmData.extra.join(", ")}</p>
+                      <p>{programmData.programDetails.extra.join(", ")}</p>
                     </td>
                   </tr>
                 </tbody>
@@ -714,22 +1117,31 @@ const AddProgramm = (props: any) => {
                   <tr>
                     <td>
                       <p className="legend-container">
-                        Excepted days{" "}
-                        <span className="legend bg-except-day"></span>
+                        <span className="legend working_days_bg"></span>
+                        Working days{" "}
                       </p>
                     </td>
                   </tr>
                   <tr>
                     <td>
                       <p className="legend-container">
-                        Current day <span className="legend bg-now-day"></span>
+                        <span className="legend bg-now-day"></span>Current day
                       </p>
                     </td>
                   </tr>
                   <tr>
                     <td>
                       <p className="legend-container">
-                        Free days <span className="legend bg-free-day"></span>
+                        <span className="legend bg-except-day"></span>Excepted
+                        days{" "}
+                      </p>
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td>
+                      <p className="legend-container">
+                        <span className="legend bg-free-day"></span>Free days
                       </p>
                     </td>
                   </tr>
@@ -756,7 +1168,7 @@ const AddProgramm = (props: any) => {
   };
 
   const isJourneyStepValid = () => {
-    return programmData.programName.trim() !== "";
+    return programm_name.trim() !== "";
   };
   const isTripTimesStepValid = () => {
     const pickupTimeInput = document.getElementById(
@@ -803,40 +1215,49 @@ const AddProgramm = (props: any) => {
     switch (activeVerticalTab) {
       case 1:
         return !isJourneyStepValid();
-
       case 2:
         return (
           !isRunDatesStepValid() ||
           !isOptionsStepValid() ||
           !isFreeDaysStepValid()
         );
-      case 3:
-        return !isRecommandedCapacityStepValid();
+      // case 3:
+      //   return disabledNext === false;
       default:
         return false;
     }
   };
   const handleNextStep = (isResume: boolean) => {
     if (isResume === true) {
-      programmData["extra"] = selected;
+      programmData["programDetails"]["programName"] = programm_name;
+      programmData["programDetails"]["extra"] = selected;
       if (selectedClientType === "School") {
-        programmData["school_id"] = selectSchoolID;
+        programmData["programDetails"]["school_id"] = selectSchoolID;
       }
       if (selectedClientType === "Company") {
-        programmData["company_id"] = selectCompanyID;
+        programmData["programDetails"]["company_id"] = selectCompanyID;
       }
-      programmData["exceptDays"] = selected1;
-      programmData["recommanded_capacity"] = recommandedCapacityState;
-      programmData["unit_price"] = quoteUnitPrice!.toFixed(2);
-      programmData["total_price"] = contractTotalPrice!.toFixed(2);
-      programmData["invoiceFrequency"] = selectedInvoiceFrequency;
-      programmData["workDates"] = getWorkDates();
-      programmData["program_status"] = [
+      programmData["programDetails"]["exceptDays"] = selected1;
+      programmData["programDetails"]["recommanded_capacity"] =
+        recommandedCapacityState;
+      programmData["programDetails"]["unit_price"] = quoteUnitPrice!.toFixed(2);
+      programmData["programDetails"]["total_price"] =
+        contractTotalPrice!.toFixed(2);
+      programmData["programDetails"]["invoiceFrequency"] =
+        selectedInvoiceFrequency;
+      programmData["programDetails"]["workDates"] = getWorkDates();
+      programmData["programDetails"]["program_status"] = [
         {
           status: "Pending",
           date_status: "",
         },
       ];
+
+      programmData["programDetails"]["notes"] = programm_notes;
+
+      programmData["programDetails"]["within_payment_days"] =
+        programm_paymentDays;
+
       let freeDates = [];
 
       for (let freeDay of free_date) {
@@ -854,10 +1275,44 @@ const AddProgramm = (props: any) => {
         freeDates.push(date);
       }
 
-      programmData["freeDays_date"] = freeDates;
-      programmData["journeyType"] = selectedJourney;
-      programmData["luggage"] = selectedLuggage;
-      programmData["vehiculeType"] = selectedVehicleType;
+      programmData["programDetails"]["freeDays_date"] = freeDates;
+      programmData["programDetails"]["journeyType"] = selectedJourney;
+      ////////////////////////////////////////////////////////////////////
+
+      if (selectedClientType === "School") {
+        let validSchoolGroups = [];
+        for (let index = 0; index < schoolGroups.length; index++) {
+          const group = {
+            groupName: schoolGroups[index].groupName,
+            student_number: schoolGroups[index].student_number,
+            id_school: schoolGroups[index].id_school,
+            vehicle_type: schoolGroups[index].vehicle_type,
+            luggage_details: schoolGroups[index].luggage_details,
+            program: schoolGroups[index].program,
+          };
+          validSchoolGroups.push(group);
+        }
+        programmData["groups"]["type"] = selectedClientType;
+        programmData["groups"]["groupCollection"] = validSchoolGroups;
+      }
+
+      if (selectedClientType === "Company") {
+        let validCompanyGroups = [];
+        for (let index = 0; index < companyGroups.length; index++) {
+          const group = {
+            groupName: companyGroups[index].groupName,
+            passenger_number: companyGroups[index].passenger_number,
+            id_company: companyGroups[index].id_company,
+            vehicle_type: companyGroups[index].vehicle_type,
+            luggage_details: companyGroups[index].luggage_details,
+            program: companyGroups[index].program,
+          };
+          validCompanyGroups.push(group);
+        }
+        programmData["groups"]["type"] = selectedClientType;
+        programmData["groups"]["groupCollection"] = validCompanyGroups;
+      }
+      ////////////////////////////////////////////////////////////////////
       const dropYear = dropOff_date!.getFullYear();
       const dropMonth = dropOff_date!.getMonth() + 1;
       const dropDay = dropOff_date!.getDate().toLocaleString();
@@ -868,7 +1323,7 @@ const AddProgramm = (props: any) => {
         String(dropMonth).padStart(2, "0") +
         "-" +
         String(dropDay).padStart(2, "0");
-      programmData["droppOff_date"] = dropOffDate;
+      programmData["programDetails"]["droppOff_date"] = dropOffDate;
 
       const pickYear = pickUp_date!.getFullYear();
       const pickMonth = pickUp_date!.getMonth() + 1;
@@ -880,20 +1335,20 @@ const AddProgramm = (props: any) => {
         String(pickMonth).padStart(2, "0") +
         "-" +
         String(pickDay).padStart(2, "0");
-      programmData["pickUp_date"] = pickUpDate;
+      programmData["programDetails"]["pickUp_date"] = pickUpDate;
 
       let pickUpHour = String(pickUp_time?.getHours()).padStart(2, "0");
       let pickUpMinute = String(pickUp_time?.getMinutes()).padStart(2, "0");
 
       let pickTime = pickUpHour + ":" + pickUpMinute;
 
-      programmData["pickUp_Time"] = pickTime;
+      programmData["programDetails"]["pickUp_Time"] = pickTime;
 
       let destTime =
         String(stopTimes[stopTimes.length - 1]?.hours).padStart(2, "0") +
         ":" +
         String(stopTimes[stopTimes.length - 1]?.minutes).padStart(2, "0");
-      programmData["dropOff_time"] = destTime;
+      programmData["programDetails"]["dropOff_time"] = destTime;
 
       const destinationPoint = destinationRef.current;
 
@@ -902,7 +1357,7 @@ const AddProgramm = (props: any) => {
         destinationPoint.placeName &&
         destinationPoint.coordinates
       ) {
-        programmData["destination_point"] = {
+        programmData["programDetails"]["destination_point"] = {
           placeName: destinationPoint.placeName,
           coordinates: destinationPoint.coordinates,
         };
@@ -929,7 +1384,11 @@ const AddProgramm = (props: any) => {
       for (let i = 0; i < waypts.length; i++) {
         stops.push({
           id: "",
-          address: String(waypts[i].location),
+          address: {
+            placeName: waypts[i].location,
+            coordinates: waypts[i].coordinates,
+          },
+
           time:
             String(stopTimes[i].hours).padStart(2, "0") +
             ":" +
@@ -937,7 +1396,8 @@ const AddProgramm = (props: any) => {
         });
       }
 
-      programmData["stops"] = stops;
+      programmData["programDetails"]["stops"] = stops;
+      console.log(programmData);
     }
     if (!isNextButtonDisabled()) {
       setactiveVerticalTab(activeVerticalTab + 1);
@@ -945,6 +1405,7 @@ const AddProgramm = (props: any) => {
       alert("Please fill all required fields before proceeding.");
     }
   };
+
   if (!isLoaded) {
     return <p>Loading!!!!!</p>;
   }
@@ -977,13 +1438,16 @@ const AddProgramm = (props: any) => {
           originRef: name!,
         }));
 
-        setProgrammData((prevData) => ({
-          ...prevData,
-          origin_point: {
-            placeName: name!,
-            coordinates: coordinates,
-          },
-        }));
+        // setProgrammData((prevData) => ({
+        //   ...prevData,
+        //   origin_point: {
+        //     placeName: name!,
+        //     coordinates: coordinates,
+        //   },
+        // }));
+        programmData["programDetails"]["origin_point"].placeName = name!;
+        programmData["programDetails"]["origin_point"].coordinates =
+          coordinates!;
         const status = place.business_status;
         const formattedAddress = place.formatted_address;
       } else {
@@ -1009,6 +1473,10 @@ const AddProgramm = (props: any) => {
         const formattedAddress = place.formatted_address;
         const wayPoint = {
           location: formattedAddress,
+          coordinates: {
+            lat: nom.lat,
+            lng: nom.lng,
+          },
           stopover: true,
         };
         setWaypts((waypts) => [...waypts, wayPoint]);
@@ -1036,14 +1504,16 @@ const AddProgramm = (props: any) => {
           destinationRef: name!,
         }));
 
-        setProgrammData((prevData) => ({
-          ...prevData,
-          destination_point: {
-            placeName: name!,
-            coordinates: coordinates,
-          },
-        }));
-
+        // setProgrammData((prevData) => ({
+        //   ...prevData,
+        //   destination_point: {
+        //     placeName: name!,
+        //     coordinates: coordinates,
+        //   },
+        // }));
+        programmData["programDetails"]["destination_point"].placeName = name!;
+        programmData["programDetails"]["destination_point"].coordinates =
+          coordinates!;
         const status = place.business_status;
         const formattedAddress = place.formatted_address;
       } else {
@@ -1091,13 +1561,19 @@ const AddProgramm = (props: any) => {
     setLoading(true);
 
     const directionsService = new google.maps.DirectionsService();
-
+    let waypoints = [];
+    for (let point of waypts) {
+      waypoints.push({
+        location: point.location,
+        stopover: true,
+      });
+    }
     directionsService.route(
       {
         origin: originRef.current.value,
         destination: destinationRef.current.value,
         travelMode: google.maps.TravelMode.DRIVING,
-        waypoints: waypts,
+        waypoints: waypoints,
       },
       (result, status) => {
         setLoading(false);
@@ -1284,7 +1760,6 @@ const AddProgramm = (props: any) => {
 
     return prevDate;
   };
-
   return (
     <React.Fragment>
       <div className="page-content">
@@ -1302,333 +1777,354 @@ const AddProgramm = (props: any) => {
                       <Tab.Content>
                         <Tab.Pane eventKey="1">
                           <Row>
-                            <Col lg={2}>
-                              <div className="form-check mb-2">
-                                <input
-                                  className="form-check-input"
-                                  type="radio"
-                                  name="flexRadioDefault"
-                                  id="flexRadioDefault1"
-                                  onChange={radioHandler}
-                                  value="School"
-                                />
-                                <Form.Label
-                                  className="form-check-label fs-17"
-                                  htmlFor="flexRadioDefault1"
-                                >
-                                  School
-                                </Form.Label>
-                              </div>
-                            </Col>
-                            <Col lg={2}>
-                              <div className="form-check mb-2">
-                                <input
-                                  className="form-check-input"
-                                  type="radio"
-                                  name="flexRadioDefault"
-                                  id="flexRadioDefault1"
-                                  onChange={radioHandler}
-                                  value="Company"
-                                />
-                                <Form.Label
-                                  className="form-check-label fs-17"
-                                  htmlFor="flexRadioDefault1"
-                                >
-                                  Company
-                                </Form.Label>
-                              </div>
-                            </Col>
-                          </Row>
-                          {selectedClientType === "School" ? (
-                            <Row>
-                              <Col lg={4}>
-                                <Form.Label htmlFor="school_id">
-                                  Client Name
-                                </Form.Label>
-                                <div className="mb-3">
-                                  <select
-                                    className="form-select text-muted"
-                                    name="school_id"
-                                    id="school_id"
-                                    onChange={handleSelectSchoolID}
-                                  >
-                                    <option value="">Select</option>
-                                    {allSchools.map((school) => (
-                                      <option
-                                        value={`${school?._id!}`}
-                                        key={school?._id!}
-                                      >
-                                        {school.name}
-                                      </option>
-                                    ))}
-                                  </select>
-                                </div>
-                              </Col>
-                            </Row>
-                          ) : (
-                            ""
-                          )}
-                          {selectedClientType === "Company" ? (
-                            <Row>
-                              <Col lg={4}>
-                                <Form.Label htmlFor="company_id">
-                                  Client Name
-                                </Form.Label>
-                                <div className="mb-3">
-                                  <select
-                                    className="form-select text-muted"
-                                    name="company_id"
-                                    id="company_id"
-                                    onChange={handleSelectCompanyID}
-                                  >
-                                    <option value="">Select</option>
-                                    {allCompanies.map((company) => (
-                                      <option
-                                        value={`${company?._id!}`}
-                                        key={company?._id!}
-                                      >
-                                        {company.name}
-                                      </option>
-                                    ))}
-                                  </select>
-                                </div>
-                              </Col>
-                            </Row>
-                          ) : (
-                            ""
-                          )}
-                          <Row>
                             <Col lg={4}>
+                              <Row>
+                                <Col lg={2}>
+                                  <div className="form-check mb-2">
+                                    <input
+                                      className="form-check-input"
+                                      type="radio"
+                                      name="flexRadioDefault"
+                                      id="flexRadioDefault1"
+                                      onChange={radioHandler}
+                                      value="School"
+                                    />
+                                    <Form.Label
+                                      className="form-check-label fs-17"
+                                      htmlFor="flexRadioDefault1"
+                                    >
+                                      School
+                                    </Form.Label>
+                                  </div>
+                                </Col>
+                                <Col lg={2}>
+                                  <div className="form-check mb-2">
+                                    <input
+                                      className="form-check-input"
+                                      type="radio"
+                                      name="flexRadioDefault"
+                                      id="flexRadioDefault1"
+                                      onChange={radioHandler}
+                                      value="Company"
+                                    />
+                                    <Form.Label
+                                      className="form-check-label fs-17"
+                                      htmlFor="flexRadioDefault1"
+                                    >
+                                      Company
+                                    </Form.Label>
+                                  </div>
+                                </Col>
+                              </Row>
+                              {selectedClientType === "School" ? (
+                                <Row>
+                                  <Col lg={10}>
+                                    <Form.Label htmlFor="school_id">
+                                      Client Name
+                                    </Form.Label>
+                                    <div className="mb-3">
+                                      <select
+                                        className="form-select text-muted"
+                                        name="school_id"
+                                        id="school_id"
+                                        onChange={handleSelectSchoolID}
+                                      >
+                                        <option value="">Select</option>
+                                        {allSchools.map((school) => (
+                                          <option
+                                            value={`${school?._id!}`}
+                                            key={school?._id!}
+                                          >
+                                            {school.name}
+                                          </option>
+                                        ))}
+                                      </select>
+                                    </div>
+                                  </Col>
+                                </Row>
+                              ) : (
+                                ""
+                              )}
+                              {selectedClientType === "Company" ? (
+                                <Row>
+                                  <Col lg={10}>
+                                    <Form.Label htmlFor="company_id">
+                                      Client Name
+                                    </Form.Label>
+                                    <div className="mb-3">
+                                      <select
+                                        className="form-select text-muted"
+                                        name="company_id"
+                                        id="company_id"
+                                        onChange={handleSelectCompanyID}
+                                      >
+                                        <option value="">Select</option>
+                                        {allCompanies.map((company) => (
+                                          <option
+                                            value={`${company?._id!}`}
+                                            key={company?._id!}
+                                          >
+                                            {company.name}
+                                          </option>
+                                        ))}
+                                      </select>
+                                    </div>
+                                  </Col>
+                                </Row>
+                              ) : (
+                                ""
+                              )}
+                              <Row>
+                                <Col lg={10}>
+                                  <Form.Label htmlFor="programDetails.programName">
+                                    Program Name
+                                  </Form.Label>
+                                  <Form.Control
+                                    type="text"
+                                    id="programDetails.programName"
+                                    required
+                                    className="mb-2"
+                                    placeholder="Add Program Name"
+                                    name="programDetails.programName"
+                                    value={programm_name}
+                                    onChange={onChangeProgramName}
+                                  />
+                                </Col>
+                              </Row>
+                              <Row>
+                                <Col>
+                                  <Form.Label htmlFor="customerName-field">
+                                    Locations
+                                  </Form.Label>
+                                </Col>
+                              </Row>
+                              <Row className="mb-2">
+                                <Col lg={2}>
+                                  {/* <div className="d-flex gap-1"> */}
+                                  <InputGroup.Text
+                                    id="basic-addon1"
+                                    style={{ width: "100px" }}
+                                  >
+                                    From
+                                  </InputGroup.Text>
+                                </Col>
+                                <Col lg={5}>
+                                  <Autocomplete
+                                    onPlaceChanged={onPlaceChanged}
+                                    onLoad={onLoad}
+                                  >
+                                    <Form.Control
+                                      type="text"
+                                      placeholder="Origin"
+                                      ref={originRef}
+                                      id="origin"
+                                      onClick={() => {
+                                        handleLocationButtonClick();
+                                        if (nom) {
+                                          map?.panTo(nom);
+                                          map?.setZoom(15);
+                                        }
+                                      }}
+                                      onChange={onChangeProgramms}
+                                      required
+                                    />
+                                  </Autocomplete>
+                                  {/* </div> */}
+                                </Col>
+                                <Col lg={3}>
+                                  {/* <div className="d-flex justify-content-center"> */}
+                                  <Flatpickr
+                                    className="form-control text-center"
+                                    id="pickUp_time"
+                                    options={{
+                                      enableTime: true,
+                                      noCalendar: true,
+                                      dateFormat: "H:i",
+                                      time_24hr: true,
+                                      onChange: handlePickupTime,
+                                    }}
+                                  />
+                                </Col>
+                              </Row>
+                              <Row>
+                                <Col lg={1}>
+                                  <InputGroup.Text
+                                    id="basic-addon1"
+                                    style={{ width: "100px" }}
+                                  >
+                                    To
+                                  </InputGroup.Text>
+                                </Col>
+                                <Col lg={6}>
+                                  <Autocomplete
+                                    onPlaceChanged={onPlaceChangedDest}
+                                    onLoad={onLoadDest}
+                                  >
+                                    <Form.Control
+                                      type="text"
+                                      // style={{ width: "300px" }}
+                                      placeholder="Destination"
+                                      ref={destinationRef}
+                                      id="dest"
+                                      onClick={() => {
+                                        handleLocationButtonClickDest();
+                                        if (fatma) {
+                                          map?.panTo(fatma);
+                                          map?.setZoom(15);
+                                        }
+                                      }}
+                                      onChange={onChangeProgramms}
+                                    />
+                                  </Autocomplete>
+                                </Col>
+                                <Col lg={3}>
+                                  <Flatpickr
+                                    placeholder="HH:MM"
+                                    className="form-control text-center"
+                                    id="pickUp_time"
+                                    value={createDateFromStrings(
+                                      String(new Date().getFullYear()).padStart(
+                                        2,
+                                        "0"
+                                      ) +
+                                        "-" +
+                                        String(
+                                          new Date().getMonth() + 1
+                                        ).padStart(2, "0") +
+                                        "-" +
+                                        String(
+                                          new Date().getDate().toLocaleString()
+                                        ).padStart(2, "0"),
+                                      stopTimes[stopTimes.length - 1]?.hours +
+                                        ":" +
+                                        stopTimes[stopTimes.length - 1]
+                                          ?.minutes +
+                                        ":00"
+                                    ).getTime()}
+                                    disabled={true}
+                                    options={{
+                                      enableTime: true,
+                                      noCalendar: true,
+                                      dateFormat: "H:i",
+                                      time_24hr: true,
+                                    }}
+                                  />
+                                </Col>
+                              </Row>
+                              {loading ? (
+                                <p>Calculating route...</p>
+                              ) : (
+                                <Row>
+                                  <Col lg={10}>
+                                    <Button
+                                      type="submit"
+                                      onClick={calculateRoute}
+                                      className="custom-button"
+                                    >
+                                      Plan Route
+                                    </Button>
+                                  </Col>
+                                </Row>
+                              )}
                               <div
                                 style={{
-                                  maxHeight: "calc(80vh - 80px)",
+                                  marginTop: "20px",
+                                  maxHeight: "300px",
                                   overflowX: "auto",
                                 }}
                               >
-                                <Form.Label htmlFor="programName">
-                                  Program Name
-                                </Form.Label>
-                                <Form.Control
-                                  type="text"
-                                  id="programName"
-                                  required
-                                  className="mb-2"
-                                  placeholder="Add Program Name"
-                                  name="programName"
-                                  value={programmData.programName}
-                                  onChange={onChangeProgramms}
-                                />
-                                <Form.Label htmlFor="customerName-field">
-                                  Coordinations
-                                </Form.Label>
-
-                                <InputGroup className="mb-3">
-                                  <InputGroup.Text id="basic-addon1">
-                                    From
-                                  </InputGroup.Text>
-                                  <div className="d-flex gap-1">
-                                    <Autocomplete
-                                      onPlaceChanged={onPlaceChanged}
-                                      onLoad={onLoad}
-                                    >
-                                      <Form.Control
-                                        type="text"
-                                        style={{ width: "285px" }}
-                                        placeholder="Origin"
-                                        ref={originRef}
-                                        id="origin"
-                                        onClick={() => {
-                                          handleLocationButtonClick();
-                                          if (nom) {
-                                            map?.panTo(nom);
-                                            map?.setZoom(15);
-                                          }
-                                        }}
-                                        onChange={onChangeProgramms}
-                                        required
-                                      />
-                                    </Autocomplete>
-                                    <Flatpickr
-                                      className="form-control"
-                                      id="pickUp_time"
-                                      style={{ width: "100px" }}
-                                      options={{
-                                        enableTime: true,
-                                        noCalendar: true,
-                                        dateFormat: "H:i",
-                                        time_24hr: true,
-                                        onChange: handlePickupTime,
-                                      }}
-                                    />
-                                  </div>
-                                  {/* <p>{pickUp_time?.toDateString()}</p> */}
-                                </InputGroup>
-                                <InputGroup className="mb-3">
-                                  <InputGroup.Text id="basic-addon1">
-                                    To
-                                  </InputGroup.Text>
-                                  <div className="d-flex gap-2">
-                                    <Autocomplete
-                                      onPlaceChanged={onPlaceChangedDest}
-                                      onLoad={onLoadDest}
-                                    >
-                                      <Form.Control
-                                        type="text"
-                                        style={{ width: "300px" }}
-                                        placeholder="Destination"
-                                        ref={destinationRef}
-                                        id="dest"
-                                        onClick={() => {
-                                          handleLocationButtonClickDest();
-                                          if (fatma) {
-                                            map?.panTo(fatma);
-                                            map?.setZoom(15);
-                                          }
-                                        }}
-                                        onChange={onChangeProgramms}
-                                        required
-                                      />
-                                    </Autocomplete>
-                                    <Flatpickr
-                                      className="form-control"
-                                      id="pickUp_time"
-                                      style={{ width: "100px" }}
-                                      value={createDateFromStrings(
-                                        String(
-                                          new Date().getFullYear()
-                                        ).padStart(2, "0") +
-                                          "-" +
-                                          String(
-                                            new Date().getMonth() + 1
-                                          ).padStart(2, "0") +
-                                          "-" +
-                                          String(
-                                            new Date()
-                                              .getDate()
-                                              .toLocaleString()
-                                          ).padStart(2, "0"),
-                                        stopTimes[stopTimes.length - 1]?.hours +
-                                          ":" +
-                                          stopTimes[stopTimes.length - 1]
-                                            ?.minutes +
-                                          ":00"
-                                      ).getTime()}
-                                      disabled={true}
-                                      options={{
-                                        enableTime: true,
-                                        noCalendar: true,
-                                        dateFormat: "H:i",
-                                        time_24hr: true,
-                                      }}
-                                    />
-                                  </div>
-                                </InputGroup>
-
-                                {loading ? (
-                                  <p>Calculating route...</p>
-                                ) : (
-                                  <Button
-                                    type="submit"
-                                    onClick={calculateRoute}
-                                    className="custom-button"
-                                  >
-                                    Plan Route
-                                  </Button>
-                                )}
-                                <div style={{ marginTop: "20px" }}>
-                                  {stops2.map((stop, index) => (
-                                    <Row>
-                                      <Col lg={6} key={index}>
-                                        <Form.Label htmlFor="customerName-field">
-                                          Stop {index + 1}
-                                        </Form.Label>
-                                        <div className="mb-3 d-flex">
-                                          <Autocomplete
-                                            onPlaceChanged={onPlaceChangedStop}
-                                            onLoad={onLoadStop}
-                                          >
-                                            <Form.Control
-                                              type="text"
-                                              style={{ width: "280px" }}
-                                              placeholder="Stop"
-                                              ref={stopRef}
-                                              id="stop"
-                                              onClick={() => {
-                                                handleLocationButtonClickStop();
-                                              }}
-                                            />
-                                          </Autocomplete>
-                                          {
-                                            <Flatpickr
-                                              className="form-control"
-                                              style={{ width: "100px" }}
-                                              id="pickUp_time"
-                                              value={createDateFromStrings(
+                                {stops2.map((stop, index) => (
+                                  <Row>
+                                    <Col lg={7} key={index}>
+                                      <Form.Label htmlFor="customerName-field">
+                                        Stop {index + 1}
+                                      </Form.Label>
+                                      <div className="mb-3 d-flex">
+                                        <Autocomplete
+                                          onPlaceChanged={onPlaceChangedStop}
+                                          onLoad={onLoadStop}
+                                        >
+                                          <Form.Control
+                                            type="text"
+                                            style={{ width: "280px" }}
+                                            placeholder="Stop"
+                                            ref={stopRef}
+                                            id="stop"
+                                            onClick={() => {
+                                              handleLocationButtonClickStop();
+                                            }}
+                                          />
+                                        </Autocomplete>
+                                        {
+                                          <Flatpickr
+                                            className="form-control"
+                                            style={{ width: "100px" }}
+                                            id="pickUp_time"
+                                            value={createDateFromStrings(
+                                              String(
+                                                new Date().getFullYear()
+                                              ).padStart(2, "0") +
+                                                "-" +
                                                 String(
-                                                  new Date().getFullYear()
+                                                  new Date().getMonth() + 1
                                                 ).padStart(2, "0") +
-                                                  "-" +
-                                                  String(
-                                                    new Date().getMonth() + 1
-                                                  ).padStart(2, "0") +
-                                                  "-" +
-                                                  String(
-                                                    new Date()
-                                                      .getDate()
-                                                      .toLocaleString()
-                                                  ).padStart(2, "0"),
-                                                stopTimes[index]?.hours +
-                                                  ":" +
-                                                  stopTimes[index]?.minutes +
-                                                  ":00"
-                                              ).getTime()}
-                                              options={{
-                                                enableTime: true,
-                                                noCalendar: true,
-                                                dateFormat: "H:i",
-                                                time_24hr: true,
-                                              }}
-                                              onChange={(selectedDates) =>
-                                                handleStopTime(
-                                                  selectedDates,
-                                                  index
-                                                )
-                                              }
-                                            />
-                                          }
-                                        </div>
-                                      </Col>
-                                      <button
-                                        type="button"
-                                        className="btn btn-danger btn-icon"
-                                        onClick={() =>
-                                          handleRemoveStopClick(stop.id)
+                                                "-" +
+                                                String(
+                                                  new Date()
+                                                    .getDate()
+                                                    .toLocaleString()
+                                                ).padStart(2, "0"),
+                                              stopTimes[index]?.hours +
+                                                ":" +
+                                                stopTimes[index]?.minutes +
+                                                ":00"
+                                            ).getTime()}
+                                            options={{
+                                              enableTime: true,
+                                              noCalendar: true,
+                                              dateFormat: "H:i",
+                                              time_24hr: true,
+                                            }}
+                                            onChange={(selectedDates) =>
+                                              handleStopTime(
+                                                selectedDates,
+                                                index
+                                              )
+                                            }
+                                          />
                                         }
-                                        style={{
-                                          marginTop: "29px",
-                                          marginLeft: "152px",
-                                        }}
-                                      >
-                                        <i className="ri-delete-bin-5-line"></i>
-                                      </button>
-                                    </Row>
-                                  ))}
-                                  <div className="d-flex flex-btn-via">
-                                    <Link
-                                      to="#"
-                                      id="add-item"
-                                      className="btn btn-soft-info fw-medium"
-                                      onClick={handleAddStopClickWrapper(
-                                        "New Stop Address"
-                                      )}
-                                      style={{ width: "150px" }}
+                                      </div>
+                                    </Col>
+                                    <button
+                                      type="button"
+                                      className="btn btn-danger btn-icon"
+                                      onClick={() =>
+                                        handleRemoveStopClick(stop.id)
+                                      }
+                                      style={{
+                                        marginTop: "29px",
+                                        marginLeft: "152px",
+                                      }}
                                     >
-                                      <i className="ri-add-line label-icon align-middle rounded-pill fs-16 me-2">
-                                        {" "}
-                                        Via
-                                      </i>
-                                    </Link>
-                                  </div>
+                                      <i className="ri-delete-bin-5-line"></i>
+                                    </button>
+                                  </Row>
+                                ))}
+                                <div className="d-flex flex-btn-via">
+                                  <Link
+                                    to="#"
+                                    id="add-item"
+                                    className="btn btn-soft-info fw-medium"
+                                    onClick={handleAddStopClickWrapper(
+                                      "New Stop Address"
+                                    )}
+                                    style={{ width: "150px" }}
+                                  >
+                                    <i className="ri-add-line label-icon align-middle rounded-pill fs-16 me-2">
+                                      {" "}
+                                      Via
+                                    </i>
+                                  </Link>
                                 </div>
                               </div>
                             </Col>
@@ -1637,16 +2133,16 @@ const AddProgramm = (props: any) => {
                                 style={{
                                   position: "absolute",
                                   left: "0",
-                                  height: "460px",
-                                  width: "2060px",
+                                  height: "100%",
+                                  width: "100%",
                                 }}
                               >
                                 <GoogleMap
                                   center={center}
                                   zoom={15}
                                   mapContainerStyle={{
-                                    width: isMapFullScreen ? "100vw" : "50%",
-                                    height: isMapFullScreen ? "100vh" : "120%",
+                                    width: "100%",
+                                    height: "80%",
                                   }}
                                   options={{
                                     zoomControl: false,
@@ -1742,7 +2238,6 @@ const AddProgramm = (props: any) => {
                             </Col>
                           </Row>
                         </Tab.Pane>
-
                         <Tab.Pane eventKey="2">
                           <Row>
                             <div className="mt-2">
@@ -1877,10 +2372,7 @@ const AddProgramm = (props: any) => {
                               </div>
                             </Col>
                           </Row>
-                          <div
-                            className="d-flex align-items-start gap-3"
-                            style={{ marginTop: "250px" }}
-                          >
+                          <div className="d-flex align-items-start gap-3 mt-3">
                             <Button
                               type="button"
                               className="btn btn-light btn-label previestab"
@@ -1902,50 +2394,494 @@ const AddProgramm = (props: any) => {
                         </Tab.Pane>
                         <Tab.Pane eventKey="3">
                           <Row>
-                            <Col lg={6}>
-                              <div className="mb-3">
-                                <Form.Label htmlFor="recommanded_capacity">
-                                  Recommanded Capacity
-                                </Form.Label>
-                                <Form.Control
-                                  type="text"
-                                  id="recommanded_capacity"
-                                  required
-                                  className="mb-2"
-                                  name="recommanded_capacity"
-                                  value={recommandedCapacityState}
-                                  onChange={onChangeRecommandedCapacityState}
+                            <Col lg={2}>
+                              <div className="form-check mb-2">
+                                <input
+                                  className="form-check-input"
+                                  type="radio"
+                                  name="flexRadioDefault"
+                                  id="flexRadioDefault1"
+                                  onChange={radioHandlerGroupCreationMode}
+                                  value="AutoGroup"
                                 />
+                                <Form.Label
+                                  className="form-check-label fs-17"
+                                  htmlFor="flexRadioDefault1"
+                                >
+                                  Auto Groups
+                                </Form.Label>
                               </div>
                             </Col>
-                            <Col lg={6}>
-                              <div className="mb-3">
-                                <Form.Label htmlFor="vehicleType">
-                                  Vehicle Type
+                            <Col lg={2}>
+                              <div className="form-check mb-2">
+                                <input
+                                  className="form-check-input"
+                                  type="radio"
+                                  name="flexRadioDefault"
+                                  id="flexRadioDefault1"
+                                  onChange={radioHandlerGroupCreationMode}
+                                  value="Custom"
+                                />
+                                <Form.Label
+                                  className="form-check-label fs-17"
+                                  htmlFor="flexRadioDefault1"
+                                >
+                                  Custom Groups
                                 </Form.Label>
-                                <div>
-                                  <select
-                                    className="form-select text-muted"
-                                    name="vehicleType"
-                                    id="vehicleType"
-                                    onChange={handleSelectVehicleType}
-                                  >
-                                    <option value="">
-                                      Select Vehicle Type
-                                    </option>
-                                    {filteredVehicleType.map((vehicleType) => (
-                                      <option
-                                        value={vehicleType.vehicle_type._id}
-                                        key={vehicleType.vehicle_type._id}
-                                      >
-                                        {vehicleType.vehicle_type.type}
-                                      </option>
-                                    ))}
-                                  </select>
-                                </div>
                               </div>
                             </Col>
                           </Row>
+                          {selectedGroupCreationMode === "AutoGroup" ? (
+                            <>
+                              <Row>
+                                <Col lg={3}>
+                                  <div className="mb-3">
+                                    <Form.Label htmlFor="recommanded_capacity">
+                                      Recommanded Capacity
+                                    </Form.Label>
+                                    <Form.Control
+                                      type="text"
+                                      id="recommanded_capacity"
+                                      required
+                                      className="mb-2"
+                                      name="recommanded_capacity"
+                                      value={recommandedCapacityState}
+                                      onChange={
+                                        onChangeRecommandedCapacityState
+                                      }
+                                    />
+                                  </div>
+                                </Col>
+                                <Col lg={3}>
+                                  <div className="mb-3">
+                                    <Form.Label htmlFor="vehicleType">
+                                      Vehicle Type
+                                    </Form.Label>
+                                    <div>
+                                      <select
+                                        className="form-select text-muted"
+                                        name="vehicleType"
+                                        id="vehicleType"
+                                        onChange={handleSelectVehicleType}
+                                      >
+                                        <option value="">
+                                          Select Vehicle Type
+                                        </option>
+                                        {filteredVehicleType.map(
+                                          (vehicleType) => (
+                                            <option
+                                              value={
+                                                vehicleType.vehicle_type._id
+                                              }
+                                              key={vehicleType.vehicle_type._id}
+                                            >
+                                              {vehicleType.vehicle_type.type}
+                                            </option>
+                                          )
+                                        )}
+                                      </select>
+                                    </div>
+                                  </div>
+                                </Col>
+                                <Col lg={3}>
+                                  <div className="mb-3">
+                                    <Form.Label htmlFor="luggageDetails">
+                                      Luggage Details
+                                    </Form.Label>
+                                    <select
+                                      className="form-select text-muted"
+                                      name="luggageDetails"
+                                      id="luggageDetails"
+                                      onChange={handleSelectLuggage}
+                                    >
+                                      <option value="">Select Luggage</option>
+                                      {filteredVehicleType.map((Luggage) => (
+                                        <option
+                                          value={Luggage.max_luggage._id}
+                                          key={Luggage.max_luggage._id}
+                                        >
+                                          {Luggage.max_luggage.description}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                </Col>
+                                <Col lg={3}>
+                                  <button
+                                    type="button"
+                                    className="btn btn-info"
+                                    onClick={() => generateGroups()}
+                                    disabled={
+                                      selectedVehicleType === "" ||
+                                      selectedLuggage === ""
+                                        ? true
+                                        : false
+                                    }
+                                    style={{ marginTop: "28px" }}
+                                  >
+                                    <span className="mdi mdi-cog"></span>{" "}
+                                    Generate
+                                  </button>
+                                </Col>
+                              </Row>
+                              <Row>{rows}</Row>
+                              <hr className="text-muted" />
+                            </>
+                          ) : selectedGroupCreationMode === "Custom" ? (
+                            <>
+                              <Row>
+                                <Col lg={4}>
+                                  <div className="mb-3">
+                                    <Form.Label htmlFor="recommanded_capacity">
+                                      Recommanded Capacity
+                                    </Form.Label>
+                                    <Form.Control
+                                      type="text"
+                                      id="recommanded_capacity"
+                                      required
+                                      className="mb-2"
+                                      name="recommanded_capacity"
+                                      value={recommandedCapacityState}
+                                      onChange={
+                                        onChangeRecommandedCapacityState
+                                      }
+                                    />
+                                  </div>
+                                </Col>
+                                <Col lg={4}>
+                                  <div className="mb-3">
+                                    <Form.Label htmlFor="recommanded_capacity">
+                                      Affected / Total
+                                    </Form.Label>
+                                    <Form.Control
+                                      type="text"
+                                      id="recommanded_capacity"
+                                      disabled
+                                      // defaultValue="0/15"
+                                      className="bg-light mb-2"
+                                      name="recommanded_capacity"
+                                      value={
+                                        affectedCounter +
+                                        "/" +
+                                        recommandedCapacityState
+                                      }
+                                    />
+                                  </div>
+                                </Col>
+                              </Row>
+                              <hr className="text-muted" />
+                              <Row
+                                className="mb-3"
+                                style={{
+                                  maxHeight: "calc(50vh - 50px)",
+                                  overflowX: "auto",
+                                }}
+                              >
+                                {selectedClientType === "School"
+                                  ? schoolGroups.map((group, index) => (
+                                      <Row key={index}>
+                                        <Col lg={3}>
+                                          <Form.Label htmlFor="customerName-field">
+                                            Group Name
+                                          </Form.Label>
+                                          <Form.Control
+                                            type="text"
+                                            id="customerName-field"
+                                            className="mb-2"
+                                            name="customerName-field"
+                                            value={group.groupName}
+                                            onChange={(e) =>
+                                              onChangeSchoolGroupName(e, index)
+                                            }
+                                          />
+                                        </Col>
+                                        <Col lg={2}>
+                                          <Form.Label htmlFor="pax">
+                                            Passengers
+                                          </Form.Label>
+                                          <Form.Control
+                                            type="text"
+                                            id="pax"
+                                            className="mb-2"
+                                            name="pax"
+                                            placeholder={`1 - ${recommandedCapacityState}`}
+                                            value={group.student_number}
+                                            onChange={(e) =>
+                                              onChangeSchoolGroupPax(e, index)
+                                            }
+                                          />
+                                        </Col>
+                                        <Col lg={3}>
+                                          <div>
+                                            <Form.Label htmlFor="customerName-field">
+                                              Vehicle
+                                            </Form.Label>
+                                            <select
+                                              className="form-select text-muted"
+                                              name="vehicleType"
+                                              id="vehicleType"
+                                              onChange={(e) =>
+                                                handleCustomSelectSchoolVehicleType(
+                                                  e,
+                                                  index
+                                                )
+                                              }
+                                            >
+                                              <option value="">
+                                                Select Vehicle Type
+                                              </option>
+                                              {group.passenger_limit.map(
+                                                (vehicleType) => (
+                                                  <option
+                                                    value={
+                                                      vehicleType.vehicle_type
+                                                        .type
+                                                    }
+                                                    key={
+                                                      vehicleType.vehicle_type
+                                                        ._id
+                                                    }
+                                                  >
+                                                    {
+                                                      vehicleType.vehicle_type
+                                                        .type
+                                                    }
+                                                  </option>
+                                                )
+                                              )}
+                                            </select>
+                                          </div>
+                                        </Col>
+                                        <Col lg={3}>
+                                          <div className="mb-3">
+                                            <Form.Label htmlFor="luggageDetails">
+                                              Luggage Details
+                                            </Form.Label>
+                                            <select
+                                              className="form-select text-muted"
+                                              name="luggageDetails"
+                                              id="luggageDetails"
+                                              onChange={(e) =>
+                                                handleCustomSelectSchoolLuggageDetails(
+                                                  e,
+                                                  index
+                                                )
+                                              }
+                                            >
+                                              <option value="">
+                                                Select Luggage
+                                              </option>
+                                              {group.passenger_limit.map(
+                                                (Luggage) => (
+                                                  <option
+                                                    value={
+                                                      Luggage.max_luggage
+                                                        .description
+                                                    }
+                                                    key={
+                                                      Luggage.max_luggage._id
+                                                    }
+                                                  >
+                                                    {
+                                                      Luggage.max_luggage
+                                                        .description
+                                                    }
+                                                  </option>
+                                                )
+                                              )}
+                                            </select>
+                                          </div>
+                                        </Col>
+                                        <Col lg={1}>
+                                          <button
+                                            type="button"
+                                            className="btn btn-danger btn-icon"
+                                            onClick={() =>
+                                              handleRemoveStudentGroupClick(
+                                                index
+                                              )
+                                            }
+                                            style={{
+                                              marginTop: "29px",
+                                              marginBottom: "15px",
+                                              // marginLeft: "152px",
+                                            }}
+                                          >
+                                            <i className="ri-delete-bin-5-line"></i>
+                                          </button>
+                                        </Col>
+                                      </Row>
+                                    ))
+                                  : companyGroups.map((group, index) => (
+                                      <Row key={index}>
+                                        <Col lg={3}>
+                                          <Form.Label htmlFor="customerName-field">
+                                            Group Name
+                                          </Form.Label>
+                                          <Form.Control
+                                            type="text"
+                                            id="customerName-field"
+                                            className="mb-2"
+                                            name="customerName-field"
+                                            value={group.groupName}
+                                            onChange={(e) =>
+                                              onChangeCompanyGroupName(e, index)
+                                            }
+                                          />
+                                        </Col>
+                                        <Col lg={2}>
+                                          <Form.Label htmlFor="pax">
+                                            Passengers
+                                          </Form.Label>
+                                          <Form.Control
+                                            type="text"
+                                            id="pax"
+                                            className="mb-2"
+                                            name="pax"
+                                            placeholder={`1 - ${recommandedCapacityState}`}
+                                            value={group.passenger_number}
+                                            onChange={(e) =>
+                                              onChangeCompanyGroupPax(e, index)
+                                            }
+                                          />
+                                        </Col>
+                                        <Col lg={3}>
+                                          <div>
+                                            <Form.Label htmlFor="customerName-field">
+                                              Vehicle
+                                            </Form.Label>
+                                            <select
+                                              className="form-select text-muted"
+                                              name="vehicleType"
+                                              id="vehicleType"
+                                              onChange={(e) =>
+                                                handleCustomSelectCompanyVehicleType(
+                                                  e,
+                                                  index
+                                                )
+                                              }
+                                            >
+                                              <option value="">
+                                                Select Vehicle Type
+                                              </option>
+                                              {group.passenger_limit.map(
+                                                (vehicleType) => (
+                                                  <option
+                                                    value={
+                                                      vehicleType.vehicle_type
+                                                        ._id
+                                                    }
+                                                    key={
+                                                      vehicleType.vehicle_type
+                                                        ._id
+                                                    }
+                                                  >
+                                                    {
+                                                      vehicleType.vehicle_type
+                                                        .type
+                                                    }
+                                                  </option>
+                                                )
+                                              )}
+                                            </select>
+                                          </div>
+                                        </Col>
+                                        <Col lg={3}>
+                                          <div className="mb-3">
+                                            <Form.Label htmlFor="luggageDetails">
+                                              Luggage Details
+                                            </Form.Label>
+                                            <select
+                                              className="form-select text-muted"
+                                              name="luggageDetails"
+                                              id="luggageDetails"
+                                              onChange={(e) =>
+                                                handleCustomSelectCompanyLuggageDetails(
+                                                  e,
+                                                  index
+                                                )
+                                              }
+                                            >
+                                              <option value="">
+                                                Select Luggage
+                                              </option>
+                                              {group.passenger_limit.map(
+                                                (Luggage) => (
+                                                  <option
+                                                    value={
+                                                      Luggage.max_luggage._id
+                                                    }
+                                                    key={
+                                                      Luggage.max_luggage._id
+                                                    }
+                                                  >
+                                                    {
+                                                      Luggage.max_luggage
+                                                        .description
+                                                    }
+                                                  </option>
+                                                )
+                                              )}
+                                            </select>
+                                          </div>
+                                        </Col>
+                                        <Col lg={1}>
+                                          <button
+                                            type="button"
+                                            className="btn btn-danger btn-icon"
+                                            onClick={() =>
+                                              handleRemoveCompanyGroupClick(
+                                                index
+                                              )
+                                            }
+                                            style={{
+                                              marginTop: "29px",
+                                              marginBottom: "15px",
+                                              // marginLeft: "152px",
+                                            }}
+                                          >
+                                            <i className="ri-delete-bin-5-line"></i>
+                                          </button>
+                                        </Col>
+                                      </Row>
+                                    ))}
+
+                                <div className="d-flex">
+                                  <Link
+                                    to="#"
+                                    id="add-item"
+                                    className="btn btn-soft-info fw-medium"
+                                    onClick={handleAddGroupClick}
+                                  >
+                                    <i className="ri-add-line label-icon align-middle rounded-pill fs-16 me-2"></i>
+                                  </Link>
+                                </div>
+                              </Row>
+                            </>
+                          ) : (
+                            ""
+                          )}
+                          <div className="d-flex align-items-start gap-3">
+                            <Button
+                              type="button"
+                              className="btn btn-light btn-label previestab"
+                              onClick={() => setactiveVerticalTab(2)}
+                            >
+                              <i className="ri-arrow-left-line label-icon align-middle fs-16 me-2"></i>{" "}
+                              Back to Run Dates
+                            </Button>
+                            <Button
+                              type="button"
+                              className="btn btn-success btn-label right ms-auto nexttab nexttab"
+                              onClick={() => setactiveVerticalTab(4)}
+                              // disabled={disabledNext}
+                            >
+                              <i className="ri-arrow-right-line label-icon align-middle fs-16 ms-2"></i>
+                              Go To Extra
+                            </Button>
+                          </div>
+                        </Tab.Pane>
+                        <Tab.Pane eventKey="4">
                           <Row>
                             <Col lg={6}>
                               <div className="mb-3">
@@ -1965,29 +2901,6 @@ const AddProgramm = (props: any) => {
                                       key={journeys._id}
                                     >
                                       {journeys.type}
-                                    </option>
-                                  ))}
-                                </select>
-                              </div>
-                            </Col>
-                            <Col lg={6}>
-                              <div className="mb-3">
-                                <Form.Label htmlFor="luggageDetails">
-                                  Luggage Details
-                                </Form.Label>
-                                <select
-                                  className="form-select text-muted"
-                                  name="luggageDetails"
-                                  id="luggageDetails"
-                                  onChange={handleSelectLuggage}
-                                >
-                                  <option value="">Select Luggage</option>
-                                  {filteredLuggageDetails.map((Luggage) => (
-                                    <option
-                                      value={Luggage.max_luggage._id}
-                                      key={Luggage.max_luggage._id}
-                                    >
-                                      {Luggage.max_luggage.description}
                                     </option>
                                   ))}
                                 </select>
@@ -2071,12 +2984,13 @@ const AddProgramm = (props: any) => {
                                   name="notes"
                                   rows={5}
                                   placeholder="Enter your notes"
-                                  value={programmData.notes}
-                                  onChange={onChangeProgramms}
+                                  value={programm_notes}
+                                  onChange={onChangeProgramNotes}
                                 ></textarea>
                               </div>
                             </Col>
                           </Row>
+
                           <Row className="mt-1">
                             <Card.Header>
                               <div className="d-flex align-items-center">
@@ -2159,8 +3073,8 @@ const AddProgramm = (props: any) => {
                                       id="within_payment_days"
                                       name="within_payment_days"
                                       placeholder="1 Day"
-                                      value={programmData.within_payment_days}
-                                      onChange={onChangeProgramms}
+                                      value={programm_paymentDays}
+                                      onChange={onChangeProgramPaymentDays}
                                     />
                                   </div>
                                 </Col>
@@ -2171,10 +3085,10 @@ const AddProgramm = (props: any) => {
                             <Button
                               type="button"
                               className="btn btn-light btn-label previestab"
-                              onClick={() => setactiveVerticalTab(2)}
+                              onClick={() => setactiveVerticalTab(3)}
                             >
                               <i className="ri-arrow-left-line label-icon align-middle fs-16 me-2"></i>{" "}
-                              Back to Run Dates
+                              Back to Options
                             </Button>
 
                             <Button
@@ -2188,7 +3102,7 @@ const AddProgramm = (props: any) => {
                             </Button>
                           </div>
                         </Tab.Pane>
-                        <Tab.Pane eventKey="4">
+                        <Tab.Pane eventKey="5">
                           <div
                             style={{
                               maxHeight: "calc(80vh - 80px)",
@@ -2204,10 +3118,10 @@ const AddProgramm = (props: any) => {
                             <Button
                               type="button"
                               className="btn btn-light btn-label previestab"
-                              onClick={() => setactiveVerticalTab(3)}
+                              onClick={() => setactiveVerticalTab(4)}
                             >
                               <i className="ri-arrow-left-line label-icon align-middle fs-16 me-2"></i>{" "}
-                              Back to Options
+                              Back to Extra
                             </Button>
 
                             <Button

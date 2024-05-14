@@ -35,8 +35,38 @@ import {
 
 import Select from "react-select";
 
+interface Column {
+  name: JSX.Element;
+  selector: (cell: Quote | any) => JSX.Element | any;
+  sortable: boolean;
+  width?: string;
+}
+
 const Bookings = () => {
   document.title = "Bookings | Bouden Coach Travel";
+  //  Internally, customStyles will deep merges your customStyles with the default styling.
+  const customTableStyles = {
+    rows: {
+      style: {
+        minHeight: "72px", // override the row height
+        border: "1px solid #ddd",
+      },
+    },
+    headCells: {
+      style: {
+        paddingLeft: "8px", // override the cell padding for head cells
+        paddingRight: "8px",
+        border: "1px solid #ddd",
+      },
+    },
+    cells: {
+      style: {
+        paddingLeft: "8px", // override the cell padding for data cells
+        paddingRight: "8px",
+        border: "1px solid #ddd",
+      },
+    },
+  };
   const customStyles = {
     multiValue: (styles: any, { data }: any) => {
       return {
@@ -71,10 +101,14 @@ const Bookings = () => {
   const { data: AllQuotes = [] } = useGetAllQuoteQuery();
   const result = AllQuotes.filter(
     (bookings) =>
-      bookings.progress !== "New" &&
-      bookings.progress !== "Completed" &&
-      bookings.status !== "Pushed"
+      (bookings.progress === "Booked" &&
+        bookings.status === "Driver Allocated") ||
+      (bookings.progress === "Booked" &&
+        bookings.status === "Vehicle Allocated") ||
+      (bookings.progress === "Booked" && bookings.status === "Allocated") ||
+      (bookings.progress === "Booked" && bookings.status === "Booked")
   );
+
   const privateHiredJobs = result.filter(
     (privateHired) => privateHired?.category === "Private"
   );
@@ -125,52 +159,52 @@ const Bookings = () => {
     );
   }
 
-  const columns1 = [
-    {
-      name: <span className="font-weight-bold fs-13">Journey</span>,
-      selector: (row: any, index: number) => <span>Journey {index + 1}</span>,
-      sortable: true,
-    },
-    {
-      name: <span className="font-weight-bold fs-13">Date</span>,
-      selector: (row: any) => row.pickup_time,
-      sortable: true,
-    },
-    {
-      name: <span className="font-weight-bold fs-13">Pickup</span>,
-      selector: (row: any) => row.start_point?.placeName!,
-      sortable: true,
-    },
-    {
-      name: <span className="font-weight-bold fs-13">Destination</span>,
-      selector: (row: any) => row.destination_point?.placeName!,
-      sortable: true,
-    },
-    {
-      name: (
-        <span className="mdi mdi-account-tie-hat font-weight-bold fs-24"></span>
-      ),
-      selector: (row: any) =>
-        row!.id_driver! === undefined ? (
-          <span>No Driver</span>
-        ) : (
-          <span>
-            {row!.id_driver?.firstname!} {row!.id_driver?.surname!}
-          </span>
-        ),
-      sortable: true,
-    },
-    {
-      name: <span className="mdi mdi-car font-weight-bold fs-24"></span>,
-      selector: (row: any) =>
-        row.id_vehicle?.registration_number! === undefined ? (
-          <span>No Vehicle</span>
-        ) : (
-          <span>{row.id_vehicle?.registration_number!}</span>
-        ),
-      sortable: true,
-    },
-  ];
+  // const columns1 = [
+  //   {
+  //     name: <span className="font-weight-bold fs-13">Journey</span>,
+  //     selector: (row: any, index: number) => <span>Journey {index + 1}</span>,
+  //     sortable: true,
+  //   },
+  //   {
+  //     name: <span className="font-weight-bold fs-13">Date</span>,
+  //     selector: (row: any) => row.pickup_time,
+  //     sortable: true,
+  //   },
+  //   {
+  //     name: <span className="font-weight-bold fs-13">Pickup</span>,
+  //     selector: (row: any) => row.start_point?.placeName!,
+  //     sortable: true,
+  //   },
+  //   {
+  //     name: <span className="font-weight-bold fs-13">Destination</span>,
+  //     selector: (row: any) => row.destination_point?.placeName!,
+  //     sortable: true,
+  //   },
+  //   {
+  //     name: (
+  //       <span className="mdi mdi-account-tie-hat font-weight-bold fs-24"></span>
+  //     ),
+  //     selector: (row: any) =>
+  //       row!.id_driver! === undefined ? (
+  //         <span>No Driver</span>
+  //       ) : (
+  //         <span>
+  //           {row!.id_driver?.firstname!} {row!.id_driver?.surname!}
+  //         </span>
+  //       ),
+  //     sortable: true,
+  //   },
+  //   {
+  //     name: <span className="mdi mdi-car font-weight-bold fs-24"></span>,
+  //     selector: (row: any) =>
+  //       row.id_vehicle?.registration_number! === undefined ? (
+  //         <span>No Vehicle</span>
+  //       ) : (
+  //         <span>{row.id_vehicle?.registration_number!}</span>
+  //       ),
+  //     sortable: true,
+  //   },
+  // ];
 
   const notifySuccess = () => {
     Swal.fire({
@@ -244,7 +278,15 @@ const Bookings = () => {
     setModal_AssignVehicle(!modal_AssignVehicle);
   };
 
-  const columns = [
+  const [selectedColumnOption, setSelectedColumnOption] = useState("");
+
+  const handleChangeColumnOption = (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    setSelectedColumnOption(e.target.value);
+  };
+
+  const columns: Column[] = [
     {
       name: <span className="font-weight-bold fs-13">Quote ID</span>,
       selector: (cell: Quote) => {
@@ -257,7 +299,7 @@ const Bookings = () => {
         );
       },
       sortable: true,
-      width: "160px",
+      width: "200px",
     },
     {
       name: (
@@ -274,11 +316,13 @@ const Bookings = () => {
           </span>
         ),
       sortable: true,
+      width: "170px",
     },
     {
-      name: <span className="mdi mdi-car font-weight-bold fs-24"></span>,
+      name: <span className="font-weight-bold fs-13">Vehicle Type</span>,
       selector: (row: any) => row?.vehicle_type!,
       sortable: true,
+      width: "160px",
     },
     {
       name: <span className="mdi mdi-car font-weight-bold fs-24"></span>,
@@ -309,16 +353,29 @@ const Bookings = () => {
       width: "60px",
     },
     {
+      name: <span className="font-weight-bold fs-13">Group</span>,
+      selector: (row: any) =>
+        row.id_group_employee === null && row.id_group_student === null ? (
+          <span className="text-danger">No Group</span>
+        ) : row.school_id === null ? (
+          row?.id_group_employee?.groupName!
+        ) : (
+          row?.id_group_student?.groupName!
+        ),
+      sortable: true,
+      width: "120px",
+    },
+    {
       name: <span className="font-weight-bold fs-13">Pick Up</span>,
       selector: (row: any) => row.start_point?.placeName!,
       sortable: true,
-      width: "120px",
+      width: "140px",
     },
     {
       name: <span className="font-weight-bold fs-13">Destination</span>,
       sortable: true,
       selector: (row: any) => row.destination_point?.placeName!,
-      width: "120px",
+      width: "140px",
     },
     {
       name: <span className="font-weight-bold fs-13">Progress</span>,
@@ -335,7 +392,7 @@ const Bookings = () => {
         }
       },
       sortable: true,
-      width: "120px",
+      width: "100px",
     },
     {
       name: <span className="font-weight-bold fs-13">Status</span>,
@@ -354,7 +411,7 @@ const Bookings = () => {
             return <span className="badge bg-danger"> {cell.status} </span>;
         }
       },
-      width: "140px",
+      width: "130px",
     },
     {
       name: <span className="font-weight-bold fs-13">Price</span>,
@@ -364,6 +421,7 @@ const Bookings = () => {
           £ <b>{row?.manual_cost!}</b>
         </span>
       ),
+      width: "90px",
     },
     {
       name: <span className="font-weight-bold fs-13">Passenger Name</span>,
@@ -424,7 +482,7 @@ const Bookings = () => {
         const date = new Date(row.createdAt);
         return <span>{date.toDateString()}</span>;
       },
-      width: "125px",
+      // width: "125px",
     },
     {
       name: <span className="font-weight-bold fs-13">Affiliate</span>,
@@ -466,6 +524,35 @@ const Bookings = () => {
       },
     },
   ];
+
+  const optionColumnsTable = [
+    { value: "Quote ID", label: "Quote ID" },
+    { value: "Go Date", label: "Go Date" },
+    { value: "Pax", label: "Pax" },
+    { value: "Group", label: "Group" },
+    { value: "Pick Up", label: "Pick Up" },
+    { value: "Destination", label: "Destination" },
+    { value: "Progress", label: "Progress" },
+    { value: "Status", label: "Status" },
+    { value: "Price", label: "Price" },
+  ];
+
+  // State to store the selected option values
+  const [selectedColumnValues, setSelectedColumnValues] = useState<any[]>([]);
+
+  // Event handler to handle changes in selected options
+  const handleSelectValueColumnChange = (selectedOption: any) => {
+    // Extract values from selected options and update state
+    const values = selectedOption.map((option: any) => option.value);
+    setSelectedColumnValues(values);
+  };
+
+  // Dynamically generate columns excluding the selected option
+  // Filter out columns based on selected options
+  const filteredColumns = columns.filter(
+    (column: Column) =>
+      !selectedColumnValues.includes(column.name.props.children) // Ensure props.children is string
+  );
 
   const [isPrivateHiredChecked, setIsPrivateHiredChecked] = useState(false);
   const handlePrivateHiredCheckboxChange = (
@@ -647,7 +734,7 @@ const Bookings = () => {
   const handleSelectChange = (selectedOption: any) => {
     setSelectedOptions(selectedOption);
   };
-  console.log("selectedOptions", selectedOptions);
+  // console.log("selectedOptions", selectedOptions);
   const [selectAffiliate, setSelectedAffiliate] = useState<string>("");
   // This function is triggered when the select Affiliate
   const handleSelectAffiliate = (
@@ -657,17 +744,15 @@ const Bookings = () => {
     setSelectedAffiliate(value);
   };
 
-  // const [selectedValues, setSelectedValues] = useState<string[]>([]);
-  // const handleSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-  //   const selectedOptions = event.currentTarget.selectedOptions;
+  // State to store the selected option values
+  const [selectedValues, setSelectedValues] = useState([]);
 
-  //   const newColors = [];
-  //   for (let i = 0; i < selectedOptions.length; i++) {
-  //     newColors.push(selectedOptions[i].value);
-  //   }
-
-  //   setSelectedValues(newColors);
-  // };
+  // Event handler to handle changes in selected options
+  const handleSelectValueChange = (selectedOption: any) => {
+    // Extract values from selected options and update state
+    const values = selectedOption.map((option: any) => option.value);
+    setSelectedValues(values);
+  };
 
   const date = new Date();
 
@@ -677,12 +762,14 @@ const Bookings = () => {
     idQuote: "",
     white_list: [""],
     pushedDate: "",
+    pushed_price: "",
   };
 
   const [assignAffiliateToQuoteStatus, setAffiliateToQuoteStatus] =
     useState(initialPushJob);
 
-  const { idQuote, white_list, pushedDate } = assignAffiliateToQuoteStatus;
+  const { idQuote, white_list, pushedDate, pushed_price } =
+    assignAffiliateToQuoteStatus;
 
   const onChangeAssignAffiliate = (e: React.ChangeEvent<HTMLInputElement>) => {
     setAffiliateToQuoteStatus((prevState) => ({
@@ -695,7 +782,7 @@ const Bookings = () => {
     e.preventDefault();
     try {
       assignAffiliateToQuoteStatus["idQuote"] = selectedRow[0]._id;
-      assignAffiliateToQuoteStatus["white_list"] = selectedOptions;
+      assignAffiliateToQuoteStatus["white_list"] = selectedValues;
       assignAffiliateToQuoteStatus["pushedDate"] = date.toDateString();
       assignAffiliateToQuote(assignAffiliateToQuoteStatus)
         .then(() => navigate("/current-push-jobs"))
@@ -716,22 +803,14 @@ const Bookings = () => {
             <Card>
               <Card.Body>
                 <Row className="g-lg-2 g-4">
-                  <Col sm={9} className="col-lg-auto">
-                    <select
-                      className="form-select text-muted"
-                      data-choices
-                      data-choices-search-false
-                      name="choices-single-default"
-                      id="idStatus"
-                    >
-                      <option value="all">All</option>
-                      <option value="Today">Today</option>
-                      <option value="Yesterday">Yesterday</option>
-                      <option value="Last 7 Days">Last 7 Days</option>
-                      <option value="Last 30 Days">Last 30 Days</option>
-                      <option defaultValue="This Month">This Month</option>
-                      <option value="Last Month">Last Month</option>
-                    </select>
+                  <Col lg={4}>
+                    <Select
+                      closeMenuOnSelect={false}
+                      isMulti
+                      options={optionColumnsTable}
+                      styles={customStyles}
+                      onChange={handleSelectValueColumnChange} // Set the onChange event handler
+                    />
                   </Col>
                   <Col sm={9} className="col-lg-auto">
                     <select
@@ -929,27 +1008,30 @@ const Bookings = () => {
               <Card.Body>
                 {isPrivateHiredChecked && !isContractChecked ? (
                   <DataTable
-                    columns={columns}
+                    columns={filteredColumns}
                     data={privateHiredJobs}
                     selectableRows
                     pagination
                     onSelectedRowsChange={handleChange}
+                    customStyles={customTableStyles}
                   />
                 ) : !isPrivateHiredChecked && isContractChecked ? (
                   <DataTable
-                    columns={columns}
+                    columns={filteredColumns}
                     data={contractJobs}
                     pagination
                     selectableRows
                     onSelectedRowsChange={handleChange}
+                    customStyles={customTableStyles}
                   />
                 ) : (
                   <DataTable
-                    columns={columns}
+                    columns={filteredColumns}
                     data={result}
                     pagination
                     selectableRows
                     onSelectedRowsChange={handleChange}
+                    customStyles={customTableStyles}
                   />
                 )}
               </Card.Body>
@@ -958,7 +1040,7 @@ const Bookings = () => {
           {/* Modal To Assign Driver */}
           <Modal
             className="fade zoomIn"
-            size="xl"
+            size="lg"
             show={modal_AssignDriver}
             onHide={() => {
               openModalAssignDriver();
@@ -972,7 +1054,7 @@ const Bookings = () => {
             </Modal.Header>
             <Modal.Body className="p-4">
               <Card>
-                <Card.Header>
+                {/* <Card.Header>
                   <div className="d-flex align-items-center p-1">
                     <div className="flex-shrink-0 me-3">
                       <div className="avatar-sm">
@@ -990,7 +1072,7 @@ const Bookings = () => {
                   ) : (
                     <DataTable columns={columns1} data={journeyTwo} />
                   )}
-                </Card.Header>
+                </Card.Header> */}
                 <Card.Header>
                   <div className="d-flex align-items-center p-1">
                     <div className="flex-shrink-0 me-3">
@@ -1118,7 +1200,7 @@ const Bookings = () => {
           {/* Modal To Assign Vehicle */}
           <Modal
             className="fade zoomIn"
-            size="xl"
+            size="lg"
             show={modal_AssignVehicle}
             onHide={() => {
               openModalAssignVehicle();
@@ -1139,11 +1221,6 @@ const Bookings = () => {
             }}
             centered
           >
-            {/* <Modal.Header className="px-4 pt-4" closeButton>
-              <h5 className="modal-title fs-18" id="exampleModalLabel">
-                Quote n° {selectedRow[0]?._id!}
-              </h5>
-            </Modal.Header> */}
             <Modal.Body className="p-4">
               <Form
                 className="tablelist-form"
@@ -1434,76 +1511,32 @@ const Bookings = () => {
                             isMulti
                             options={options}
                             styles={customStyles}
-                            onChange={handleSelectChange} // Set the onChange event handler
+                            onChange={handleSelectValueChange} // Set the onChange event handler
                           />
-                        </div>
-                        <div>
-                          Selected value(s):{" "}
-                          {selectedOptions
-                            .map((option: any) => option.label)
-                            .join(", ")}
                         </div>
                       </Col>
                     </div>
                   </Col>
                 </Row>
-                {selectAffiliate ? (
-                  <>
-                    <Row>
-                      <Col lg={3}>
-                        <h5>Name : </h5>
-                      </Col>
-                      <Col lg={3}>
-                        <h6>{OneAffiliate?.name}</h6>
-                      </Col>
-                    </Row>
-                    <Row>
-                      <Col lg={3}>
-                        <h5>Phone : </h5>
-                      </Col>
-                      <Col lg={3}>
-                        <h6>{OneAffiliate?.phone}</h6>
-                      </Col>
-                    </Row>
-                    <Row>
-                      <Col lg={3}>
-                        <h5>Address : </h5>
-                      </Col>
-                      <Col lg={3}>
-                        <h6>{OneAffiliate?.address}</h6>
-                      </Col>
-                    </Row>
-                    <Row>
-                      <Col lg={3}>
-                        <h5>Regions of Work : </h5>
-                      </Col>
-                      <Col lg={3}>
-                        <h6>{OneAffiliate?.region.join(" , ")}</h6>
-                      </Col>
-                    </Row>
-                    <Row>
-                      <Col lg={3}>
-                        <h5>Fleet Number : </h5>
-                      </Col>
-                      <Col lg={3}>
-                        <h6>{OneAffiliate?.fleetNumber}</h6>
-                      </Col>
-                    </Row>
-                    <Row>
-                      <Col lg={3}>
-                        <h5>Vehicles: </h5>
-                      </Col>
-                      <Col lg={3}>
-                        {OneAffiliate?.vehicles.map((vehicles: any) => (
-                          <h6>{vehicles?.type!}</h6>
-                        ))}
-                      </Col>
-                    </Row>
-                  </>
-                ) : (
-                  ""
-                )}
-
+                <Row className="mb-2">
+                  {/* <Col lg={6}>
+                    <Form.Label>Suggested Price :</Form.Label>
+                    <h5>£ {selectedRow[0]?._id!}</h5>
+                  </Col> */}
+                  <Col lg={6}>
+                    <Form.Label htmlFor="pushed_price">
+                      Pushed Price :
+                    </Form.Label>
+                    <Form.Control
+                      className="text-mutated"
+                      type="text"
+                      id="pushed_price"
+                      name="pushed_price"
+                      value={assignAffiliateToQuoteStatus.pushed_price}
+                      onChange={onChangeAssignAffiliate}
+                    />
+                  </Col>
+                </Row>
                 <Row>
                   <Col lg={12}>
                     <div className="hstack gap-2 justify-content-end">

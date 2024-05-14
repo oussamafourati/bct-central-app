@@ -122,13 +122,13 @@ const AddNewContract = () => {
   });
 
   const { data: OneVehicleType } = useFetchVehicleTypeByIdQuery(
-    OneProgram?.vehiculeType
+    OneProgram?.programDetails?.vehiculeType
   );
   const { data: OneJourney } = useFetchJourneyByIdQuery(
-    OneProgram?.journeyType
+    OneProgram?.programDetails?.journeyType
   );
   const { data: OneLuggageDetails } = useFetchLuggageByIdQuery(
-    OneProgram?.luggage
+    OneProgram?.programDetails?.luggage
   );
   const notifySuccess = () => {
     Swal.fire({
@@ -581,7 +581,9 @@ const AddNewContract = () => {
                             placeholder="00.00"
                             // value={contract.unit_price}
                             onChange={onChangeContract}
-                            defaultValue={OneProgram?.unit_price!}
+                            defaultValue={
+                              OneProgram?.programDetails?.unit_price!
+                            }
                           />
                         </div>
                       </Col>
@@ -595,7 +597,9 @@ const AddNewContract = () => {
                             placeholder="00.00"
                             // value={contract.prices}
                             onChange={onChangeContract}
-                            defaultValue={OneProgram?.total_price!}
+                            defaultValue={
+                              OneProgram?.programDetails?.total_price!
+                            }
                           />
                         </div>
                       </Col>
@@ -610,10 +614,10 @@ const AddNewContract = () => {
                             id="invoiceFrequency"
                           >
                             <option
-                              value={`${OneProgram?.invoiceFrequency}`}
+                              value={`${OneProgram?.programDetails?.invoiceFrequency}`}
                               selected
                             >
-                              {OneProgram?.invoiceFrequency}
+                              {OneProgram?.programDetails?.invoiceFrequency}
                             </option>
                           </select>
                         </div>
@@ -671,8 +675,11 @@ const AddNewContract = () => {
                               >
                                 <option value="">Select</option>
                                 {filteredSchoolsProg.map((program) => (
-                                  <option key={program._id} value={program._id}>
-                                    {program.programName}
+                                  <option
+                                    key={program?._id}
+                                    value={program?._id}
+                                  >
+                                    {program?.programName}
                                   </option>
                                 ))}
                               </select>
@@ -713,8 +720,11 @@ const AddNewContract = () => {
                               >
                                 <option value="">Select</option>
                                 {filteredCompaniesProg.map((program) => (
-                                  <option key={program._id} value={program._id}>
-                                    {program.programName}
+                                  <option
+                                    key={program?._id}
+                                    value={program?._id}
+                                  >
+                                    {program?.programName}
                                   </option>
                                 ))}
                               </select>
@@ -743,7 +753,9 @@ const AddNewContract = () => {
                             type="text"
                             id="customerName-field"
                             placeholder="Enter job pattern name"
-                            defaultValue={OneProgram?.programName}
+                            defaultValue={
+                              OneProgram?.programDetails?.programName
+                            }
                             readOnly
                           />
                         </div>
@@ -760,7 +772,9 @@ const AddNewContract = () => {
                             id="recommanded_capacity"
                             name="recommanded_capacity"
                             placeholder="Number of passengers"
-                            defaultValue={OneProgram?.recommanded_capacity}
+                            defaultValue={
+                              OneProgram?.programDetails?.recommanded_capacity
+                            }
                             readOnly
                           />
                         </div>

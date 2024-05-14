@@ -1,21 +1,42 @@
 import React from "react";
-import {
-  Container,
-  Row,
-  Card,
-  Col,
-} from "react-bootstrap";
+import { Container, Row, Card, Col } from "react-bootstrap";
 import DataTable from "react-data-table-component";
 import Breadcrumb from "Common/BreadCrumb";
 import { Link } from "react-router-dom";
-import { useDeleteVisitorMutation, useGetAllVisitorsQuery } from "features/Visitor/visitorSlice";
+import {
+  useDeleteVisitorMutation,
+  useGetAllVisitorsQuery,
+} from "features/Visitor/visitorSlice";
 import Swal from "sweetalert2";
 
 const PartialQuotes = () => {
   document.title = "Partial Quotes | Bouden Coach Travel";
-  const { data = [] } = useGetAllVisitorsQuery()
-  const filteredVisitor = data.filter((visitor) => visitor.status === "new")
-  const [deleteVisitor] = useDeleteVisitorMutation()
+  const customTableStyles = {
+    rows: {
+      style: {
+        minHeight: "72px", // override the row height
+        border: "1px solid #ddd",
+      },
+    },
+    headCells: {
+      style: {
+        paddingLeft: "8px", // override the cell padding for head cells
+        paddingRight: "8px",
+        border: "1px solid #ddd",
+      },
+    },
+    cells: {
+      style: {
+        paddingLeft: "8px", // override the cell padding for data cells
+        paddingRight: "8px",
+        border: "1px solid #ddd",
+      },
+    },
+  };
+
+  const { data = [] } = useGetAllVisitorsQuery();
+  const filteredVisitor = data.filter((visitor) => visitor.status === "new");
+  const [deleteVisitor] = useDeleteVisitorMutation();
 
   const swalWithBootstrapButtons = Swal.mixin({
     customClass: {
@@ -48,11 +69,7 @@ const PartialQuotes = () => {
           /* Read more about handling dismissals below */
           result.dismiss === Swal.DismissReason.cancel
         ) {
-          swalWithBootstrapButtons.fire(
-            "Canceled",
-            "Quote is safe :)",
-            "info"
-          );
+          swalWithBootstrapButtons.fire("Canceled", "Quote is safe :)", "info");
         }
       });
   };
@@ -109,7 +126,11 @@ const PartialQuotes = () => {
             </Link>
           </li>
           <li>
-            <Link to="#" className="badge badge-soft-danger remove-item-btn" onClick={() => AlertDelete(row?._id!)}>
+            <Link
+              to="#"
+              className="badge badge-soft-danger remove-item-btn"
+              onClick={() => AlertDelete(row?._id!)}
+            >
               <i className="ri-delete-bin-2-line"></i>
             </Link>
           </li>
@@ -139,7 +160,12 @@ const PartialQuotes = () => {
                 </Row>
               </Card.Header>
               <Card.Body>
-                <DataTable columns={columns} data={filteredVisitor} pagination />
+                <DataTable
+                  columns={columns}
+                  data={filteredVisitor}
+                  pagination
+                  customStyles={customTableStyles}
+                />
               </Card.Body>
             </Card>
           </Col>

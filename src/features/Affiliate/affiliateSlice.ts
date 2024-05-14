@@ -11,7 +11,17 @@ export interface Affiliate {
   statusAffiliate: string;
   enquiryDate: string;
   vehicles: string[];
-  region: string[];
+  region?: string[];
+  coverageDistance: string;
+  coverageArea?: {
+    placeName: string;
+    coordinates: {
+      lat: string;
+      lng: string;
+    };
+  };
+  jobStatus: string;
+  price: string;
 }
 
 export interface SendEmailAcceptence {

@@ -11,3 +11,4 @@ declare module 'react-google-recaptcha';
 declare module 'react-dual-listbox';
 declare module 'react-datepicker';
 declare module 'js-cookie';
+declare module 'react-resizable';

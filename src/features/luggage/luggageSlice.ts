@@ -52,5 +52,5 @@ export const {
   useGetAllLuggageQuery,
   useAddNewLuggageMutation,
   useDeleteLuggageMutation,
-  useFetchLuggageByIdQuery
+  useFetchLuggageByIdQuery,
 } = luggageSlice;

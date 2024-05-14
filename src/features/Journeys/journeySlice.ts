@@ -51,5 +51,5 @@ export const {
   useGetAllJourneyQuery,
   useAddNewJourneyMutation,
   useDeleteJourneyMutation,
-  useFetchJourneyByIdQuery
+  useFetchJourneyByIdQuery,
 } = journeySlice;

@@ -27,6 +27,12 @@ export interface Quote {
   id_affiliate?: string;
   id_affiliate_driver?: string;
   id_affiliate_vehicle?: string;
+  id_group_employee?: {
+    groupName?: string;
+  };
+  id_group_student?: {
+    groupName?: string;
+  };
   notes: string;
   createdAt: Date;
   luggage_details: string;
@@ -42,13 +48,24 @@ export interface Quote {
   automatic_cost: string;
   deposit_amount: string;
   category?: string;
+  pushed_price?: string;
   date?: string;
+  dropoff_date?: string;
   return_time?: string;
   pickup_time?: string;
   mid_stations: {
     id: string;
     address: string;
     time: string;
+  }[];
+  white_list?: {
+    name: string;
+    phone: string;
+    email: string;
+    fleetNumber: string;
+    vehicles: {
+      type: string;
+    }[];
   }[];
 }
 
@@ -90,6 +107,17 @@ export interface AssignAffiliateToQuote {
   idQuote: string;
   white_list: string[];
   pushedDate: string;
+  pushed_price: string;
+}
+
+export interface SurveyAffiliates {
+  id_Quote: string;
+  white_list?: string[];
+}
+
+export interface AcceptAssignedAffiliate {
+  idQuote: string;
+  id_affiliate?: string;
 }
 
 export interface CancelQuote {
@@ -111,7 +139,9 @@ export const quoteSlice = createApi({
     "CancelQuote",
     "ConvertTo",
     "AssignDriverAndVehicleToQuoteInterface",
-    "AssignAffiliateToQuote"
+    "AssignAffiliateToQuote",
+    "SurveyAffiliates",
+    "AcceptAssignedAffiliate",
   ],
   endpoints(builder) {
     return {
@@ -203,14 +233,34 @@ export const quoteSlice = createApi({
         invalidatesTags: ["Quote", "AssignVehicleToQuote"],
       }),
       addAffilaiteToQuote: builder.mutation<void, AssignAffiliateToQuote>({
-        query({ idQuote, white_list, pushedDate }) {
+        query({ idQuote, white_list, pushedDate, pushed_price }) {
           return {
             url: "/assignAffiliate",
             method: "POST",
-            body: { idQuote, white_list, pushedDate },
+            body: { idQuote, white_list, pushedDate, pushed_price },
           };
         },
         invalidatesTags: ["Quote", "AssignAffiliateToQuote"],
+      }),
+      surveyAffilaites: builder.mutation<void, SurveyAffiliates>({
+        query({ id_Quote, white_list }) {
+          return {
+            url: "/surveyAffiliate",
+            method: "POST",
+            body: { id_Quote, white_list },
+          };
+        },
+        invalidatesTags: ["Quote", "SurveyAffiliates"],
+      }),
+      acceptAssignedAffilaite: builder.mutation<void, AcceptAssignedAffiliate>({
+        query({ idQuote, id_affiliate }) {
+          return {
+            url: "/acceptAssignedAffiliate",
+            method: "POST",
+            body: { idQuote, id_affiliate },
+          };
+        },
+        invalidatesTags: ["Quote", "AcceptAssignedAffiliate"],
       }),
       deleteQuote: builder.mutation<void, Quote>({
         query: (_id) => ({
@@ -247,5 +297,7 @@ export const {
   useGetQuoteByIdScheduleQuery,
   useDeleteQuoteMutation,
   useAssignDriverAndVehicleToQuoteMutation,
-  useAddAffilaiteToQuoteMutation
+  useAddAffilaiteToQuoteMutation,
+  useSurveyAffilaitesMutation,
+  useAcceptAssignedAffilaiteMutation,
 } = quoteSlice;

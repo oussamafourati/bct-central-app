@@ -1,26 +1,211 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
+  Button,
   Card,
   Col,
   Container,
   Row,
   Tab,
   Nav,
+  Form,
+  Image,
   Dropdown,
   Table,
 } from "react-bootstrap";
-import { GoogleApiWrapper, Map, Marker, InfoWindow } from "google-maps-react";
+import Breadcrumb from "Common/BreadCrumb";
+import {
+  GoogleApiWrapper,
+  Map,
+  Marker,
+  InfoWindow,
+  Polyline,
+} from "google-maps-react";
+import logoDark from "assets/images/logo-dark.png";
 import { Link } from "react-router-dom";
 import DataTable from "react-data-table-component";
-import img14 from "assets/images/Animation - 1704963653101.gif";
+import { io } from "socket.io-client";
+import coach from "../../../assets/images/coach.png";
+import chauffeur from "../../../assets/images/chauffeur.png";
+import { useSelector } from "react-redux";
+import { RootState } from "../../../app/store"; // Import your RootState interface
+import { selectCurrentUser } from "../../../features/Account/authSlice";
+import Swal from "sweetalert2";
+import axios from "axios";
+// import './google-map.scss';
 
 const LoadingContainer = () => <div>Loading...</div>;
 const Maptracking = (props: any) => {
   document.title = "Tracking | Bouden Coach Travel";
+  const user = useSelector((state: RootState) => selectCurrentUser(state));
+  console.log("user id", user._id);
 
-  const [isOpen, setIsOpen] = useState<boolean>(true);
+  const notify = (msg: string) => {
+    Swal.fire({
+      position: "center",
+      icon: "success",
+      title: msg,
+      showConfirmButton: true,
+      //timer: 2000,
+    });
+  };
 
-  const [openMenu, setOpenMenu] = useState<boolean>(false);
+  let path = [
+    { lat: 52.53121397525478, lng: -2.0343799253369403 },
+    { lat: 52.531403248085006, lng: -2.031837191253659 },
+    { lat: 52.5311095485165, lng: -2.0271594188472855 },
+  ];
+  const [markers, setMarkers] = useState<any[]>([]);
+  const [routeCoordinates, setRouteCoordinates] = useState<any[]>([]);
+  const URL = "http://localhost:8800"; //=== 'production' ? undefined : 'http://localhost:8800';
+  const socket = io(URL);
+
+  useEffect(() => {
+    socket.on("live-tracking-companies-listening", (socketData: any) => {
+      console.log("broadcasted trip", socketData);
+      let tripExists = false;
+      let counter = 0;
+
+      let temparkers = [...markers];
+
+      console.log([...markers]);
+
+      for (let element of temparkers) {
+        console.log("element", element);
+        counter++;
+        if (element.details.trip_details._id === socketData.trip_details._id) {
+          console.log("tripExists");
+          if (socketData.trip_details.progress === "completed") {
+            notify(
+              "Driver " +
+                socketData.details.id_driver.firstname +
+                " has completed this job"
+            );
+          } else {
+            element.details.position = socketData.position;
+            element.positions.push(socketData.position);
+          }
+          console.log("trip positions", socketData.position);
+          setMarkers(temparkers);
+          tripExists = true;
+          break;
+        }
+      }
+
+      if (counter === markers.length && tripExists === false) {
+        console.log("tripNotExists");
+        if (user._id === socketData.trip_details.company_id) {
+          temparkers.push({
+            details: socketData,
+            positions: [socketData.position],
+          });
+          setMarkers(temparkers);
+        }
+      }
+
+      console.log(temparkers);
+      console.log(markers);
+    });
+
+    // Clean up function to remove event listener when component unmounts
+    return () => {
+      socket.disconnect(); // Disconnect the socket connection
+    };
+  }, [markers]);
+
+  const drawPolyline = async (positions?: any) => {
+    console.log("Positions to be snapped", positions);
+
+    let array = positions
+      .map((position: any) => `${position.lat},${position.lng}`)
+      .join("|");
+
+    console.log("To Be snapped array", array);
+
+    try {
+      const requestUrl = `https://roads.googleapis.com/v1/snapToRoads?path=${array}&key=${"AIzaSyBbORSZJBXcqDnY6BbMx_JSP0l_9HLQSkw"}&interpolate=true`;
+
+      console.log("Request URL:", requestUrl);
+
+      const response: any = await axios.get(requestUrl);
+
+      if (response) {
+        console.log("Response", response);
+        const snappedPoints = response.snappedPoints.map((point: any) => ({
+          lat: point.location.latitude,
+          lng: point.location.longitude,
+        }));
+        setRouteCoordinates(snappedPoints);
+      }
+    } catch (error) {
+      console.error("Error snapping to road:", error);
+    }
+
+    //////////////////////////////////////////////////////////////////////////////////////////////
+
+    // //? Polyline Solution
+    // //?setRouteCoordinates(positions);
+
+    // //? Directions Service Route Solution
+    // //TODO: Construct an array of arrays where each sub array contains 27 point positions
+    // //TODO : 1 for origin, 1 for destination, 25 for waypoints array
+
+    // let segmentsContainer: any[][] = [];
+
+    // for (let i = 0; i < positions.length; i += 27) {
+    //   const subArray: string[] = positions.slice(i, i + 27);
+    //   segmentsContainer.push(subArray);
+    // }
+
+    // console.log("segmentsContainer", segmentsContainer);
+
+    // let temp_routes = [];
+
+    // for (let i = 1; i < segmentsContainer.length; i++) {
+    //   let waypts = [];
+    //   let segment = segmentsContainer[i];
+    //   console.log("segment", segment);
+    //   for (let j = 1; j < segment.length - 1; j++) {
+    //     waypts.push({
+    //       location: segment[j],
+    //     });
+    //   }
+    //   console.log(waypts);
+    //   let result = drawRoute(segment[0], segment[segment.length - 1], waypts);
+
+    //   temp_routes.push(result);
+    // }
+    // setRouteCoordinates(temp_routes);
+  };
+
+  const drawRoute = (fromPosition: any, toPosition: any, waypts: any) => {
+    const directionsService = new google.maps.DirectionsService();
+
+    directionsService.route(
+      {
+        origin: fromPosition,
+        destination: toPosition,
+        travelMode: google.maps.TravelMode.DRIVING,
+        waypoints: waypts, //[
+        //   {
+        //     location: {
+        //       lat: 52.531403248085006,
+        //       lng: -2.031837191253659
+        //     },
+        //   },
+        // ],
+      },
+      (result, status) => {
+        if (status === google.maps.DirectionsStatus.OK) {
+          let route = result!.routes[0].overview_path.map((point) => {
+            return { lat: point.lat(), lng: point.lng() };
+          });
+          return route;
+        } else {
+          console.error("Error fetching directions:", status);
+        }
+      }
+    );
+  };
 
   const [navList, setNavList] = useState(150);
   function openMap() {
@@ -232,13 +417,8 @@ const Maptracking = (props: any) => {
   const [activeVerticalTab, setactiveVerticalTab] = useState<number>(1);
   const [isHovered, setHover] = useState(false);
   const [navWidth, setNavWidth] = useState(150);
-  const [showInfoWindow, setInfoWindowFlag] = useState(true);
-  const [showMenuWindow, setMenuWindowFlag] = useState(true);
   function openNav() {
     setNavWidth(100);
-    setOpenMenu(true);
-    setIsOpen(false)
-    setInfoWindowFlag(!showInfoWindow)
   }
 
   function closeNav() {
@@ -250,44 +430,18 @@ const Maptracking = (props: any) => {
   // function for handleClick
   const handleClick = () => {
     setChangeColor(!changeColor);
-    setNavWidth(150);
   };
-
-
 
   return (
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
-          <div className="d-flex justify-content-end">
-            <button
-              onClick={handleClick}
-              type="button"
-              className={`btn btn-darken-success custom-toggle btn-sm mb-1 ${changeColor === false ? "btn-darken-success" : "btn-darken-info"
-                }`}
-              data-bs-toggle="button"
-            >
-              <span className="icon-on">
-                <i
-                  className={`${changeColor === false
-                    ? "ri-road-map-line align-bottom me-1"
-                    : "ri-table-2 align-bottom me-1"
-                    }`}
-                ></i>
-                {changeColor === false ? "Map" : "List"}
-              </span>
-            </button>
-          </div>
           <Row>
             {changeColor === false ? (
               <Col lg={8}>
                 <Row>
                   <Col lg={12}>
-                    <div
-                      className="card-body"
-                      onMouseOver={() => setHover(true)}
-                      onMouseLeave={() => setHover(false)}
-                    >
+                    <div className="card-body">
                       <div
                         id="gmaps-types"
                         className="gmaps"
@@ -299,81 +453,60 @@ const Maptracking = (props: any) => {
                           style={{ height: "200%", width: `${navWidth}%` }}
                           initialCenter={{ lat: 52.5244734, lng: -1.9857876 }}
                         >
-                          <Marker
-                            position={{ lat: 52.474394, lng: -1.901612 }}
-                            // onClick={() => openNav()}
-                            onClick={() => setOpenMenu(!openMenu)}
-                            icon={img14}
-                            style={{height:"5%"}}
-                          />
-                          {openMenu && (
+                          {console.log("markers", markers)}
+                          {markers.map((marker, index) => (
                             <InfoWindow
-                              position={{ lat: 52.474394, lng: -1.901612 }}
-                              visible={showMenuWindow}
+                              key={index}
+                              position={{
+                                lat: marker.details.position.lat,
+                                lng: marker.details.position.lng,
+                              }} // Use the position of the first marker
+                              visible={true}
+                              pixelOffset={{ width: 0, height: -35 }}
                             >
-                              {/* Circle Menu */}
-                              <Row className="justify-content-center">
-                                <div className="container">
-                                  <div className="row justify-content-start">
-                                    <div className="col-4">
-                                      {" "}
-                                    </div>
-                                    <div className="col-4">
-                                    {" "}
-                                    </div>
-                                  </div>
-                                  <div className="row justify-content-center">
-                                    <div className="col-4">
-                                    {" "}
-                                    </div>
-                                    <div className="col-4">
-                                      <i className="ri-equalizer-line"></i>
-                                    </div>
-                                    <div className="col-4">
-                                    {" "}
-                                    </div>
-                                  </div>
-                                  <div className="row justify-content-between">
-                                    <div className="col-4">
-                                      <i className="ri-equalizer-line"></i>
-                                    </div>
-                                    <div className="col-4">
-                                      <i className="ri-equalizer-line"></i>
-                                    </div>
-                                  </div>
-                                  <div className="row justify-content-center">
-                                    <div className="col-4">
-                                    {" "}
-                                    </div>
-                                    <div className="col-4">
-                                      <i className="ri-equalizer-line"></i>
-                                    </div>
-                                    <div className="col-4">
-                                    {" "}
-                                    </div>
-                                  </div>
-                                  <div className="row justify-content-start">
-                                    <div className="col-4">
-                                      {" "}
-                                    </div>
-                                    <div className="col-4">
-                                    {" "}
-                                    </div>
-                                  </div>
-                                </div>
-                              </Row>
-                            </InfoWindow>
-                          )}
-                          {/* {isOpen && (
-                            <InfoWindow
-                              position={{ lat: 52.47866982807519, lng: -1.9015459803590116 }}
-                              visible={showInfoWindow}
-                            >
-                              <div>
-                                <h4>415-778-3654</h4>
+                              <div style={{ textAlign: "center" }}>
+                                <img
+                                  src={chauffeur}
+                                  alt=""
+                                  style={{ width: "25px" }}
+                                />
+                                <span>
+                                  {" "}
+                                  {
+                                    marker.details.trip_details.id_driver
+                                      .firstname
+                                  }
+                                </span>
+                                <br />
+
+                                <span>
+                                  {marker.details.trip_details.id_vehicle.model}
+                                </span>
                               </div>
                             </InfoWindow>
-                          )}  */}
+                          ))}
+                          {markers.map((marker, index) => (
+                            <Marker
+                              key={index}
+                              position={{
+                                lat: marker.details.position.lat,
+                                lng: marker.details.position.lng,
+                              }}
+                              icon={{
+                                url: coach,
+                                scaledSize: new window.google.maps.Size(35, 35), // Adjust the size of the icon
+                              }}
+                              onClick={() => {
+                                drawPolyline(marker.positions);
+                              }}
+                            />
+                          ))}
+                          <Polyline
+                            path={routeCoordinates}
+                            strokeColor="#FF1493"
+                            strokeOpacity={0.7}
+                            strokeWeight={7}
+                          />
                         </Map>
                         {navWidth === 100 ? (
                           <button
@@ -396,7 +529,7 @@ const Maptracking = (props: any) => {
                           }}
                         >
                           <Dropdown.Toggle
-                            className="btn-icon btn btn-darken-warning arrow-none btn-sm w-sm"
+                            className="btn-icon btn btn-warning arrow-none btn-sm w-sm"
                             data-bs-toggle="dropdown"
                             aria-expanded="false"
                           >
@@ -484,7 +617,7 @@ const Maptracking = (props: any) => {
                         </Map>
                         <button
                           type="button"
-                          className="btn btn-darken-danger btn-icon"
+                          className="btn btn-danger btn-icon"
                           onClick={() => closeMap()}
                         >
                           <i className="ri-close-line"></i>
@@ -578,74 +711,23 @@ const Maptracking = (props: any) => {
                               <DataTable
                                 columns={columns}
                                 data={data}
-                              // pagination
+                                // pagination
                               />
                             </Tab.Pane>
                             <Tab.Pane eventKey="messages1">
                               <DataTable
                                 columns={columns1}
                                 data={data1}
-                              // pagination
+                                // pagination
                               />
                             </Tab.Pane>
                             <Tab.Pane eventKey="settings1">
-                              <Card>
-                                <Card.Header>
-                                  <Link
-                                    to="#"
-                                    className="link-danger fw-medium float-end"
-                                  >
-                                    <i className="ri-download-line align-middle"></i>{" "}
-                                    Download
-                                  </Link>
-                                  <h5 className="card-title text-dark mb-0">
-                                    Balfour Beatty - HS2
-                                  </h5>
-                                  <h6 className="text-muted mt-1">
-                                    balfourbeatty@hs2contract.org
-                                  </h6>
-                                  <h6 className="text-muted mt-1">
-                                    0800 1123770
-                                  </h6>
-                                </Card.Header>
-                                <Card.Body>
-                                  <div className="table-responsive">
-                                    <Table className="table-borderless table-sm mb-0">
-                                      <tbody>
-                                        <tr>
-                                          <td className="fw-bold">
-                                            Collection
-                                          </td>
-                                          <td className="fw-medium">
-                                            Water Orton - Contract
-                                          </td>
-                                        </tr>
-                                        <tr>
-                                          <td className="fw-bold">
-                                            Destination
-                                          </td>
-                                          <td className="fw-medium">
-                                            Staffordshire DE13 7AR
-                                          </td>
-                                        </tr>
-                                        <tr className="fw-bold">
-                                          <td>Travel Time:</td>
-                                          <td className="fw-medium">07:00</td>
-                                        </tr>
-                                        <tr className="fw-bold">
-                                          <td>Price:</td>
-                                          <td className="fw-medium">£525.00</td>
-                                        </tr>
-                                      </tbody>
-                                    </Table>
-                                  </div>
-                                </Card.Body>
-                                <Card.Footer className="p-0">
-                                  <p className="d-flex justify-content-end">
-                                    2023-10-22
-                                  </p>
-                                </Card.Footer>
-                              </Card>
+                              <div className="d-flex mt-2">
+                                <div className="flex-shrink-0">
+                                  <i className="ri-checkbox-circle-fill text-success"></i>
+                                </div>
+                                <div className="flex-grow-1 ms-2">Contract</div>
+                              </div>
                             </Tab.Pane>
                           </Tab.Content>
                         </Tab.Container>

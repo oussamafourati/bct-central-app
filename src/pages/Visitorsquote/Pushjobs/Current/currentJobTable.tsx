@@ -7,6 +7,7 @@ import {
   Modal,
   Form,
   Button,
+  Offcanvas,
 } from "react-bootstrap";
 import DataTable from "react-data-table-component";
 import Breadcrumb from "Common/BreadCrumb";
@@ -14,6 +15,7 @@ import Flatpickr from "react-flatpickr";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Quote,
+  useAcceptAssignedAffilaiteMutation,
   useAddDriverToQuoteMutation,
   useAssignDriverAndVehicleToQuoteMutation,
   useDeleteQuoteMutation,
@@ -27,14 +29,42 @@ import {
   useGetDriverByIDQuery,
 } from "features/Driver/driverSlice";
 import { useGetAllVehiclesQuery } from "features/Vehicles/vehicleSlice";
+import SimpleBar from "simplebar-react";
 
 const CurrentTable = () => {
-  document.title = "Bookings | Bouden Coach Travel";
+  const customTableStyles = {
+    rows: {
+      style: {
+        minHeight: "72px", // override the row height
+        border: "1px solid #ddd",
+      },
+    },
+    headCells: {
+      style: {
+        paddingLeft: "8px", // override the cell padding for head cells
+        paddingRight: "8px",
+        border: "1px solid #ddd",
+      },
+    },
+    cells: {
+      style: {
+        paddingLeft: "8px", // override the cell padding for data cells
+        paddingRight: "8px",
+        border: "1px solid #ddd",
+      },
+    },
+  };
+
+  const [showGroups, setShowGroups] = useState<boolean>(false);
+
   const [modal_AssignDriver, setModal_AssignDriver] = useState<boolean>(false);
   const [modal_AssignVehicle, setModal_AssignVehicle] =
     useState<boolean>(false);
   const { data: AllQuotes = [] } = useGetAllQuoteQuery();
-  const result = AllQuotes.filter((bookings) => bookings.status === "Pushed");
+  const result = AllQuotes.filter(
+    (bookings) => bookings.status === "Pushed" || bookings.progress === "Accept"
+  );
+  console.log(result);
   const privateHiredJobs = result.filter(
     (privateHired) => privateHired?.category === "Private"
   );
@@ -322,6 +352,15 @@ const CurrentTable = () => {
       ),
     },
     {
+      name: <span className="font-weight-bold fs-13">Push Price</span>,
+      sortable: true,
+      selector: (row: any) => (
+        <span>
+          £ <b>{row?.pushed_price!}</b>
+        </span>
+      ),
+    },
+    {
       name: <span className="font-weight-bold fs-13">Passenger Name</span>,
       sortable: true,
       selector: (row: any) =>
@@ -379,7 +418,14 @@ const CurrentTable = () => {
     {
       name: <span className="font-weight-bold fs-13">Affiliate</span>,
       sortable: true,
-      selector: (row: any) => row?.id_affiliate?.name!,
+      selector: (row: any) =>
+        row?.white_list! === null ? (
+          <span className="font-weight-meduim">{row?.id_affiliate!.name!}</span>
+        ) : (
+          <Link to="#" onClick={() => setShowGroups(!showGroups)} state={row}>
+            {row?.white_list?.length!}
+          </Link>
+        ),
     },
     {
       name: <span className="font-weight-bold fs-13">Payment Status</span>,
@@ -401,6 +447,8 @@ const CurrentTable = () => {
         ),
     },
   ];
+
+  const whiteListLocation = useLocation();
 
   const [isPrivateHiredChecked, setIsPrivateHiredChecked] = useState(false);
   const handlePrivateHiredCheckboxChange = (
@@ -567,6 +615,31 @@ const CurrentTable = () => {
     (vehicles) => vehicles.statusVehicle === "Active"
   );
 
+  const [acceptAssignedAffiliate] = useAcceptAssignedAffilaiteMutation();
+  const acceptAssignedAffiliateToQuote = async (id: any, affiliate_id: any) => {
+    acceptAssignedAffiliate({
+      idQuote: id,
+      id_affiliate: affiliate_id,
+    });
+  };
+
+  const AlertConfirm = async (id: any, affiliate_id: any) => {
+    try {
+      await acceptAssignedAffiliateToQuote(id, affiliate_id);
+      swalWithBootstrapButtons.fire(
+        "Changed !",
+        "The Program has been converted.",
+        "success"
+      );
+    } catch (error) {
+      console.error("Error:", error);
+      swalWithBootstrapButtons.fire(
+        "Error",
+        "An error occurred while converting the program.",
+        "error"
+      );
+    }
+  };
   return (
     <React.Fragment>
       <Col lg={12}>
@@ -751,6 +824,7 @@ const CurrentTable = () => {
                 selectableRows
                 pagination
                 onSelectedRowsChange={handleChange}
+                customStyles={customTableStyles}
               />
             ) : !isPrivateHiredChecked && isContractChecked ? (
               <DataTable
@@ -759,6 +833,7 @@ const CurrentTable = () => {
                 pagination
                 selectableRows
                 onSelectedRowsChange={handleChange}
+                customStyles={customTableStyles}
               />
             ) : (
               <DataTable
@@ -767,11 +842,138 @@ const CurrentTable = () => {
                 pagination
                 selectableRows
                 onSelectedRowsChange={handleChange}
+                customStyles={customTableStyles}
               />
             )}
           </Card.Body>
         </Card>
       </Col>
+      <Offcanvas
+        show={showGroups}
+        onHide={() => setShowGroups(!showGroups)}
+        placement="end"
+      >
+        <Offcanvas.Header className="border-bottom" closeButton>
+          <Offcanvas.Title>
+            <Row>Job Details</Row>
+            <Row>
+              <Col lg={3}>
+                <h6>From:</h6>
+              </Col>
+              <Col lg={9}>
+                <h6>
+                  <i>{whiteListLocation?.state?.start_point?.placeName!}</i>
+                </h6>
+                <h6>
+                  <i>{whiteListLocation?.state?.date!}</i> at{" "}
+                  <i>{whiteListLocation?.state?.pickup_time!}</i>
+                </h6>
+              </Col>
+            </Row>
+            <Row>
+              <Col lg={3}>
+                <h6>To :</h6>
+              </Col>
+              <Col lg={9}>
+                <h6>
+                  <i>
+                    {whiteListLocation?.state?.destination_point?.placeName!}
+                  </i>
+                </h6>
+                <h6>
+                  <i>{whiteListLocation?.state?.dropoff_date!}</i> at{" "}
+                  <i>{whiteListLocation?.state?.dropoff_time!}</i>
+                </h6>
+              </Col>{" "}
+            </Row>
+            <Row>
+              <Col lg={4}>
+                <h6>Price :</h6>
+              </Col>
+              <Col lg={8}>
+                <h6>
+                  £ <i>{whiteListLocation?.state?.pushed_price!}</i>
+                </h6>
+              </Col>{" "}
+            </Row>
+          </Offcanvas.Title>
+        </Offcanvas.Header>
+        <Offcanvas.Body>
+          <div>
+            {whiteListLocation?.state?.white_list!.map((affiliate: any) => (
+              <SimpleBar>
+                <div
+                  className="p-3 border-bottom border-bottom-dashed"
+                  key={affiliate._id}
+                >
+                  <Link
+                    to="#"
+                    className="d-flex justify-content-end"
+                    onClick={() =>
+                      AlertConfirm(
+                        whiteListLocation?.state!._id!,
+                        affiliate._id
+                      )
+                    }
+                  >
+                    <span className="badge bg-success"> Accept </span>
+                  </Link>
+                  <table>
+                    <tr>
+                      <td>Name : </td>
+                      <td>{affiliate.name}</td>
+                    </tr>
+                    <tr>
+                      <td>Depot Address: </td>
+                      <td> {affiliate?.depotAddress?.placeName!}</td>
+                    </tr>
+                    <tr>
+                      <td>Coverage Zone: </td>
+                      <td> {affiliate?.coverageDistance!}</td>
+                    </tr>
+                    <tr>
+                      <td>Fleet Number : </td>
+                      <td> {affiliate.fleetNumber}</td>
+                    </tr>
+                    <tr>
+                      <td>Vehicles : </td>
+                      <td>
+                        <ul>
+                          {affiliate?.vehicles?.map((vehicle: any) => (
+                            <li>{vehicle.type}</li>
+                          ))}
+                        </ul>
+                      </td>
+                    </tr>
+                  </table>
+                  {affiliate.depotAddress === undefined ? (
+                    <span className="badge bg-info mb-2">
+                      {" "}
+                      {/* {affiliate.fleetNumber}{" "} */}
+                      Accepted
+                    </span>
+                  ) : (
+                    <span className="badge bg-danger mb-2">
+                      {" "}
+                      {/* {affiliate.fleetNumber}{" "} */}
+                      Refused
+                    </span>
+                  )}
+
+                  {affiliate?.notes! === undefined ||
+                  affiliate?.notes! === "" ? (
+                    ""
+                  ) : (
+                    <div className="alert alert-warning" role="alert">
+                      <b>{affiliate?.notes!}</b>
+                    </div>
+                  )}
+                </div>
+              </SimpleBar>
+            ))}
+          </div>
+        </Offcanvas.Body>
+      </Offcanvas>
     </React.Fragment>
   );
 };

@@ -73,7 +73,10 @@ export const contractSlice = createApi({
         }),
         invalidatesTags: ["Contract"],
       }),
-      updateContractStatusToApproved: builder.mutation<void, UpdateContractStatus>({
+      updateContractStatusToApproved: builder.mutation<
+        void,
+        UpdateContractStatus
+      >({
         query(payload) {
           return {
             url: "/updateContractStatus",
@@ -93,5 +96,5 @@ export const {
   useDeleteContractMutation,
   useUpdateContractMutation,
   useGetContractQuery,
-  useUpdateContractStatusToApprovedMutation
+  useUpdateContractStatusToApprovedMutation,
 } = contractSlice;

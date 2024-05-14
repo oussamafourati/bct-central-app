@@ -14,6 +14,30 @@ import Swal from "sweetalert2";
 const CompletedJobs = () => {
   document.title = "Completed Jobs | Bouden Coach Travel";
 
+  //  Internally, customStyles will deep merges your customStyles with the default styling.
+  const customTableStyles = {
+    rows: {
+      style: {
+        minHeight: "72px", // override the row height
+        border: "1px solid #ddd",
+      },
+    },
+    headCells: {
+      style: {
+        paddingLeft: "8px", // override the cell padding for head cells
+        paddingRight: "8px",
+        border: "1px solid #ddd",
+      },
+    },
+    cells: {
+      style: {
+        paddingLeft: "8px", // override the cell padding for data cells
+        paddingRight: "8px",
+        border: "1px solid #ddd",
+      },
+    },
+  };
+
   const { data: AllQuotes = [] } = useGetAllQuoteQuery();
   const result = AllQuotes.filter(
     (completed) => completed.progress === "Completed"
@@ -82,6 +106,19 @@ const CompletedJobs = () => {
       selector: (row: any) => row.passengers_number,
       sortable: true,
       width: "60px",
+    },
+    {
+      name: <span className="font-weight-bold fs-13">Group</span>,
+      selector: (row: any) =>
+        row.id_group_employee === null && row.id_group_student === null ? (
+          <span className="text-danger">No Group</span>
+        ) : row.school_id === null ? (
+          row?.id_group_employee?.groupName!
+        ) : (
+          row?.id_group_student?.groupName!
+        ),
+      sortable: true,
+      width: "120px",
     },
     {
       name: <span className="font-weight-bold fs-13">Pick Up</span>,
@@ -461,6 +498,7 @@ const CompletedJobs = () => {
                   selectableRows
                   onSelectedRowsChange={handleChange}
                   pagination
+                  customStyles={customTableStyles}
                 />
               </Card.Body>
             </Card>

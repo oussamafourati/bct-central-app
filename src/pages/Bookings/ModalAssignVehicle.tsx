@@ -10,11 +10,11 @@ import Swal from "sweetalert2";
 import { useAddVehicleToQuoteMutation } from "features/Quotes/quoteSlice";
 import { boolean } from "yup";
 interface VehicleProps {
-  assigned : boolean
+  assigned: boolean;
 }
 const ModalAssignVehicle: React.FC<VehicleProps> = (assigned) => {
   const locationQuote = useLocation();
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const { data: AllVehicles = [] } = useGetAllVehiclesQuery();
   let filterdVehicles = AllVehicles.filter(
     (vehicle) => vehicle.statusVehicle === "Active"
@@ -33,8 +33,10 @@ const ModalAssignVehicle: React.FC<VehicleProps> = (assigned) => {
         start_point: locationQuote?.state?.start_point!,
       },
       {
-        estimated_start_time: locationQuote?.state?.estimated_return_start_time!,
-        estimated_return_start_time: locationQuote?.state?.estimated_start_time!,
+        estimated_start_time:
+          locationQuote?.state?.estimated_return_start_time!,
+        estimated_return_start_time:
+          locationQuote?.state?.estimated_start_time!,
         destination_point: locationQuote?.state?.start_point!,
         start_point: locationQuote?.state?.destination_point!,
       }
@@ -80,12 +82,16 @@ const ModalAssignVehicle: React.FC<VehicleProps> = (assigned) => {
       sortable: true,
     },
     {
-      name: <span className="mdi mdi-account-tie-hat font-weight-bold fs-24"></span>,
+      name: (
+        <span className="mdi mdi-account-tie-hat font-weight-bold fs-24"></span>
+      ),
       selector: (row: any) =>
         row!.id_driver! === undefined ? (
           <span>No Driver</span>
         ) : (
-          <span>{row!.id_driver?.firstname!} {row!.id_driver?.surname!}</span>
+          <span>
+            {row!.id_driver?.firstname!} {row!.id_driver?.surname!}
+          </span>
         ),
       sortable: true,
     },
@@ -117,22 +123,27 @@ const ModalAssignVehicle: React.FC<VehicleProps> = (assigned) => {
 
   const initialAssignVehicleToQuote = {
     quote_id: "",
-    id_vehicle: ""
+    id_vehicle: "",
   };
 
-  const [assignvehicleToDriver, setAssignVehicleToQuote] = useState(initialAssignVehicleToQuote);
+  const [assignvehicleToDriver, setAssignVehicleToQuote] = useState(
+    initialAssignVehicleToQuote
+  );
 
-  const { quote_id, id_vehicle } =
-  assignvehicleToDriver;
+  const { quote_id, id_vehicle } = assignvehicleToDriver;
 
-  const onChangeAssignVehicleToQuote = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const onChangeAssignVehicleToQuote = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     setAssignVehicleToQuote((prevState) => ({
       ...prevState,
       [e.target.id]: e.target.value,
     }));
   };
 
-  const onSubmitAssignVehicleToQuote = (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmitAssignVehicleToQuote = (
+    e: React.FormEvent<HTMLFormElement>
+  ) => {
     e.preventDefault();
     try {
       assignvehicleToDriver["quote_id"] = locationQuote.state?._id!;
@@ -146,19 +157,19 @@ const ModalAssignVehicle: React.FC<VehicleProps> = (assigned) => {
     }
   };
 
-const [closeModal, setCloseModal] = useState<boolean>(true)
-const tog_CloseModal = ()=> {
-  setCloseModal(!assigned)
-}
+  const [closeModal, setCloseModal] = useState<boolean>(true);
+  const tog_CloseModal = () => {
+    setCloseModal(!assigned);
+  };
   return (
     <>
-    <Modal.Header className="px-4 pt-4" closeButton>
-    <h5 className="modal-title fs-18" id="exampleModalLabel">
-      Assign Vehicle
-    </h5>
-  </Modal.Header>
-    <Card>
-      <Card.Header>
+      <Modal.Header className="px-4 pt-4" closeButton>
+        <h5 className="modal-title fs-18" id="exampleModalLabel">
+          Assign Vehicle
+        </h5>
+      </Modal.Header>
+      <Card>
+        {/* <Card.Header>
         <div className="d-flex align-items-center p-1">
           <div className="flex-shrink-0 me-3">
             <div className="avatar-sm">
@@ -176,120 +187,128 @@ const tog_CloseModal = ()=> {
         ) : (
           <DataTable columns={columns} data={journeyTwo} />
         )}
-      </Card.Header>
-      <Card.Header>
-        <div className="d-flex align-items-center p-1">
-          <div className="flex-shrink-0 me-3">
-            <div className="avatar-sm">
-              <div className="avatar-title rounded-circle bg-light text-primary fs-24">
-                <i className="mdi mdi-car-sports"></i>
+      </Card.Header> */}
+        <Card.Header>
+          <div className="d-flex align-items-center p-1">
+            <div className="flex-shrink-0 me-3">
+              <div className="avatar-sm">
+                <div className="avatar-title rounded-circle bg-light text-primary fs-24">
+                  <i className="mdi mdi-car-sports"></i>
+                </div>
               </div>
             </div>
+            <div className="flex-grow-1">
+              <h4 className="mb-1">Choose Vehicle</h4>
+            </div>
           </div>
-          <div className="flex-grow-1">
-            <h4 className="mb-1">Choose Vehicle</h4>
-          </div>
-        </div>
-        <Form className="tablelist-form" onSubmit={onSubmitAssignVehicleToQuote}>
-          <Row>
-            <Col lg={12}>
-              <div className="mb-3">
-                <select
-                  className="form-select text-muted"
-                  name="vehicle"
-                  id="vehicle"
-                  onChange={handleSelectVehicle}
-                >
-                  <option value="">Select</option>
-                  {filterdVehicles.map((vehicle) => (
-                    <option value={`${vehicle._id}`} key={vehicle?._id!}>
-                      {vehicle.registration_number}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </Col>
-            {selectVehicle && (
-              <>
-                <Row className="mb-2">
-                  <Col lg={6}>
-                    <div>
-                      <Form.Label>Vehicle Ref</Form.Label>
-                      <Form.Control
-                        type="text"
-                        readOnly
-                        defaultValue={oneVehicle?.registration_number!}
-                      />
-                    </div>
-                    <div className="mt-2">
-                      <Form.Label>Vehicle Type</Form.Label>
-                      <Form.Control
-                        type="text"
-                        readOnly
-                        defaultValue={oneVehicle?.type!}
-                      />
-                    </div>
-                    <div className="mt-2">
-                      <Form.Label>Model</Form.Label>
-                      <Form.Control
-                        type="text"
-                        readOnly
-                        defaultValue={oneVehicle?.model!}
-                      />
-                    </div>
-                  </Col>
-                  <Col lg={6}>
-                  <div>
-                      <Form.Label>Mot Expiry</Form.Label>
-                      <Form.Control
-                        type="text"
-                        readOnly
-                        defaultValue={oneVehicle?.mot_expiry!}
-                        className="text-danger"
-                      />
-                    </div>
-                    <div className="mt-2">
-                      <Form.Label>Tax Expiry</Form.Label>
-                      <Form.Control
-                        type="text"
-                        readOnly
-                        defaultValue={oneVehicle?.tax_expiry!}
-                        className="text-danger"
-                      />
-                    </div>
-                    <div className="mt-2">
-                      <Form.Label>Insurance Expiry</Form.Label>
-                      <Form.Control
-                        type="text"
-                        readOnly
-                        defaultValue={oneVehicle?.insurance_expiry!}
-                        className="text-danger"
-                      />
-                    </div>
-                  </Col>
-                </Row>
-              </>
-            )}
-            <Col lg={12}>
-              <div className="hstack gap-2 justify-content-end">
-                <Button
-                  className="btn-ghost-danger"
-                  // onClick={() => {
-                  //   tog_AddMileage();
-                  // }}
-                  data-bs-dismiss="modal"
-                >
-                  <i className="ri-close-line align-bottom me-1"></i> Close
-                </Button>
-                <Button variant="primary" id="add-btn" type="submit" onClick={()=> tog_CloseModal()}>
-                  Assign Vehicle
-                </Button>
-              </div>
-            </Col>
-          </Row>
-        </Form>
-      </Card.Header>
-    </Card>
+          <Form
+            className="tablelist-form"
+            onSubmit={onSubmitAssignVehicleToQuote}
+          >
+            <Row>
+              <Col lg={12}>
+                <div className="mb-3">
+                  <select
+                    className="form-select text-muted"
+                    name="vehicle"
+                    id="vehicle"
+                    onChange={handleSelectVehicle}
+                  >
+                    <option value="">Select</option>
+                    {filterdVehicles.map((vehicle) => (
+                      <option value={`${vehicle._id}`} key={vehicle?._id!}>
+                        {vehicle.registration_number}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </Col>
+              {selectVehicle && (
+                <>
+                  <Row className="mb-2">
+                    <Col lg={6}>
+                      <div>
+                        <Form.Label>Vehicle Ref</Form.Label>
+                        <Form.Control
+                          type="text"
+                          readOnly
+                          defaultValue={oneVehicle?.registration_number!}
+                        />
+                      </div>
+                      <div className="mt-2">
+                        <Form.Label>Vehicle Type</Form.Label>
+                        <Form.Control
+                          type="text"
+                          readOnly
+                          defaultValue={oneVehicle?.type!}
+                        />
+                      </div>
+                      <div className="mt-2">
+                        <Form.Label>Model</Form.Label>
+                        <Form.Control
+                          type="text"
+                          readOnly
+                          defaultValue={oneVehicle?.model!}
+                        />
+                      </div>
+                    </Col>
+                    <Col lg={6}>
+                      <div>
+                        <Form.Label>Mot Expiry</Form.Label>
+                        <Form.Control
+                          type="text"
+                          readOnly
+                          defaultValue={oneVehicle?.mot_expiry!}
+                          className="text-danger"
+                        />
+                      </div>
+                      <div className="mt-2">
+                        <Form.Label>Tax Expiry</Form.Label>
+                        <Form.Control
+                          type="text"
+                          readOnly
+                          defaultValue={oneVehicle?.tax_expiry!}
+                          className="text-danger"
+                        />
+                      </div>
+                      <div className="mt-2">
+                        <Form.Label>Insurance Expiry</Form.Label>
+                        <Form.Control
+                          type="text"
+                          readOnly
+                          defaultValue={oneVehicle?.insurance_expiry!}
+                          className="text-danger"
+                        />
+                      </div>
+                    </Col>
+                  </Row>
+                </>
+              )}
+              <Col lg={12}>
+                <div className="hstack gap-2 justify-content-end">
+                  <Button
+                    className="btn-ghost-danger"
+                    // onClick={() => {
+                    //   tog_AddMileage();
+                    // }}
+                    data-bs-dismiss="modal"
+                  >
+                    <i className="ri-close-line align-bottom me-1"></i> Close
+                  </Button>
+                  <Button
+                    variant="primary"
+                    id="add-btn"
+                    type="submit"
+                    onClick={() => tog_CloseModal()}
+                  >
+                    Assign Vehicle
+                  </Button>
+                </div>
+              </Col>
+            </Row>
+          </Form>
+        </Card.Header>
+      </Card>
     </>
   );
 };

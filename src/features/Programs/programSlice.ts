@@ -1,6 +1,78 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 export interface Programm {
+  programDetails: {
+    _id?: string;
+    programName: string;
+    origin_point: {
+      placeName: string;
+      coordinates: {
+        lat: number;
+        lng: number;
+      };
+    };
+    stops: {
+      id: string;
+      address: {
+        placeName: string;
+        coordinates: {
+          lat: number;
+          lng: number;
+        };
+      },
+      time: string;
+    }[];
+    destination_point: {
+      placeName: string;
+      coordinates: {
+        lat: number;
+        lng: number;
+      };
+    };
+    pickUp_date: string;
+    droppOff_date: string;
+    freeDays_date: string[];
+    exceptDays: string[];
+    recommanded_capacity: string;
+    extra: string[];
+    notes: string;
+    dropOff_time: string;
+    pickUp_Time: string;
+    school_id?: string;
+    company_id?: string;
+    luggage?: string;
+    vehiculeType?: string;
+    unit_price?: string;
+    total_price?: string;
+    journeyType?: string;
+    program_status?: {
+      status: string;
+      date_status: string;
+    }[];
+    within_payment_days?: string;
+    invoiceFrequency?: string;
+    notes_for_client?: {
+      msg: string;
+      date: string;
+      sender: string;
+    }[];
+  };
+  groups: {
+    type: string;
+    groupCollection: {
+      id_company?: string;
+      passenger_number?: string;
+      groupName: string;
+      student_number?: string;
+      id_school?: string;
+      vehicle_type: string;
+      luggage_details: string;
+      program?: string;
+    }[];
+  };
+}
+
+export interface ProgrammGroups {
   _id?: string;
   programName: string;
   origin_point: {
@@ -33,10 +105,10 @@ export interface Programm {
   pickUp_Time: string;
   school_id?: string;
   company_id?: string;
+  luggage?: string;
+  vehiculeType?: string;
   unit_price?: string;
   total_price?: string;
-  vehiculeType?: string;
-  luggage?: string;
   journeyType?: string;
   program_status?: {
     status: string;
@@ -92,14 +164,15 @@ export const programmSlice = createApi({
     "ConvertTo",
     "ConvertToQuote",
     "UpdateStatus",
+    "ProgrammGroups",
   ],
   endpoints(builder) {
     return {
-      fetchProgramms: builder.query<Programm[], number | void>({
+      fetchProgramms: builder.query<ProgrammGroups[], number | void>({
         query() {
           return `/getAllProgramms`;
         },
-        providesTags: ["Programm"],
+        providesTags: ["ProgrammGroups"],
       }),
       fetchProgrammById: builder.query<Programm, string | void>({
         query: (_id) => ({

@@ -11,7 +11,7 @@
   border: none;
   transition: background-color 0.3s;
   margin-top: 1rem;
-  width: 448px;
+  width: 100%;
 }
 
 .custom-button:hover {
@@ -82,12 +82,13 @@
 
 .react-calendar__month-view__days {
   height: 250px !important;
+   background: #74f1d2;
 }
 
 .react-calendar__tile--now {
-  background: #74f1d2 !important;
+  background: #ffffff !important;
   border-radius: 5px !important;
-  color: #fff !important;
+  color: #000000 !important;
 }
 
 .legend-container {
@@ -100,7 +101,7 @@
   width: 25px;
   border-radius: 50%;
   display: inline-block;
-  margin-left: 7px;
+  margin-right: 7px;
 }
 
 .bg-free-day {
@@ -112,6 +113,11 @@
 }
 
 .bg-now-day {
+  background: #ffffff;
+  border: 1px #939090 solid;
+}
+
+.working_days_bg{
   background: #74f1d2;
 }
 

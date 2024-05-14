@@ -53,5 +53,5 @@ export const {
   useGetAllVehicleTypesQuery,
   useAddNewVehicleTypeMutation,
   useDeleteVehicleTypeMutation,
-  useFetchVehicleTypeByIdQuery
+  useFetchVehicleTypeByIdQuery,
 } = vehicleTypeSlice;

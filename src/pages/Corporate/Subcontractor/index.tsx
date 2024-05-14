@@ -104,6 +104,7 @@ const Subcontractors = () => {
       name: <span className="font-weight-bold fs-13">Phone</span>,
       selector: (row: any) => row.phone,
       sortable: true,
+      width: "100px",
     },
     {
       name: <span className="font-weight-bold fs-13">Address</span>,
@@ -111,13 +112,24 @@ const Subcontractors = () => {
       sortable: true,
     },
     {
-      name: <span className="font-weight-bold fs-13">Fleet Number</span>,
-      selector: (row: any) => row.fleetNumber,
+      name: <span className="font-weight-bold fs-13">Number of Fleet</span>,
+      selector: (row: any) =>
+        row?.fleetNumber === undefined ? (
+          <span className="font-weight-meduim text-danger">No Number</span>
+        ) : (
+          <span>{row?.fleetNumber!}</span>
+        ),
+      sortable: true,
+      width: "100px",
+    },
+    {
+      name: <span className="font-weight-bold fs-13">Area of Coverage</span>,
+      selector: (row: any) => row?.coverageArea?.placeName!,
       sortable: true,
     },
     {
-      name: <span className="font-weight-bold fs-13">Region</span>,
-      selector: (row: any) => row.region,
+      name: <span className="font-weight-bold fs-13">Coverage Zone</span>,
+      selector: (row: any) => <span>{row?.coverageDistance} miles</span>,
       sortable: true,
     },
     {
@@ -139,11 +151,13 @@ const Subcontractors = () => {
         }
       },
       sortable: true,
+      width: "100px",
     },
     {
       name: <span className="font-weight-bold fs-13">Enquiry Date</span>,
       selector: (row: any) => row.enquiryDate,
       sortable: true,
+      width: "100px",
     },
     {
       name: <span className="font-weight-bold fs-13">Action</span>,
@@ -151,35 +165,38 @@ const Subcontractors = () => {
       selector: (row: any) => (
         <ul className="hstack gap-2 list-unstyled mb-0">
           <li>
-            <Link to="#" className="badge badge-soft-info edit-item-btn">
+            <Link to="#" className="badge badge-soft-info edit-item-btn  fs-16">
               <i className="ri-eye-line"></i>
             </Link>
           </li>
           {row.statusAffiliate === "Accepted" ? (
-            <span className="badge badge-soft-dark edit-item-btn">
-              <i className="ri-checkbox-circle-line"></i>
+            <span className="badge badge-soft-dark edit-item-btn  fs-16">
+              <i className="ri-check-double-line"></i>
             </span>
           ) : (
             <li>
               <Link
                 to="#"
-                className="badge badge-soft-secondary edit-item-btn"
+                className="badge badge-soft-secondary edit-item-btn fs-16"
                 state={row}
                 onClick={() => tog_ModalAffiliateStatus()}
               >
-                <i className="ri-checkbox-circle-line"></i>
+                <i className="ri-check-line"></i>
               </Link>
             </li>
           )}
           <li>
-            <Link to="#" className="badge badge-soft-success edit-item-btn">
+            <Link
+              to="#"
+              className="badge badge-soft-success edit-item-btn  fs-16"
+            >
               <i className="ri-edit-2-line"></i>
             </Link>
           </li>
           <li>
             <Link
               to="#"
-              className="badge badge-soft-danger remove-item-btn"
+              className="badge badge-soft-danger remove-item-btn  fs-16"
               onClick={() => AlertDelete(row?._id!)}
             >
               <i className="ri-delete-bin-2-line"></i>
@@ -285,12 +302,24 @@ const Subcontractors = () => {
             <Row>
               <Col lg={3}>
                 <div className="mb-3">
-                  <h5>Work Regions</h5>
+                  <h5>Area of Coverage</h5>
                 </div>
               </Col>
               <Col lg={3}>
                 <div className="mb-3">
-                  <h6>{affiliateLocation?.state?.region!.join(" , ")}</h6>
+                  <h6>{affiliateLocation?.state?.coverageArea?.placeName!}</h6>
+                </div>
+              </Col>
+            </Row>
+            <Row>
+              <Col lg={3}>
+                <div className="mb-3">
+                  <h5>Coverage Zone</h5>
+                </div>
+              </Col>
+              <Col lg={3}>
+                <div className="mb-3">
+                  <h6>{affiliateLocation?.state?.coverageDistance!} miles</h6>
                 </div>
               </Col>
             </Row>
@@ -302,7 +331,7 @@ const Subcontractors = () => {
               </Col>
               <Col lg={3}>
                 <div className="mb-3">
-                  <h6>{affiliateLocation?.state?.name!}</h6>
+                  <h6>{affiliateLocation?.state?.fleetNumber!}</h6>
                 </div>
               </Col>
             </Row>

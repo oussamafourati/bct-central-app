@@ -33,7 +33,7 @@ const ProgramDetail = () => {
       // Check if program is not null or undefined
       const directionsService = new google.maps.DirectionsService();
       const waypoints = program.stops.map((stop: any) => ({
-        location: { query: stop.address }, // Use the address from autocomplete
+        location: { query: stop.address.placeName }, // Use the address from autocomplete
         stopover: true,
       }));
 
@@ -411,7 +411,8 @@ const ProgramDetail = () => {
                     <div className="card mt-3 mb-0 bg-danger bg-opacity-10 border-0">
                       <div className="card-body">
                         <h6 className="fs-17">
-                          <i className="bi bi-pin-angle"></i> {stop.address}
+                          <i className="bi bi-pin-angle"></i>{" "}
+                          {stop.address.placeName}
                         </h6>
                         <p className="text-muted fs-15 mb-0">
                           <i className="bi bi-stopwatch"></i> {stop.time}

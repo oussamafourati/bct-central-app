@@ -11,10 +11,6 @@ import {
 } from "react-bootstrap";
 import Breadcrumb from "Common/BreadCrumb";
 import { Link, useNavigate } from "react-router-dom";
-import Flatpickr from "react-flatpickr";
-import TableContainer from "Common/TableContainer";
-import { driverList } from "Common/data";
-import avtar1 from "assets/images/users/avatar-1.jpg";
 import DriverTable from "./DriverTable";
 import { useGetAllDriverQuery } from "features/Driver/driverSlice";
 
@@ -26,10 +22,8 @@ const Driver = () => {
   function tog_AddDriver() {
     navigate("/new-driver");
   }
-  const {data = []} = useGetAllDriverQuery()
-  const driver = [
-   data
-  ];
+  const { data = [] } = useGetAllDriverQuery();
+  const driver = [data];
 
   return (
     <React.Fragment>

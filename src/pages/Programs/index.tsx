@@ -45,6 +45,7 @@ const ProgramList = () => {
   const [modal_Destination, setmodal_Destination] = useState<boolean>(false);
   const [modal_Action, setmodal_Action] = useState<boolean>(false);
   const { data = [] } = useFetchProgrammsQuery();
+  console.log(data);
   function tog_Pickup() {
     setmodal_Pickup(!modal_Pickup);
   }
@@ -154,7 +155,7 @@ const ProgramList = () => {
       selector: (cell: any) => {
         return (
           <span className="text-secondary" onClick={() => tog_Pickup()}>
-            {cell.origin_point.placeName}
+            {cell?.origin_point?.placeName!}
           </span>
         );
       },
@@ -166,7 +167,7 @@ const ProgramList = () => {
       selector: (cell: any) => {
         return (
           <span className="text-secondary" onClick={() => tog_Destination()}>
-            {cell.destination_point.placeName}
+            {cell?.destination_point?.placeName!}
           </span>
         );
       },
