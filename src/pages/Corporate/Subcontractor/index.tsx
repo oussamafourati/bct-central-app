@@ -122,16 +122,16 @@ const Subcontractors = () => {
       sortable: true,
       width: "100px",
     },
-    {
-      name: <span className="font-weight-bold fs-13">Area of Coverage</span>,
-      selector: (row: any) => row?.coverageArea?.placeName!,
-      sortable: true,
-    },
-    {
-      name: <span className="font-weight-bold fs-13">Coverage Zone</span>,
-      selector: (row: any) => <span>{row?.coverageDistance} miles</span>,
-      sortable: true,
-    },
+    // {
+    //   name: <span className="font-weight-bold fs-13">Area of Coverage</span>,
+    //   selector: (row: any) => row?.coverageArea?.placeName!,
+    //   sortable: true,
+    // },
+    // {
+    //   name: <span className="font-weight-bold fs-13">Coverage Zone</span>,
+    //   selector: (row: any) => <span>{row?.coverageDistance} miles</span>,
+    //   sortable: true,
+    // },
     {
       name: <span className="font-weight-bold fs-13">Status</span>,
       selector: (cell: any) => {
@@ -299,7 +299,7 @@ const Subcontractors = () => {
                 </div>
               </Col>
             </Row>
-            <Row>
+            {/* <Row>
               <Col lg={3}>
                 <div className="mb-3">
                   <h5>Area of Coverage</h5>
@@ -310,8 +310,8 @@ const Subcontractors = () => {
                   <h6>{affiliateLocation?.state?.coverageArea?.placeName!}</h6>
                 </div>
               </Col>
-            </Row>
-            <Row>
+            </Row> */}
+            {/* <Row>
               <Col lg={3}>
                 <div className="mb-3">
                   <h5>Coverage Zone</h5>
@@ -322,8 +322,8 @@ const Subcontractors = () => {
                   <h6>{affiliateLocation?.state?.coverageDistance!} miles</h6>
                 </div>
               </Col>
-            </Row>
-            <Row>
+            </Row> */}
+            {/* <Row>
               <Col lg={3}>
                 <div className="mb-3">
                   <h5>Fleet Number</h5>
@@ -334,22 +334,14 @@ const Subcontractors = () => {
                   <h6>{affiliateLocation?.state?.fleetNumber!}</h6>
                 </div>
               </Col>
-            </Row>
-            <Row>
+            </Row> */}
+            {/* <Row>
               <Col lg={3}>
                 <div className="mb-3">
                   <h5>Vehicles</h5>
                 </div>
               </Col>
-              <Col lg={3}>
-                <div className="mb-3">
-                  {affiliateLocation?.state?.vehicles!.map((vehicle: any) => (
-                    <h6>{vehicle.type}</h6>
-                  ))}
-                  {/* <h6>{affiliateLocation?.state?.length}</h6> */}
-                </div>
-              </Col>
-            </Row>
+            </Row> */}
             <Row>
               <Col lg={12}>
                 <div className="hstack gap-2 justify-content-end">

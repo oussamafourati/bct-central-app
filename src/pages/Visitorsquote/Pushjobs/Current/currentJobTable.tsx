@@ -1,14 +1,5 @@
 import React, { useState } from "react";
-import {
-  Container,
-  Row,
-  Card,
-  Col,
-  Modal,
-  Form,
-  Button,
-  Offcanvas,
-} from "react-bootstrap";
+import { Container, Row, Card, Col, Offcanvas } from "react-bootstrap";
 import DataTable from "react-data-table-component";
 import Breadcrumb from "Common/BreadCrumb";
 import Flatpickr from "react-flatpickr";
@@ -62,7 +53,13 @@ const CurrentTable = () => {
     useState<boolean>(false);
   const { data: AllQuotes = [] } = useGetAllQuoteQuery();
   const result = AllQuotes.filter(
-    (bookings) => bookings.status === "Pushed" || bookings.progress === "Accept"
+    (bookings) =>
+      (bookings.status === "Pushed" && bookings.id_affiliate !== null) ||
+      (bookings.status === "Pushed" && bookings.white_list?.length !== 0) ||
+      (bookings.status === "Allocated" && bookings.id_affiliate !== null) ||
+      (bookings.status === "Vehicle Allocated" &&
+        bookings.id_affiliate !== null) ||
+      (bookings.status === "Driver Allocated" && bookings.id_affiliate !== null)
   );
   console.log(result);
   const privateHiredJobs = result.filter(
@@ -114,53 +111,6 @@ const CurrentTable = () => {
       }
     );
   }
-
-  const columns1 = [
-    {
-      name: <span className="font-weight-bold fs-13">Journey</span>,
-      selector: (row: any, index: number) => <span>Journey {index + 1}</span>,
-      sortable: true,
-    },
-    {
-      name: <span className="font-weight-bold fs-13">Date</span>,
-      selector: (row: any) => row.pickup_time,
-      sortable: true,
-    },
-    {
-      name: <span className="font-weight-bold fs-13">Pickup</span>,
-      selector: (row: any) => row.start_point?.placeName!,
-      sortable: true,
-    },
-    {
-      name: <span className="font-weight-bold fs-13">Destination</span>,
-      selector: (row: any) => row.destination_point?.placeName!,
-      sortable: true,
-    },
-    {
-      name: (
-        <span className="mdi mdi-account-tie-hat font-weight-bold fs-24"></span>
-      ),
-      selector: (row: any) =>
-        row!.id_driver! === undefined ? (
-          <span>No Driver</span>
-        ) : (
-          <span>
-            {row!.id_driver?.firstname!} {row!.id_driver?.surname!}
-          </span>
-        ),
-      sortable: true,
-    },
-    {
-      name: <span className="mdi mdi-car font-weight-bold fs-24"></span>,
-      selector: (row: any) =>
-        row.id_vehicle?.registration_number! === undefined ? (
-          <span>No Vehicle</span>
-        ) : (
-          <span>{row.id_vehicle?.registration_number!}</span>
-        ),
-      sortable: true,
-    },
-  ];
 
   const notifySuccess = () => {
     Swal.fire({
@@ -247,18 +197,19 @@ const CurrentTable = () => {
         );
       },
       sortable: true,
-      width: "160px",
+      width: "220px",
     },
     {
       name: (
         <span className="mdi mdi-account-tie-hat font-weight-bold fs-24"></span>
       ),
       selector: (row: any) =>
-        row?.id_affiliate_driver === undefined ? (
+        row?.id_affiliate_driver === null ? (
           <span className="font-weight-meduim text-danger">No Driver</span>
         ) : (
           <span>
-            {row?.id_driver?.firstname!} {row?.id_driver?.surname!}
+            {row?.id_affiliate_driver?.firstname!}{" "}
+            {row?.id_affiliate_driver?.surname!}
           </span>
         ),
       sortable: true,
@@ -271,10 +222,10 @@ const CurrentTable = () => {
     {
       name: <span className="mdi mdi-car font-weight-bold fs-24"></span>,
       selector: (row: any) =>
-        row?.id_affiliate_vehicle! === undefined ? (
+        row?.id_affiliate_vehicle! === null ? (
           <span className="font-weight-meduim text-danger">No Vehicle</span>
         ) : (
-          <span>{row.id_vehicle?.registration_number!}</span>
+          <span>{row.id_affiliate_vehicle?.registration_number!}</span>
         ),
       sortable: true,
     },
@@ -316,6 +267,10 @@ const CurrentTable = () => {
             return <span className="badge bg-success"> {cell.progress} </span>;
           case "Refused":
             return <span className="badge bg-info"> {cell.progress} </span>;
+          case "Accept":
+            return <span className="badge bg-success"> {cell.progress} </span>;
+          case "Completed":
+            return <span className="badge bg-success"> {cell.progress} </span>;
           default:
             return <span className="badge bg-danger"> {cell.progress} </span>;
         }
@@ -329,7 +284,7 @@ const CurrentTable = () => {
       selector: (cell: any) => {
         switch (cell.status) {
           case "Pushed":
-            return <span className="badge bg-success"> New </span>;
+            return <span className="badge bg-success"> {cell.status} </span>;
           case "Allocated":
             return <span className="badge bg-info"> {cell.status} </span>;
           case "Vehicle Allocated":
@@ -420,7 +375,7 @@ const CurrentTable = () => {
       sortable: true,
       selector: (row: any) =>
         row?.white_list! === null ? (
-          <span className="font-weight-meduim">{row?.id_affiliate!.name!}</span>
+          <span className="font-weight-meduim">{row?.id_affiliate?.name!}</span>
         ) : (
           <Link to="#" onClick={() => setShowGroups(!showGroups)} state={row}>
             {row?.white_list?.length!}
@@ -626,9 +581,10 @@ const CurrentTable = () => {
   const AlertConfirm = async (id: any, affiliate_id: any) => {
     try {
       await acceptAssignedAffiliateToQuote(id, affiliate_id);
+      setShowGroups(!showGroups);
       swalWithBootstrapButtons.fire(
-        "Changed !",
-        "The Program has been converted.",
+        "Accepted !",
+        "The Affiliate is accepted to do this job.",
         "success"
       );
     } catch (error) {
@@ -923,18 +879,24 @@ const CurrentTable = () => {
                       <td>Name : </td>
                       <td>{affiliate.name}</td>
                     </tr>
-                    <tr>
+                    {/* <tr>
                       <td>Depot Address: </td>
                       <td> {affiliate?.depotAddress?.placeName!}</td>
-                    </tr>
+                    </tr> */}
                     <tr>
-                      <td>Coverage Zone: </td>
-                      <td> {affiliate?.coverageDistance!}</td>
+                      <td>Coverage Area: </td>
+                      <td>
+                        <ul>
+                          {affiliate?.coverageArea!.map((coverageArea: any) => (
+                            <li>{coverageArea.placeName}</li>
+                          ))}
+                        </ul>
+                      </td>
                     </tr>
-                    <tr>
+                    {/* <tr>
                       <td>Fleet Number : </td>
                       <td> {affiliate.fleetNumber}</td>
-                    </tr>
+                    </tr> */}
                     <tr>
                       <td>Vehicles : </td>
                       <td>
@@ -946,26 +908,12 @@ const CurrentTable = () => {
                       </td>
                     </tr>
                   </table>
-                  {affiliate.depotAddress === undefined ? (
-                    <span className="badge bg-info mb-2">
-                      {" "}
-                      {/* {affiliate.fleetNumber}{" "} */}
-                      Accepted
-                    </span>
-                  ) : (
-                    <span className="badge bg-danger mb-2">
-                      {" "}
-                      {/* {affiliate.fleetNumber}{" "} */}
-                      Refused
-                    </span>
-                  )}
-
-                  {affiliate?.notes! === undefined ||
-                  affiliate?.notes! === "" ? (
+                  {affiliate?.noteAcceptJob! === undefined ||
+                  affiliate?.noteAcceptJob! === "" ? (
                     ""
                   ) : (
                     <div className="alert alert-warning" role="alert">
-                      <b>{affiliate?.notes!}</b>
+                      <b>{affiliate?.noteAcceptJob!}</b>
                     </div>
                   )}
                 </div>

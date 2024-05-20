@@ -174,7 +174,7 @@ const PendingQuotes = () => {
         );
       },
       sortable: true,
-      // width: "100px",
+      width: "220px",
     },
     {
       name: (
@@ -230,8 +230,8 @@ const PendingQuotes = () => {
         switch (cell.progress) {
           case "New":
             return <span className="badge bg-danger"> {cell.progress} </span>;
-          case "Booked":
-            return <span className="badge bg-info"> {cell.progress} </span>;
+          case "Accepted":
+            return <span className="badge bg-danger"> New </span>;
           case "Cancel":
             return <span className="badge bg-dark"> {cell.progress} </span>;
           case "Created":
@@ -806,7 +806,7 @@ const PendingQuotes = () => {
                         </td>
                         <td>
                           <span className="badge bg-info">
-                            £{affiliate.price}
+                            £ {affiliate.price}
                           </span>
                         </td>
                       </tr>
@@ -848,28 +848,14 @@ const PendingQuotes = () => {
                         </td>
                         </tr>*/}
                       <tr>
-                        <td>
-                          <h6>Coverage Zone: </h6>
-                        </td>
-                        <td>
-                          <i>{affiliate?.coverageDistance!} miles</i>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>
-                          <h6>Fleet Number : </h6>
-                        </td>
-                        <td>
-                          <i>{affiliate.fleetNumber}</i>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td></td>
-                        <td>
-                          <span className="badge bg-secondary">
-                            {affiliate.jobStatus}
-                          </span>
-                        </td>
+                        {affiliate?.noteAcceptJob! === undefined ||
+                        affiliate?.noteAcceptJob! === "" ? (
+                          ""
+                        ) : (
+                          <div className="alert alert-warning" role="alert">
+                            <b>{affiliate?.noteAcceptJob!}</b>
+                          </div>
+                        )}
                       </tr>
                     </table>
                   </div>
