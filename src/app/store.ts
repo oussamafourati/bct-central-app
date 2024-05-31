@@ -35,6 +35,9 @@ import { checkTypesSlice } from "features/ChechTypes/checkTypesSlice";
 import { accountSlice } from "features/Account/accountSlice";
 import authSlice from "features/Account/authSlice";
 import { affiliateSlice } from "features/Affiliate/affiliateSlice";
+import { emailSlice } from "features/Emails/emailSlice";
+import { attachmentSlice } from "features/Attachments/attachmentSlice";
+import { emailSentSlice } from "features/emailSent/emailSentSlice";
 
 export const store = configureStore({
   reducer: {
@@ -65,6 +68,9 @@ export const store = configureStore({
     [checkTypesSlice.reducerPath]: checkTypesSlice.reducer,
     [accountSlice.reducerPath]: accountSlice.reducer,
     [affiliateSlice.reducerPath]: affiliateSlice.reducer,
+    [emailSlice.reducerPath]: emailSlice.reducer,
+    [attachmentSlice.reducerPath]: attachmentSlice.reducer,
+    [emailSentSlice.reducerPath]: emailSentSlice.reducer,
     auth: authSlice,
     Layout: LayoutReducer,
     ForgetPassword: ForgetPasswordReducer,
@@ -99,7 +105,10 @@ export const store = configureStore({
       contractSlice.middleware,
       accountSlice.middleware,
       checkTypesSlice.middleware,
-      affiliateSlice.middleware
+      affiliateSlice.middleware,
+      emailSlice.middleware,
+      attachmentSlice.middleware,
+      emailSentSlice.middleware
     ]);
   },
 });

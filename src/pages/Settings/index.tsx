@@ -21,11 +21,13 @@ import PassengerAndLuggageLimits from "./PassengerAndLuggageLimits";
 import LocationSettings from "./LocationSettings";
 import RegionalPricings from "./RegionalPricings";
 import CheckTypes from "./CheckTypes";
+import Attachments from "./Attachments";
 
 const SiteSettings = () => {
   document.title = "Site Settings | Bouden Coach Travel";
 
   const [showSettings, setShowSettings] = useState<boolean>(true);
+  const [attachmentSettings, setAttachmentSettings] = useState<boolean>(false);
   const [locationSettings, setLocationSettings] = useState<boolean>(false);
   const [showVehicleTypes, setShowVehicleTypes] = useState<boolean>(false);
   const [showJourneyTypes, setShowJourneyTypes] = useState<boolean>(false);
@@ -46,12 +48,13 @@ const SiteSettings = () => {
     useState<boolean>(false);
   const [showPassengerAndLuggageLimits, setShowPassengerAndLuggageLimits] =
     useState<boolean>(false);
-    const [showPricingPostalCodes, setShowPricingPostalCodes] =
+  const [showPricingPostalCodes, setShowPricingPostalCodes] =
     useState<boolean>(false);
 
   function tog_PassengerAndLuggageLimits() {
     setShowPassengerAndLuggageLimits(true);
     setShowSettings(false);
+    setAttachmentSettings(false);
     setShowVehicleTypes(false);
     setShowJourneyTypes(false);
     setShowLuggageTypes(false);
@@ -65,12 +68,13 @@ const SiteSettings = () => {
     setShowBasetoBase(false);
     setShowVehicleExtra(false);
     setShowSupplierRoutingRule(false);
-    setLocationSettings(false)
-    setShowPricingPostalCodes(false)
+    setLocationSettings(false);
+    setShowPricingPostalCodes(false);
   }
 
   function tog_ShowSettings() {
     setShowSettings(true);
+    setAttachmentSettings(false);
     setShowVehicleTypes(false);
     setShowJourneyTypes(false);
     setShowLuggageTypes(false);
@@ -85,12 +89,13 @@ const SiteSettings = () => {
     setShowVehicleExtra(false);
     setShowSupplierRoutingRule(false);
     setShowPassengerAndLuggageLimits(false);
-    setLocationSettings(false)
-    setShowPricingPostalCodes(false)
+    setLocationSettings(false);
+    setShowPricingPostalCodes(false);
   }
 
   function tog_ShowVehiclesTypes() {
     setShowSettings(false);
+    setAttachmentSettings(false);
     setShowVehicleTypes(true);
     setShowJourneyTypes(false);
     setShowLuggageTypes(false);
@@ -105,12 +110,13 @@ const SiteSettings = () => {
     setShowVehicleExtra(false);
     setShowSupplierRoutingRule(false);
     setShowPassengerAndLuggageLimits(false);
-    setLocationSettings(false)
-    setShowPricingPostalCodes(false)
+    setLocationSettings(false);
+    setShowPricingPostalCodes(false);
   }
 
   function tog_ShowJourneyTypes() {
     setShowJourneyTypes(true);
+    setAttachmentSettings(false);
     setShowSettings(false);
     setShowVehicleTypes(false);
     setShowLuggageTypes(false);
@@ -125,12 +131,13 @@ const SiteSettings = () => {
     setShowVehicleExtra(false);
     setShowSupplierRoutingRule(false);
     setShowPassengerAndLuggageLimits(false);
-    setLocationSettings(false)
-    setShowPricingPostalCodes(false)
+    setLocationSettings(false);
+    setShowPricingPostalCodes(false);
   }
 
   function tog_ShowLuggageTypes() {
     setShowLuggageTypes(true);
+    setAttachmentSettings(false);
     setShowJourneyTypes(false);
     setShowSettings(false);
     setShowVehicleTypes(false);
@@ -145,11 +152,12 @@ const SiteSettings = () => {
     setShowVehicleExtra(false);
     setShowSupplierRoutingRule(false);
     setShowPassengerAndLuggageLimits(false);
-    setLocationSettings(false)
-    setShowPricingPostalCodes(false)
+    setLocationSettings(false);
+    setShowPricingPostalCodes(false);
   }
   function tog_ShowMileageBands() {
     setShowMileageBands(true);
+    setAttachmentSettings(false);
     setShowLuggageTypes(false);
     setShowJourneyTypes(false);
     setShowSettings(false);
@@ -164,12 +172,13 @@ const SiteSettings = () => {
     setShowVehicleExtra(false);
     setShowSupplierRoutingRule(false);
     setShowPassengerAndLuggageLimits(false);
-    setLocationSettings(false)
-    setShowPricingPostalCodes(false)
+    setLocationSettings(false);
+    setShowPricingPostalCodes(false);
   }
 
   function tog_ShowHourlyBands() {
     setShowHourlyBands(true);
+    setAttachmentSettings(false);
     setShowMileageBands(false);
     setShowLuggageTypes(false);
     setShowJourneyTypes(false);
@@ -184,12 +193,13 @@ const SiteSettings = () => {
     setShowVehicleExtra(false);
     setShowSupplierRoutingRule(false);
     setShowPassengerAndLuggageLimits(false);
-    setLocationSettings(false)
-    setShowPricingPostalCodes(false)
+    setLocationSettings(false);
+    setShowPricingPostalCodes(false);
   }
 
   function tog_ShowWaitingBands() {
     setShowWaitingBands(true);
+    setAttachmentSettings(false);
     setShowHourlyBands(false);
     setShowMileageBands(false);
     setShowLuggageTypes(false);
@@ -204,12 +214,13 @@ const SiteSettings = () => {
     setShowVehicleExtra(false);
     setShowSupplierRoutingRule(false);
     setShowPassengerAndLuggageLimits(false);
-    setLocationSettings(false)
-    setShowPricingPostalCodes(false)
+    setLocationSettings(false);
+    setShowPricingPostalCodes(false);
   }
 
   function tog_ShowSingleJourneys() {
     setShowSingleJourneys(true);
+    setAttachmentSettings(false);
     setShowWaitingBands(false);
     setShowHourlyBands(false);
     setShowMileageBands(false);
@@ -224,12 +235,13 @@ const SiteSettings = () => {
     setShowVehicleExtra(false);
     setShowSupplierRoutingRule(false);
     setShowPassengerAndLuggageLimits(false);
-    setLocationSettings(false)
-    setShowPricingPostalCodes(false)
+    setLocationSettings(false);
+    setShowPricingPostalCodes(false);
   }
 
   function tog_ShowPricingCalendar() {
     setShowPricingCalendar(true);
+    setAttachmentSettings(false);
     setShowSingleJourneys(false);
     setShowWaitingBands(false);
     setShowHourlyBands(false);
@@ -244,12 +256,13 @@ const SiteSettings = () => {
     setShowVehicleExtra(false);
     setShowSupplierRoutingRule(false);
     setShowPassengerAndLuggageLimits(false);
-    setLocationSettings(false)
-    setShowPricingPostalCodes(false)
+    setLocationSettings(false);
+    setShowPricingPostalCodes(false);
   }
 
   function tog_ShowRegionalPricings() {
     setShowRegionalPricings(true);
+    setAttachmentSettings(false);
     setShowPricingCalendar(false);
     setShowSingleJourneys(false);
     setShowWaitingBands(false);
@@ -264,12 +277,13 @@ const SiteSettings = () => {
     setShowVehicleExtra(false);
     setShowSupplierRoutingRule(false);
     setShowPassengerAndLuggageLimits(false);
-    setLocationSettings(false)
-    setShowPricingPostalCodes(false)
+    setLocationSettings(false);
+    setShowPricingPostalCodes(false);
   }
 
   function tog_ShowSources() {
     setShowSources(true);
+    setAttachmentSettings(false);
     setShowRegionalPricings(false);
     setShowPricingCalendar(false);
     setShowSingleJourneys(false);
@@ -284,12 +298,13 @@ const SiteSettings = () => {
     setShowVehicleExtra(false);
     setShowSupplierRoutingRule(false);
     setShowPassengerAndLuggageLimits(false);
-    setLocationSettings(false)
-    setShowPricingPostalCodes(false)
+    setLocationSettings(false);
+    setShowPricingPostalCodes(false);
   }
 
   function tog_ShowBasetoBase() {
     setShowBasetoBase(true);
+    setAttachmentSettings(false);
     setShowSources(false);
     setShowRegionalPricings(false);
     setShowPricingCalendar(false);
@@ -304,12 +319,13 @@ const SiteSettings = () => {
     setShowVehicleExtra(false);
     setShowSupplierRoutingRule(false);
     setShowPassengerAndLuggageLimits(false);
-    setLocationSettings(false)
-    setShowPricingPostalCodes(false)
+    setLocationSettings(false);
+    setShowPricingPostalCodes(false);
   }
 
   function tog_ShowVehicleExtra() {
     setShowVehicleExtra(true);
+    setAttachmentSettings(false);
     setShowBasetoBase(false);
     setShowSources(false);
     setShowRegionalPricings(false);
@@ -324,12 +340,13 @@ const SiteSettings = () => {
     setShowVehicleTypes(false);
     setShowSupplierRoutingRule(false);
     setShowPassengerAndLuggageLimits(false);
-    setLocationSettings(false)
-    setShowPricingPostalCodes(false)
+    setLocationSettings(false);
+    setShowPricingPostalCodes(false);
   }
 
   function tog_ShowSupplierRoutingRule() {
     setShowSupplierRoutingRule(true);
+    setAttachmentSettings(false);
     setShowVehicleExtra(false);
     setShowBasetoBase(false);
     setShowSources(false);
@@ -344,12 +361,13 @@ const SiteSettings = () => {
     setShowSettings(false);
     setShowVehicleTypes(false);
     setShowPassengerAndLuggageLimits(false);
-    setLocationSettings(false)
-    setShowPricingPostalCodes(false)
+    setLocationSettings(false);
+    setShowPricingPostalCodes(false);
   }
 
   function tog_ShowLocations() {
     setShowSupplierRoutingRule(false);
+    setAttachmentSettings(false);
     setShowVehicleExtra(false);
     setShowBasetoBase(false);
     setShowSources(false);
@@ -364,12 +382,13 @@ const SiteSettings = () => {
     setShowSettings(false);
     setShowVehicleTypes(false);
     setShowPassengerAndLuggageLimits(false);
-    setLocationSettings(true)
-    setShowPricingPostalCodes(false)
+    setLocationSettings(true);
+    setShowPricingPostalCodes(false);
   }
 
   function tog_ShowPricingPostalCodes() {
     setShowSupplierRoutingRule(false);
+    setAttachmentSettings(false);
     setShowVehicleExtra(false);
     setShowBasetoBase(false);
     setShowSources(false);
@@ -384,12 +403,13 @@ const SiteSettings = () => {
     setShowSettings(false);
     setShowVehicleTypes(false);
     setShowPassengerAndLuggageLimits(false);
-    setLocationSettings(false)
-    setShowPricingPostalCodes(true)
+    setLocationSettings(false);
+    setShowPricingPostalCodes(true);
   }
 
   function tog_ShowCheckTypes() {
     setShowSupplierRoutingRule(false);
+    setAttachmentSettings(false);
     setShowVehicleExtra(false);
     setShowBasetoBase(false);
     setShowSources(false);
@@ -404,9 +424,31 @@ const SiteSettings = () => {
     setShowSettings(false);
     setShowVehicleTypes(false);
     setShowPassengerAndLuggageLimits(false);
-    setLocationSettings(false)
-    setShowPricingPostalCodes(false)
-    setShowCheckTypes(true)
+    setLocationSettings(false);
+    setShowPricingPostalCodes(false);
+    setShowCheckTypes(true);
+  }
+
+  function tog_ShowAttachmentSettings() {
+    setShowSupplierRoutingRule(false);
+    setAttachmentSettings(true);
+    setShowVehicleExtra(false);
+    setShowBasetoBase(false);
+    setShowSources(false);
+    setShowRegionalPricings(false);
+    setShowPricingCalendar(false);
+    setShowSingleJourneys(false);
+    setShowWaitingBands(false);
+    setShowHourlyBands(false);
+    setShowMileageBands(false);
+    setShowLuggageTypes(false);
+    setShowJourneyTypes(false);
+    setShowSettings(false);
+    setShowVehicleTypes(false);
+    setShowPassengerAndLuggageLimits(false);
+    setLocationSettings(false);
+    setShowPricingPostalCodes(false);
+    setShowCheckTypes(false);
   }
 
   return (
@@ -1134,7 +1176,7 @@ const SiteSettings = () => {
                                         }
                                       ></i>{" "}
                                       <span className="fw-bold">
-                                      Pricing Postal Code
+                                        Pricing Postal Code
                                       </span>
                                     </Link>
                                   </li>
@@ -1165,7 +1207,7 @@ const SiteSettings = () => {
                                         }
                                       ></i>{" "}
                                       <span className="fw-bold">
-                                      Pricing Postal Code
+                                        Pricing Postal Code
                                       </span>
                                     </Link>
                                   </li>
@@ -1384,9 +1426,7 @@ const SiteSettings = () => {
                                             "scale(1)")
                                         }
                                       ></i>{" "}
-                                      <span className="fw-bold">
-                                        Locations
-                                      </span>
+                                      <span className="fw-bold">Locations</span>
                                     </Link>
                                   </li>
                                 ) : (
@@ -1415,9 +1455,7 @@ const SiteSettings = () => {
                                             "scale(1)")
                                         }
                                       ></i>{" "}
-                                      <span className="fw-bold">
-                                      Locations
-                                      </span>
+                                      <span className="fw-bold">Locations</span>
                                     </Link>
                                   </li>
                                 )}
@@ -1498,9 +1536,45 @@ const SiteSettings = () => {
                                       "scale(1)")
                                   }
                                 ></i>{" "}
-                                <span className="fw-bold">
-                                  Check Types
-                                </span>
+                                <span className="fw-bold">Check Types</span>
+                              </Link>
+                            </Accordion.Body>
+                          </Accordion.Item>
+                        </Accordion>
+                      </Accordion.Item>
+                      <Accordion.Item eventKey="4">
+                        <Accordion defaultActiveKey="3">
+                          <Accordion.Item eventKey="3">
+                            <Accordion.Header>
+                              <span className="text-dark fw-bold text-uppercase fs-13">
+                                Email Config
+                              </span>
+                            </Accordion.Header>
+                            <Accordion.Body className="text-body pt-1">
+                              <Link
+                                className="text-muted"
+                                to="#"
+                                onClick={() => {
+                                  tog_ShowAttachmentSettings();
+                                }}
+                              >
+                                <i
+                                  className="ph ph-paperclip align-middle"
+                                  style={{
+                                    transition: "transform 0.3s ease-in-out",
+                                    cursor: "pointer",
+                                    fontSize: "1.6em",
+                                  }}
+                                  onMouseEnter={(e) =>
+                                    (e.currentTarget.style.transform =
+                                      "scale(1.3)")
+                                  }
+                                  onMouseLeave={(e) =>
+                                    (e.currentTarget.style.transform =
+                                      "scale(1)")
+                                  }
+                                ></i>{" "}
+                                <span>Attachments</span>
                               </Link>
                             </Accordion.Body>
                           </Accordion.Item>
@@ -1530,6 +1604,7 @@ const SiteSettings = () => {
                   {locationSettings && <LocationSettings />}
                   {showPricingPostalCodes && <PricingPostalCodes />}
                   {showCheckTypes && <CheckTypes />}
+                  {attachmentSettings && <Attachments />}
                 </Col>
               </Row>
             </Card.Header>

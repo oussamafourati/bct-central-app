@@ -3,15 +3,14 @@ import PropTypes from "prop-types";
 import withRouter from "Common/withRouter";
 import { Col, Collapse, Row, Modal } from "react-bootstrap";
 import Swal from "sweetalert2";
-
 import { withTranslation } from "react-i18next";
-
 // Import Data
 import navdata from "../LayoutMenuData";
 import { Link, useNavigate } from "react-router-dom";
 import ModalAffiliate from "./ModalAffiliate";
 import ModalEmail from "./Modal Email";
 import ModalNote from "./ModalNote";
+import ModalSendNewEmail from "./ModalSendNewEmail";
 
 const VerticalLayout = (props: any) => {
   const swalWithBootstrapButtons = Swal.mixin({
@@ -65,6 +64,11 @@ const VerticalLayout = (props: any) => {
   const [modal_Email, setmodal_Email] = useState<boolean>(false);
   function tog_ModalEmail() {
     setmodal_Email(!modal_Email);
+  }
+
+  const [modal_NewEmail, setmodal_NewEmail] = useState<boolean>(false);
+  function tog_ModalNewEmail() {
+    setmodal_NewEmail(!modal_NewEmail);
   }
 
   const [modal_Note, setmodal_Note] = useState<boolean>(false);
@@ -423,14 +427,14 @@ const VerticalLayout = (props: any) => {
             <button
               title="Send Email"
               type="button"
-              className="btn btn-darken-info btn-icon d-grid"
+              className="btn btn-soft-success btn-icon d-grid"
               onClick={() => tog_Calendar()}
             >
               <i
                 className="mdi mdi-calendar-blank-outline"
                 style={{ fontSize: "24px" }}
               ></i>
-              <span className="text-info mt-1 fs-12">Calendar</span>
+              <span className="text-success mt-1 fs-12">Calendar</span>
             </button>
           </div>
         </Col>
@@ -439,14 +443,14 @@ const VerticalLayout = (props: any) => {
             <button
               title="Send Email"
               type="button"
-              className="btn btn-darken-secondary btn-icon d-grid"
+              className="btn btn-soft-warning btn-icon d-grid"
               onClick={() => tog_ModalNotes()}
             >
               <i
                 className="mdi mdi-note-edit-outline"
                 style={{ fontSize: "24px" }}
               ></i>
-              <span className="text-secondary mt-1 fs-12">Notes</span>
+              <span className="text-warning mt-1 fs-12">Notes</span>
             </button>
           </div>
         </Col>
@@ -455,14 +459,14 @@ const VerticalLayout = (props: any) => {
             <button
               title="Send Email"
               type="button"
-              className="btn btn-darken-dark btn-icon d-grid"
-              onClick={() => tog_Contract()}
+              className="btn btn-soft-danger btn-icon d-grid"
+              onClick={() => tog_ModalNewEmail()}
             >
               <i
-                className="mdi mdi-file-plus-outline"
+                className="mdi mdi-email-plus-outline"
                 style={{ fontSize: "24px" }}
               ></i>
-              <span className="text-dark mt-1 fs-12">Contract</span>
+              <span className="text-danger mt-1 fs-12">NewEmail</span>
             </button>
           </div>
         </Col>
@@ -526,6 +530,25 @@ const VerticalLayout = (props: any) => {
         </Modal.Header>
         <Modal.Body className="p-4">
           <ModalNote />
+        </Modal.Body>
+      </Modal>
+      {/* Modal New Email */}
+      <Modal
+        className="fade zoomIn"
+        size="xl"
+        show={modal_NewEmail}
+        onHide={() => {
+          tog_ModalNewEmail();
+        }}
+        centered
+      >
+        <Modal.Header className="px-4 pt-4" closeButton>
+          <h5 className="modal-title fs-18" id="exampleModalLabel">
+            Send New Email
+          </h5>
+        </Modal.Header>
+        <Modal.Body className="p-4">
+          <ModalSendNewEmail />
         </Modal.Body>
       </Modal>
     </React.Fragment>

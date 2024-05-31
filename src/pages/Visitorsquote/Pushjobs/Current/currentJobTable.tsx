@@ -1,25 +1,29 @@
 import React, { useState } from "react";
-import { Container, Row, Card, Col, Offcanvas } from "react-bootstrap";
+import {
+  Row,
+  Card,
+  Col,
+  Offcanvas,
+  Button,
+  Form,
+  Modal,
+} from "react-bootstrap";
 import DataTable from "react-data-table-component";
-import Breadcrumb from "Common/BreadCrumb";
 import Flatpickr from "react-flatpickr";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Quote,
   useAcceptAssignedAffilaiteMutation,
-  useAddDriverToQuoteMutation,
-  useAssignDriverAndVehicleToQuoteMutation,
+  useAddAffiliateToWhiteListMutation,
+  useDeleteAffiliateFromWhiteListMutation,
   useDeleteQuoteMutation,
+  useDeleteWhiteListMutation,
   useGetAllQuoteQuery,
-  useUpdateStatusQuoteToCancelMutation,
 } from "features/Quotes/quoteSlice";
-
+import { useGetAllAffiliatesQuery } from "features/Affiliate/affiliateSlice";
+import Select from "react-select";
 import Swal from "sweetalert2";
-import {
-  useGetAllDriverQuery,
-  useGetDriverByIDQuery,
-} from "features/Driver/driverSlice";
-import { useGetAllVehiclesQuery } from "features/Vehicles/vehicleSlice";
+
 import SimpleBar from "simplebar-react";
 
 const CurrentTable = () => {
@@ -46,12 +50,73 @@ const CurrentTable = () => {
     },
   };
 
+  const customStyles = {
+    multiValue: (styles: any, { data }: any) => {
+      return {
+        ...styles,
+        backgroundColor: "#4b93ff",
+      };
+    },
+    multiValueLabel: (styles: any, { data }: any) => ({
+      ...styles,
+      backgroundColor: "#4b93ff",
+      color: "white",
+      //    borderRadius: "50px"
+    }),
+    multiValueRemove: (styles: any, { data }: any) => ({
+      ...styles,
+      color: "white",
+      backgroundColor: "#4b93ff",
+      ":hover": {
+        backgroundColor: "#4b93ff",
+        color: "white",
+      },
+    }),
+  };
+
+  const { data: AllQuotes = [] } = useGetAllQuoteQuery();
+  const whiteListLocation = useLocation();
+  const { data: AllAffiliates = [] } = useGetAllAffiliatesQuery();
+
+  const completeAffiliate = AllAffiliates.filter(
+    (affiliates) => affiliates.statusAffiliate === "Accepted"
+  );
+
+  const whiteList = whiteListLocation?.state?.white_list || [];
+
+  // Filter out affiliates that are not in the white list
+  const filteredWhiteList = completeAffiliate.filter(
+    (affiliate) =>
+      !whiteList.some((item: any) => item?.id?._id! === affiliate._id)
+  );
+
+  const options = filteredWhiteList.map((affiliate) => ({
+    value: affiliate?._id!,
+    label: affiliate.name,
+  }));
+
+  const [selectedValues, setSelectedValues] = useState<any[]>([]);
+
+  const handleSelectValueChange = (selectedOption: any) => {
+    let whiteList: any[] = [];
+
+    const values = selectedOption.map((option: any) =>
+      whiteList.push({
+        id: option.value,
+        noteAcceptJob: "",
+        price: "",
+        jobStatus: "",
+      })
+    );
+    setSelectedValues(whiteList);
+  };
+
+  let whiteListToBeAdded: any[] = selectedValues.concat(
+    whiteListLocation?.state?.white_list!
+  );
+
   const [showGroups, setShowGroups] = useState<boolean>(false);
 
-  const [modal_AssignDriver, setModal_AssignDriver] = useState<boolean>(false);
-  const [modal_AssignVehicle, setModal_AssignVehicle] =
-    useState<boolean>(false);
-  const { data: AllQuotes = [] } = useGetAllQuoteQuery();
   const result = AllQuotes.filter(
     (bookings) =>
       (bookings.status === "Pushed" && bookings.id_affiliate !== null) ||
@@ -61,7 +126,6 @@ const CurrentTable = () => {
         bookings.id_affiliate !== null) ||
       (bookings.status === "Driver Allocated" && bookings.id_affiliate !== null)
   );
-  console.log(result);
   const privateHiredJobs = result.filter(
     (privateHired) => privateHired?.category === "Private"
   );
@@ -74,43 +138,9 @@ const CurrentTable = () => {
     setIsChecked(!isChecked);
     setSelectedRow(selectedRows);
   };
-  const [modal_DriverVehicleAssign, setmodal_DriverVehicleAssign] =
-    useState<boolean>(false);
-  function tog_DriverVehicleAssign() {
-    setmodal_DriverVehicleAssign(!modal_DriverVehicleAssign);
-  }
-  const [modal_UpdateQuote, setmodal_UpdateQuote] = useState<boolean>(false);
-  const tog_ModalUpdateQuote = () => {
-    setmodal_UpdateQuote(!modal_UpdateQuote);
-  };
+
   const locationQuote = useLocation();
   const navigate = useNavigate();
-  const { data: AllDrivers = [] } = useGetAllDriverQuery();
-  let filterdDrivers = AllDrivers.filter(
-    (driver) => driver.driverStatus === "Active"
-  );
-  let journeyOne = [];
-  let journeyTwo: any[] = [];
-  if (locationQuote!.state?.type! === "One way") {
-    journeyOne.push(locationQuote?.state!);
-  } else {
-    journeyTwo.push(
-      {
-        estimated_start_time: locationQuote?.state?.date!,
-        estimated_return_start_time: locationQuote?.state?.pickup_time!,
-        destination_point: locationQuote!.state?.destination_point!,
-        start_point: locationQuote?.state?.start_point!,
-      },
-      {
-        estimated_start_time:
-          locationQuote?.state?.estimated_return_start_time!,
-        estimated_return_start_time:
-          locationQuote?.state?.estimated_start_time!,
-        destination_point: locationQuote?.state?.start_point!,
-        start_point: locationQuote?.state?.destination_point!,
-      }
-    );
-  }
 
   const notifySuccess = () => {
     Swal.fire({
@@ -132,58 +162,100 @@ const CurrentTable = () => {
     });
   };
 
-  const [selectVehicle, setSelectedVehicle] = useState<string>("");
-  // This function is triggered when the select Vehicle
-  const handleSelectVehicle = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = event.target.value;
-    setSelectedVehicle(value);
+  const [addAffiliateToWhiteListMutation] =
+    useAddAffiliateToWhiteListMutation();
+
+  const initiAlffiliateToWhiteList = {
+    id_Quote: "",
+    white_list: [""],
   };
 
-  let { data: oneDriver } = useGetDriverByIDQuery(selectVehicle);
-
-  const [assignDriverToQuoteMutation] = useAddDriverToQuoteMutation();
-
-  const initialAssignDriverToQuote = {
-    quote_id: "",
-    id_driver: "",
-  };
-
-  const [assignDriverToDriver, setAssignDriverToQuote] = useState(
-    initialAssignDriverToQuote
+  const [addAffiliateToWhiteList, setAddAffiliateToWhiteList] = useState(
+    initiAlffiliateToWhiteList
   );
 
-  const { quote_id, id_driver } = assignDriverToDriver;
+  const { id_Quote, white_list } = addAffiliateToWhiteList;
 
-  const onChangeAssignDriverToQuote = (
-    e: React.ChangeEvent<HTMLInputElement>
+  const onSubmitAddAffiliateToWhiteList = (
+    e: React.FormEvent<HTMLFormElement>
   ) => {
-    setAssignDriverToQuote((prevState) => ({
-      ...prevState,
-      [e.target.id]: e.target.value,
-    }));
-  };
-
-  const onSubmitAssignDriverToQuote = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      assignDriverToDriver["quote_id"] = locationQuote.state?._id!;
-      assignDriverToDriver["id_driver"] = selectVehicle;
-      assignDriverToQuoteMutation(assignDriverToDriver)
-        .then(() => navigate("/bookings"))
+      addAffiliateToWhiteList["id_Quote"] = whiteListLocation.state?._id!;
+      addAffiliateToWhiteList["white_list"] = whiteListToBeAdded;
+      addAffiliateToWhiteListMutation(addAffiliateToWhiteList)
+        .then(() => setShowGroups(!showGroups))
+        .then(() => navigate("/current-push-jobs"))
         .then(() => notifySuccess());
     } catch (error) {
       notifyError(error);
     }
   };
 
-  const openModalAssignDriver = () => {
-    setModal_AssignDriver(!modal_AssignDriver);
+  const [deleteAffiliateFromWhiteListMutation] =
+    useDeleteAffiliateFromWhiteListMutation();
+
+  const deleteAssignedAffiliate = async (id: any, white_list: any) => {
+    deleteAffiliateFromWhiteListMutation({
+      QuoteID: id,
+      whiteListe: white_list,
+    });
   };
 
-  const openModalAssignVehicle = () => {
-    setModal_AssignVehicle(!modal_AssignVehicle);
+  const AlertUnassignAffiliate = async (id: any, white_list: any) => {
+    try {
+      let whiteList = whiteListLocation.state?.white_list!.filter(
+        (item: any) => item.id._id !== white_list
+      );
+      await deleteAssignedAffiliate(id, whiteList);
+      setShowGroups(!showGroups);
+      swalWithBootstrapButtons.fire(
+        "Unassigned !",
+        "The Affiliate is unassigned from this job.",
+        "success"
+      );
+    } catch (error) {
+      console.error("Error:", error);
+      swalWithBootstrapButtons.fire(
+        "Error",
+        "An error occurred while Unassigning the affiliate.",
+        "error"
+      );
+    }
   };
 
+  const [deleteWhiteListMutation] = useDeleteWhiteListMutation();
+
+  const deletePushedWhiteList = async (id: any) => {
+    deleteWhiteListMutation({
+      Quote_ID: id,
+    });
+  };
+
+  const AlertDeleteWhiteList = async (id: any) => {
+    try {
+      await deletePushedWhiteList(id);
+      setShowGroups(!showGroups);
+      swalWithBootstrapButtons.fire(
+        "Keep It !",
+        "The Quote is keeped .",
+        "success"
+      );
+    } catch (error) {
+      console.error("Error:", error);
+      swalWithBootstrapButtons.fire(
+        "Error",
+        "An error occurred while deleting affiliate list",
+        "error"
+      );
+    }
+  };
+
+  const [modal_AddAffiliateToWhiteList, setModalAddAffiliateToWhiteList] =
+    useState<boolean>(false);
+  const tog_AddAffiliateToWhiteList = () => {
+    setModalAddAffiliateToWhiteList(!modal_AddAffiliateToWhiteList);
+  };
   const columns = [
     {
       name: <span className="font-weight-bold fs-13">Quote ID</span>,
@@ -403,8 +475,6 @@ const CurrentTable = () => {
     },
   ];
 
-  const whiteListLocation = useLocation();
-
   const [isPrivateHiredChecked, setIsPrivateHiredChecked] = useState(false);
   const handlePrivateHiredCheckboxChange = (
     event: React.ChangeEvent<HTMLInputElement>
@@ -456,119 +526,6 @@ const CurrentTable = () => {
         }
       });
   };
-
-  // The selected Reglement
-  const [selectedCancelCause, setSelectedCancelCause] = useState<string>("");
-
-  // This function will be triggered when a radio button is selected
-  const radioHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSelectedCancelCause(event.target.value);
-  };
-
-  const [
-    selectVehicleWhenAssignDriverAndVehicle,
-    setSelectedVehicleWhenAssignDriverAndVehicle,
-  ] = useState<string>("");
-  // This function is triggered when the select Vehicle
-  const handleSelectVehicleWhenAssignDriverAndVehicle = (
-    event: React.ChangeEvent<HTMLSelectElement>
-  ) => {
-    const value = event.target.value;
-    setSelectedVehicleWhenAssignDriverAndVehicle(value);
-  };
-
-  const [
-    selectDriverWhenAssignDriverAndVehicle,
-    setSelectedDriverWhenAssignDriverAndVehicle,
-  ] = useState<string>("");
-  // This function is triggered when the select Driver
-  const handleSelectDriverWhenAssignDriverAndVehicle = (
-    event: React.ChangeEvent<HTMLSelectElement>
-  ) => {
-    const value = event.target.value;
-    setSelectedDriverWhenAssignDriverAndVehicle(value);
-  };
-
-  const [assignDriverAndVehicleToQuoteMutation] =
-    useAssignDriverAndVehicleToQuoteMutation();
-
-  const initialAssginDriverAndVehicleToQuote = {
-    quote_ID: "",
-    vehicle_ID: "",
-    driver_ID: "",
-  };
-
-  const [
-    assignDriverAndVehicleToQuoteState,
-    setAssignDriverAndVehicleToQuoteState,
-  ] = useState(initialAssginDriverAndVehicleToQuote);
-
-  const { quote_ID, vehicle_ID, driver_ID } =
-    assignDriverAndVehicleToQuoteState;
-
-  const onSubmitAssignDriverAndVehicleToQuote = (
-    e: React.FormEvent<HTMLFormElement>
-  ) => {
-    e.preventDefault();
-    try {
-      assignDriverAndVehicleToQuoteState["quote_ID"] = selectedRow[0]._id;
-      assignDriverAndVehicleToQuoteState["vehicle_ID"] =
-        selectVehicleWhenAssignDriverAndVehicle;
-      assignDriverAndVehicleToQuoteState["driver_ID"] =
-        selectDriverWhenAssignDriverAndVehicle;
-      assignDriverAndVehicleToQuoteMutation(assignDriverAndVehicleToQuoteState)
-        .then(() => navigate("/bookings"))
-        .then(() => notifySuccess())
-        .then(() => setIsChecked(!isChecked));
-    } catch (error) {
-      notifyError(error);
-    }
-  };
-
-  const [updateStatusQuoteToCancelMutation] =
-    useUpdateStatusQuoteToCancelMutation();
-
-  const initialUpdateStatusQuoteToCancel = {
-    quoteId: "",
-    status: "",
-  };
-
-  const [updateStatusToCancel, setUpdateStatusToCancel] = useState(
-    initialUpdateStatusQuoteToCancel
-  );
-
-  const { quoteId, status } = updateStatusToCancel;
-
-  const onChangeStatusToCancel = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setUpdateStatusToCancel((prevState) => ({
-      ...prevState,
-      [e.target.id]: e.target.value,
-    }));
-  };
-
-  const onSubmitUpdateStatusToCancel = (
-    e: React.FormEvent<HTMLFormElement>
-  ) => {
-    e.preventDefault();
-    try {
-      updateStatusToCancel["quoteId"] = selectedRow[0]._id;
-      updateStatusToCancel["status"] = selectedCancelCause;
-      updateStatusQuoteToCancelMutation(updateStatusToCancel)
-        .then(() => navigate("/bookings"))
-        .then(() => notifySuccess());
-    } catch (error) {
-      notifyError(error);
-    }
-  };
-
-  const activeDrivers = AllDrivers.filter(
-    (drivers) => drivers.driverStatus === "Active"
-  );
-
-  const { data: AllVehicles = [] } = useGetAllVehiclesQuery();
-  const activeVehicles = AllVehicles.filter(
-    (vehicles) => vehicles.statusVehicle === "Active"
-  );
 
   const [acceptAssignedAffiliate] = useAcceptAssignedAffilaiteMutation();
   const acceptAssignedAffiliateToQuote = async (id: any, affiliate_id: any) => {
@@ -811,7 +768,31 @@ const CurrentTable = () => {
       >
         <Offcanvas.Header className="border-bottom" closeButton>
           <Offcanvas.Title>
-            <Row>Job Details</Row>
+            <Row>
+              <Col className="mt-3">Job Details</Col>
+              <Col>
+                <div className="hstack gap-2 justify-content-start mb-2">
+                  <Button
+                    type="submit"
+                    className="btn-ghost-warning"
+                    data-bs-dismiss="modal"
+                    onClick={() =>
+                      AlertDeleteWhiteList(whiteListLocation?.state!._id!)
+                    }
+                  >
+                    <i className="ri-safe-2-line me-1"></i> KeepIt
+                  </Button>
+                  <Button
+                    type="submit"
+                    className="btn-ghost-success"
+                    data-bs-dismiss="modal"
+                    onClick={tog_AddAffiliateToWhiteList}
+                  >
+                    <i className="ri-user-add-line me-1"></i> Assign
+                  </Button>
+                </div>
+              </Col>
+            </Row>
             <Row>
               <Col lg={3}>
                 <h6>From:</h6>
@@ -862,52 +843,88 @@ const CurrentTable = () => {
                   className="p-3 border-bottom border-bottom-dashed"
                   key={affiliate._id}
                 >
-                  <Link
-                    to="#"
-                    className="d-flex justify-content-end"
-                    onClick={() =>
-                      AlertConfirm(
-                        whiteListLocation?.state!._id!,
-                        affiliate._id
-                      )
-                    }
-                  >
-                    <span className="badge bg-success"> Accept </span>
-                  </Link>
+                  <div className="hstack gap-2 justify-content-end mb-2">
+                    <Button
+                      type="submit"
+                      className="btn-ghost-secondary"
+                      onClick={() =>
+                        AlertConfirm(
+                          whiteListLocation?.state!._id!,
+                          affiliate.id._id
+                        )
+                      }
+                      data-bs-dismiss="modal"
+                    >
+                      <i className="ri-user-follow-line me-1"></i> Accept
+                    </Button>
+                    <Button
+                      type="submit"
+                      className="btn-ghost-danger"
+                      onClick={() =>
+                        AlertUnassignAffiliate(
+                          whiteListLocation?.state!._id!,
+                          affiliate.id._id
+                        )
+                      }
+                      data-bs-dismiss="modal"
+                    >
+                      <i className="ri-user-unfollow-line me-1"></i> Unassign
+                    </Button>
+                  </div>
                   <table>
                     <tr>
-                      <td>Name : </td>
-                      <td>{affiliate.name}</td>
+                      <td>
+                        <h6>Price :</h6>{" "}
+                      </td>
+                      <td>
+                        <span className="badge bg-info">
+                          £ {affiliate?.price!}
+                        </span>
+                      </td>
                     </tr>
-                    {/* <tr>
-                      <td>Depot Address: </td>
-                      <td> {affiliate?.depotAddress?.placeName!}</td>
-                    </tr> */}
+                    <tr>
+                      <td>Name : </td>
+                      <td>{affiliate?.id?.name}</td>
+                    </tr>
                     <tr>
                       <td>Coverage Area: </td>
                       <td>
                         <ul>
-                          {affiliate?.coverageArea!.map((coverageArea: any) => (
-                            <li>{coverageArea.placeName}</li>
-                          ))}
+                          {affiliate?.id?.coverageArea!.map(
+                            (coverageArea: any) => (
+                              <li>{coverageArea.placeName}</li>
+                            )
+                          )}
                         </ul>
                       </td>
                     </tr>
-                    {/* <tr>
-                      <td>Fleet Number : </td>
-                      <td> {affiliate.fleetNumber}</td>
-                    </tr> */}
                     <tr>
                       <td>Vehicles : </td>
                       <td>
                         <ul>
-                          {affiliate?.vehicles?.map((vehicle: any) => (
+                          {affiliate?.id?.vehicles?.map((vehicle: any) => (
                             <li>{vehicle.type}</li>
                           ))}
                         </ul>
                       </td>
                     </tr>
                   </table>
+                  {affiliate?.jobStatus! === undefined ||
+                  affiliate?.jobStatus! === "" ? (
+                    ""
+                  ) : (
+                    <div className="d-flex justify-content-end">
+                      <span
+                        className={
+                          affiliate?.jobStatus! === "Refused"
+                            ? "badge bg-danger mb-2"
+                            : "badge bg-success mb-2"
+                        }
+                      >
+                        {affiliate?.jobStatus!}
+                      </span>
+                    </div>
+                  )}
                   {affiliate?.noteAcceptJob! === undefined ||
                   affiliate?.noteAcceptJob! === "" ? (
                     ""
@@ -922,6 +939,65 @@ const CurrentTable = () => {
           </div>
         </Offcanvas.Body>
       </Offcanvas>
+      <Modal
+        className="fade zoomIn"
+        size="lg"
+        show={modal_AddAffiliateToWhiteList}
+        onHide={() => {
+          tog_AddAffiliateToWhiteList();
+        }}
+        centered
+      >
+        <Modal.Header className="px-4 pt-4" closeButton>
+          <h5 className="modal-title fs-18" id="exampleModalLabel">
+            Add Affiliate
+          </h5>
+        </Modal.Header>
+        <Modal.Body className="p-4">
+          <Card>
+            <Card.Header>
+              <Form
+                className="tablelist-form"
+                onSubmit={onSubmitAddAffiliateToWhiteList}
+              >
+                <Row>
+                  <Col lg={12}>
+                    <div className="mb-3">
+                      <Select
+                        closeMenuOnSelect={false}
+                        // defaultValue={[options[1]]}
+                        isMulti
+                        options={options}
+                        styles={customStyles}
+                        onChange={handleSelectValueChange} // Set the onChange event handler
+                      />
+                    </div>
+                  </Col>
+                  <Col lg={12}>
+                    <div className="hstack gap-2 justify-content-end">
+                      <Button
+                        className="btn-ghost-danger"
+                        data-bs-dismiss="modal"
+                      >
+                        <i className="ri-close-line align-bottom me-1"></i>{" "}
+                        Close
+                      </Button>
+                      <Button
+                        variant="primary"
+                        id="add-btn"
+                        type="submit"
+                        onClick={() => tog_AddAffiliateToWhiteList()}
+                      >
+                        Add
+                      </Button>
+                    </div>
+                  </Col>
+                </Row>
+              </Form>
+            </Card.Header>
+          </Card>
+        </Modal.Body>
+      </Modal>
     </React.Fragment>
   );
 };

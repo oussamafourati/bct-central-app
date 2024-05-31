@@ -2,7 +2,6 @@ const numbersList = [
     {
         id: 1,
         value: "1",
-        
     },
     {
         id: 2,

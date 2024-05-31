@@ -125,6 +125,20 @@ export interface CancelQuote {
   status: string;
 }
 
+export interface AddAffiliateToWhiteList {
+  id_Quote: string;
+  white_list?: string[];
+}
+
+export interface DeleteAffiliateFromWhiteList {
+  QuoteID: string;
+  whiteListe?: string[];
+}
+
+export interface DeleteWhiteList {
+  Quote_ID: string;
+}
+
 export const quoteSlice = createApi({
   reducerPath: "quote",
   baseQuery: fetchBaseQuery({
@@ -142,6 +156,9 @@ export const quoteSlice = createApi({
     "AssignAffiliateToQuote",
     "SurveyAffiliates",
     "AcceptAssignedAffiliate",
+    "AddAffiliateToWhiteList",
+    "DeleteAffiliateFromWhiteList",
+    "DeleteWhiteList"
   ],
   endpoints(builder) {
     return {
@@ -252,6 +269,36 @@ export const quoteSlice = createApi({
         },
         invalidatesTags: ["Quote", "SurveyAffiliates"],
       }),
+      addAffiliateToWhiteList: builder.mutation<void, AddAffiliateToWhiteList>({
+        query({ id_Quote, white_list }) {
+          return {
+            url: "/addAffiliateToWhiteList",
+            method: "POST",
+            body: { id_Quote, white_list },
+          };
+        },
+        invalidatesTags: ["Quote", "AddAffiliateToWhiteList"],
+      }),
+      deleteAffiliateFromWhiteList: builder.mutation<void, DeleteAffiliateFromWhiteList>({
+        query({ QuoteID, whiteListe }) {
+          return {
+            url: "/deleteAffiliateToWhiteList",
+            method: "POST",
+            body: { QuoteID, whiteListe },
+          };
+        },
+        invalidatesTags: ["Quote", "DeleteAffiliateFromWhiteList"],
+      }),
+      deleteWhiteList: builder.mutation<void, DeleteWhiteList>({
+        query({ Quote_ID }) {
+          return {
+            url: "/deleteWhiteList",
+            method: "POST",
+            body: { Quote_ID },
+          };
+        },
+        invalidatesTags: ["Quote", "DeleteWhiteList"],
+      }),
       acceptAssignedAffilaite: builder.mutation<void, AcceptAssignedAffiliate>({
         query({ idQuote, id_affiliate }) {
           return {
@@ -300,4 +347,7 @@ export const {
   useAddAffilaiteToQuoteMutation,
   useSurveyAffilaitesMutation,
   useAcceptAssignedAffilaiteMutation,
+  useAddAffiliateToWhiteListMutation,
+  useDeleteAffiliateFromWhiteListMutation,
+  useDeleteWhiteListMutation
 } = quoteSlice;

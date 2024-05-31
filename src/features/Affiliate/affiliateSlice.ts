@@ -35,12 +35,16 @@ export interface SendEmailRefuse {
   id_aff?: string;
 }
 
+export interface BlockAffiliate {
+  id_Affiliate?: string;
+}
+
 export const affiliateSlice = createApi({
   reducerPath: "affiliate",
   baseQuery: fetchBaseQuery({
     baseUrl: "http://localhost:3000/api/affiliate",
   }),
-  tagTypes: ["Affiliate", "SendEmailAcceptence", "SendEmailRefuse"],
+  tagTypes: ["Affiliate", "SendEmailAcceptence", "SendEmailRefuse", "BlockAffiliate"],
   endpoints(builder) {
     return {
       getAllAffiliates: builder.query<Affiliate[], number | void>({
@@ -79,6 +83,16 @@ export const affiliateSlice = createApi({
         }),
         invalidatesTags: ["Affiliate", "SendEmailRefuse"],
       }),
+      blockAffiliate: builder.mutation<void, BlockAffiliate>({
+        query: ({ id_Affiliate }) => ({
+          url: `/block`,
+          method: "Post",
+          body: {
+            id_Affiliate,
+          },
+        }),
+        invalidatesTags: ["Affiliate", "BlockAffiliate"],
+      }),
       deleteAffiliate: builder.mutation<void, Affiliate>({
         query: (_id) => ({
           url: `/deleteAffiliate/${_id}`,
@@ -96,4 +110,5 @@ export const {
   useUpdateAffiliateStatusMutation,
   useRefuseAffiliateMutation,
   useFetchAffiliateByIdQuery,
+  useBlockAffiliateMutation
 } = affiliateSlice;

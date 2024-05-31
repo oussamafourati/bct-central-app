@@ -6,6 +6,7 @@ const Navdata = () => {
   //state data
 
   const [isTracking, setIsTracking] = useState(false);
+  const [isMessages, setIsMessages] = useState(false);
   const [isVisitorQuote, setIsVisitorQuote] = useState(false);
   const [isCorporateTransport, setIsCorporateTransport] = useState(false);
   const [isCorporate, setIsCorporate] = useState(false);
@@ -47,6 +48,9 @@ const Navdata = () => {
 
     if (iscurrentState !== "Tracking") {
       setIsTracking(false);
+    }
+    if (iscurrentState !== "Messages") {
+      setIsMessages(false);
     }
     if (iscurrentState !== "Programming") {
       setIsProgramming(false);
@@ -91,6 +95,7 @@ const Navdata = () => {
     isAdministration,
     isRevelance,
     isHelp,
+    isMessages,
   ]);
 
   const menuItems: any = [
@@ -207,6 +212,35 @@ const Navdata = () => {
           link: "/job-template",
           icon: "mdi mdi-briefcase-plus",
           parentId: "jobs",
+        },
+      ],
+    },
+    {
+      id: "Messages",
+      label: "Messages",
+      icon: "mdi mdi-email",
+      link: "/#",
+      click: function (e: any) {
+        e.preventDefault();
+        setIsMessages(!isMessages);
+        setIscurrentState("Messages");
+        updateIconSidebar(e);
+      },
+      stateVariables: isMessages,
+      subItems: [
+        {
+          id: "Messages",
+          label: "New Email",
+          link: "/new-email",
+          icon: "mdi mdi-email-plus",
+          parentId: "Messages",
+        },
+        {
+          id: "Messages",
+          label: "Emails Sent",
+          link: "/emails-sent",
+          icon: "mdi mdi-email-check",
+          parentId: "Messages",
         },
       ],
     },

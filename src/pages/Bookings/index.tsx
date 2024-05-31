@@ -159,53 +159,6 @@ const Bookings = () => {
     );
   }
 
-  // const columns1 = [
-  //   {
-  //     name: <span className="font-weight-bold fs-13">Journey</span>,
-  //     selector: (row: any, index: number) => <span>Journey {index + 1}</span>,
-  //     sortable: true,
-  //   },
-  //   {
-  //     name: <span className="font-weight-bold fs-13">Date</span>,
-  //     selector: (row: any) => row.pickup_time,
-  //     sortable: true,
-  //   },
-  //   {
-  //     name: <span className="font-weight-bold fs-13">Pickup</span>,
-  //     selector: (row: any) => row.start_point?.placeName!,
-  //     sortable: true,
-  //   },
-  //   {
-  //     name: <span className="font-weight-bold fs-13">Destination</span>,
-  //     selector: (row: any) => row.destination_point?.placeName!,
-  //     sortable: true,
-  //   },
-  //   {
-  //     name: (
-  //       <span className="mdi mdi-account-tie-hat font-weight-bold fs-24"></span>
-  //     ),
-  //     selector: (row: any) =>
-  //       row!.id_driver! === undefined ? (
-  //         <span>No Driver</span>
-  //       ) : (
-  //         <span>
-  //           {row!.id_driver?.firstname!} {row!.id_driver?.surname!}
-  //         </span>
-  //       ),
-  //     sortable: true,
-  //   },
-  //   {
-  //     name: <span className="mdi mdi-car font-weight-bold fs-24"></span>,
-  //     selector: (row: any) =>
-  //       row.id_vehicle?.registration_number! === undefined ? (
-  //         <span>No Vehicle</span>
-  //       ) : (
-  //         <span>{row.id_vehicle?.registration_number!}</span>
-  //       ),
-  //     sortable: true,
-  //   },
-  // ];
-
   const notifySuccess = () => {
     Swal.fire({
       position: "center",
@@ -547,7 +500,6 @@ const Bookings = () => {
     setSelectedColumnValues(values);
   };
 
-  // Dynamically generate columns excluding the selected option
   // Filter out columns based on selected options
   const filteredColumns = columns.filter(
     (column: Column) =>
@@ -745,13 +697,21 @@ const Bookings = () => {
   };
 
   // State to store the selected option values
-  const [selectedValues, setSelectedValues] = useState([]);
+  const [selectedValues, setSelectedValues] = useState<any[]>([]);
 
   // Event handler to handle changes in selected options
   const handleSelectValueChange = (selectedOption: any) => {
+    let whiteList: any[] = [];
     // Extract values from selected options and update state
-    const values = selectedOption.map((option: any) => option.value);
-    setSelectedValues(values);
+    const values = selectedOption.map((option: any) =>
+      whiteList.push({
+        id: option.value,
+        noteAcceptJob: "",
+        price: "",
+        jobStatus: "",
+      })
+    );
+    setSelectedValues(whiteList);
   };
 
   const date = new Date();

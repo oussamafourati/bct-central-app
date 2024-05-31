@@ -1,23 +1,9 @@
 import React, { useMemo, useState } from "react";
-import {
-  Button,
-  Card,
-  Col,
-  Container,
-  Form,
-  Modal,
-  Offcanvas,
-  Row,
-} from "react-bootstrap";
-import Breadcrumb from "Common/BreadCrumb";
-import { Link, useNavigate } from "react-router-dom";
-import Flatpickr from "react-flatpickr";
-import TableContainer from "Common/TableContainer";
-import { shipments } from "Common/data";
-import offerbanner from "../../../../assets/images/ecommerce/offer-banner.jpg";
-import { transaction } from "Common/data";
+import { Card, Row } from "react-bootstrap";
+
+import { Link } from "react-router-dom";
+
 import SimpleBar from "simplebar-react";
-import { newcustomers } from "Common/data";
 import { useGetAllAffiliatesQuery } from "features/Affiliate/affiliateSlice";
 
 const Status = ({ status }: any) => {

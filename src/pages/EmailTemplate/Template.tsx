@@ -1,47 +1,192 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Button, Card, Col, Modal, Offcanvas, Row } from "react-bootstrap";
-import { Link } from "react-router-dom";
+import React, { useState } from "react";
+import { Button, Col, Modal, Offcanvas, Row } from "react-bootstrap";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import DataTable from "react-data-table-component";
+import {
+  useAddNewEmailMutation,
+  useDeleteEmailMutation,
+  useUpdateEmailTemplateMutation,
+} from "features/Emails/emailSlice";
+import Swal from "sweetalert2";
+import { shortCodeList } from "Common/data/shortCodes";
 
 const Template = ({ emails }: any) => {
-  const noresult: any = useRef();
-  const teamList: any = useRef();
-  const [brandList, setBrandList] = useState([]);
-  const [show, setShow] = useState(false);
+  const navigate = useNavigate();
+  const [show, setShow] = useState<boolean>(false);
   const [showDetails, setShowDetails] = useState<boolean>(false);
-  const [info, setInfo] = useState<any>([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(15);
+  const [modal_updateEmailTemplate, setModalUpdateEmailTemplate] =
+    useState<boolean>(false);
+  const [deleteEmailTemplate] = useDeleteEmailMutation();
+  const emailDetailsLocation = useLocation();
+  const emailUpdateLocation = useLocation();
+  const [updateEmailTemplateMutation] = useUpdateEmailTemplateMutation();
+  const [title, setTitle] = useState<string>("");
+  const handleTitle = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTitle(e.target.value);
+  };
+  const [emailBody, setEmailBody] = useState<string>("");
+  const handleEmailBody = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setEmailBody(e.target.value);
+  };
+  const tog_ModalEmailTemplate = () => {
+    setModalUpdateEmailTemplate(!modal_updateEmailTemplate);
+  };
+  const handleUpdate = () => {
+    updateEmailTemplateMutation({
+      _id: emailUpdateLocation?.state?._id!,
+      name: title === "" ? emailUpdateLocation?.state?.name! : title,
+      body: emailBody === "" ? emailUpdateLocation?.state?.body! : emailBody,
+    }).then(() => navigate("/email-templates"));
+  };
 
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const paginatedData = brandList.slice(startIndex, endIndex);
-  const totalPages = Math.ceil(brandList.length / itemsPerPage);
+  const notifySuccess = () => {
+    Swal.fire({
+      position: "center",
+      icon: "success",
+      title: "Email Template is created successfully",
+      showConfirmButton: false,
+      timer: 2500,
+    });
+  };
 
-  useEffect(() => {
-    setBrandList(emails);
-    setItemsPerPage(15);
-  }, [emails]);
+  const notifyError = (err: any) => {
+    Swal.fire({
+      position: "center",
+      icon: "error",
+      title: `Sothing Wrong, ${err}`,
+      showConfirmButton: false,
+      timer: 2500,
+    });
+  };
 
-  const handleSearchClick = (event: any) => {
-    setCurrentPage(1);
-    let inputVal = event.toLowerCase();
+  const swalWithBootstrapButtons = Swal.mixin({
+    customClass: {
+      confirmButton: "btn btn-success",
+      cancelButton: "btn btn-danger",
+    },
+    buttonsStyling: false,
+  });
 
-    const filterItems = (arr: any, query: any) => {
-      return arr.filter((el: any) => {
-        return el.brandName.toLowerCase().indexOf(query.toLowerCase()) !== -1;
+  const AlertDelete = async (_id: any) => {
+    swalWithBootstrapButtons
+      .fire({
+        title: "Are you sure?",
+        text: "You won't be able to go back?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, delete it !",
+        cancelButtonText: "No, cancel !",
+        reverseButtons: true,
+      })
+      .then((result: any) => {
+        if (result.isConfirmed) {
+          deleteEmailTemplate(_id);
+          swalWithBootstrapButtons.fire(
+            "Deleted !",
+            "Email Template is deleted.",
+            "success"
+          );
+        } else if (
+          /* Read more about handling dismissals below */
+          result.dismiss === Swal.DismissReason.cancel
+        ) {
+          swalWithBootstrapButtons.fire(
+            "Canceled",
+            "Email Template is safe :)",
+            "info"
+          );
+        }
       });
-    };
+  };
 
-    let filterData = filterItems(emails, inputVal);
-    setBrandList(filterData);
-    if (filterData.length === 0) {
-      noresult.current.style.display = "block";
-      teamList.current.style.display = "none";
-    } else {
-      noresult.current.style.display = "none";
-      // teamList.current.style.display = "block";
+  const [createEmailTemplate] = useAddNewEmailMutation();
+
+  const initialEmailTemplate = {
+    name: "",
+    body: "",
+  };
+
+  const [emailTemplate, setEmailTemplate] = useState(initialEmailTemplate);
+
+  const { name, body } = emailTemplate;
+
+  const onChangeEmailTemplate = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setEmailTemplate((prevState) => ({
+      ...prevState,
+      [e.target.id]: e.target.value,
+    }));
+  };
+
+  const onSubmitEmailTemplate = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    try {
+      createEmailTemplate(emailTemplate)
+        .then(() => notifySuccess())
+        .then(() => setShow(false));
+    } catch (error) {
+      notifyError(error);
     }
   };
+
+  const onShortCodeButtonClick = (code: string) => {
+    setEmailTemplate((prevState) => ({
+      ...prevState,
+      body: prevState.body + code,
+    }));
+  };
+
+  const columns = [
+    {
+      name: <span className="font-weight-bold fs-13">Title</span>,
+      selector: (row: any) => row.name,
+      sortable: true,
+    },
+    {
+      name: <span className="font-weight-bold fs-13">Body</span>,
+      selector: (row: any) => row.body,
+      sortable: true,
+      width: "700px",
+    },
+    {
+      name: <span className="font-weight-bold fs-13">Action</span>,
+      sortable: true,
+      selector: (row: any) => (
+        <ul className="hstack gap-2 list-unstyled mb-0">
+          <li>
+            <Link
+              to="#"
+              className="badge badge-soft-info edit-item-btn fs-14"
+              state={row}
+              onClick={() => setShowDetails(!showDetails)}
+            >
+              <i className="ri-eye-line"></i>
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="#"
+              className="badge badge-soft-success edit-item-btn fs-14"
+              state={row}
+              onClick={() => tog_ModalEmailTemplate()}
+            >
+              <i className="ri-edit-2-line"></i>
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="#"
+              className="badge badge-soft-danger edit-item-btn fs-14"
+              onClick={() => AlertDelete(row?._id!)}
+            >
+              <i className="ri-delete-bin-2-line"></i>
+            </Link>
+          </li>
+        </ul>
+      ),
+    },
+  ];
 
   return (
     <React.Fragment>
@@ -49,7 +194,6 @@ const Template = ({ emails }: any) => {
         <Col xxl={3} lg={4} sm={9}>
           <div className="search-box mb-3 mb-sm-0">
             <input
-              onChange={(e: any) => handleSearchClick(e.target.value)}
               type="text"
               className="form-control"
               id="searchInputList"
@@ -65,102 +209,110 @@ const Template = ({ emails }: any) => {
             onClick={() => setShow(true)}
             className="w-100 btn-sm"
           >
-            <i className="mdi mdi-email-plus-outline me-1 align-middle"></i> Add Template
+            <i className="mdi mdi-email-plus-outline me-1 align-middle"></i> Add
+            Canned Message
           </Button>
         </Col>
       </Row>
-
-      <Row
-        className="row-cols-xxl-5 row-cols-lg-4 row-cols-sm-2 row-cols-1"
-        id="brand-list"
-        ref={teamList}
-      >
-        {(paginatedData || []).map((item: any, key: number) => (
-          <Col key={key}>
-            <Card className="card brand-widget card-animate" onClick={() => { setShowDetails(true); setInfo(item) }}>
-                    <Card.Body className="card-body text-center pb-2">
-                        <i className={item.templateIcon} style={{fontSize: 26}}></i>
-              </Card.Body>
-              <div className="card-footer text-center border-0">
-                <h6 className="fs-17">{item.templateName}</h6>
-                <p className="mb-0">
-                  <Link to="#" className="link-success stretched-link">
-                    {item.for}
-                  </Link>
-                </p>
-              </div>
-            </Card>
-          </Col>
-        ))}
-      </Row>
-
-      <div
-        id="noresult"
-        className=""
-        ref={noresult}
-        style={{ display: "none" }}
-      >
-        <div className="text-center py-4">
-          <div className="avatar-md mx-auto mb-4">
-            <div className="avatar-title bg-primary-subtle text-primary rounded-circle fs-24">
-              <i className="bi bi-search"></i>
-            </div>
-          </div>
-          <h5 className="mt-2">Sorry! No Result Found</h5>
-        </div>
+      <div className="table-responsive table-card">
+        <DataTable columns={columns} data={emails} pagination />
       </div>
-
-      <Row className="mb-4" id="pagination-element" style={{ display: "flex" }}>
-        <Col lg={12}>
-          <div className="pagination-block pagination pagination-separated justify-content-center justify-content-sm-end mb-sm-0">
-            <div
-              className="page-item"
-              onClick={() => setCurrentPage(currentPage - 1)}
-            >
-              <Link to="#" className="page-link" id="page-prev">
-                <i className="mdi mdi-chevron-left"></i>
-              </Link>
-            </div>
-            {Array.from({ length: totalPages }, (_, i) => {
-              const pageNumber = i + 1;
-              const isActive = pageNumber === currentPage;
-              return (
-                <span
-                  id="page-num"
-                  className="pagination"
-                  key={pageNumber}
-                  onClick={() => setCurrentPage(pageNumber)}
-                >
-                  <div className={isActive ? "page-item active" : "page-item"}>
-                    <Link className="page-link clickPageNumber" to="#">
-                      {" "}
-                      {pageNumber}
-                    </Link>
-                  </div>
-                </span>
-              );
-            })}
-            <div
-              className="page-item"
-              onClick={() => setCurrentPage(currentPage + 1)}
-            >
-              <Link to="#" className="page-link" id="page-next">
-                <i className="mdi mdi-chevron-right"></i>
-              </Link>
-            </div>
-          </div>
-        </Col>
-      </Row>
-
+      {/* Add New Email Template Modal */}
       <Modal
         show={show}
         onHide={() => setShow(false)}
+        size="lg"
         id="createModal"
         className="zoomIn border-0"
         centered
       >
         <Modal.Header className="px-4 pt-4" closeButton>
-          <h5 className="modal-title fs-18">Create email template</h5>
+          <h5 className="modal-title fs-18">New Email Template</h5>
+        </Modal.Header>
+        <Modal.Body className="p-4">
+          <form className="create-form" onSubmit={onSubmitEmailTemplate}>
+            <input type="hidden" id="id-field" />
+            <div
+              id="alert-error-msg"
+              className="d-none alert alert-danger py-2"
+            ></div>
+
+            <Row>
+              <Col lg={12}>
+                {shortCodeList.map((code) => (
+                  <Button
+                    className="m-2"
+                    onClick={() => onShortCodeButtonClick(code.value)}
+                  >
+                    {code.text}
+                  </Button>
+                ))}
+              </Col>
+              <Col lg={12}>
+                <div className="mb-3">
+                  <label htmlFor="name" className="form-label">
+                    Title
+                  </label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    id="name"
+                    name="name"
+                    value={emailTemplate.name}
+                    onChange={onChangeEmailTemplate}
+                    placeholder="Enter Title"
+                  />
+                </div>
+              </Col>
+              <Col lg={12}>
+                <div className="mb-3">
+                  <label htmlFor="body" className="form-label">
+                    Message Content
+                  </label>
+                  <textarea
+                    className="form-control"
+                    id="body"
+                    name="body"
+                    value={emailTemplate.body}
+                    onChange={onChangeEmailTemplate}
+                    rows={3}
+                  ></textarea>
+                </div>
+              </Col>
+              <Col lg={12}>
+                <div className="hstack gap-2 justify-content-end">
+                  <Button
+                    variant="ghost-danger"
+                    className="btn btn-ghost-danger"
+                    onClick={() => setShow(false)}
+                  >
+                    <i className="ri-close-line align-bottom me-1"></i> Close
+                  </Button>
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    id="addNew"
+                    className="btn btn-primary"
+                  >
+                    Add Template
+                  </Button>
+                </div>
+              </Col>
+            </Row>
+          </form>
+        </Modal.Body>
+      </Modal>
+
+      {/* Add Update Email Template Modal */}
+      <Modal
+        show={modal_updateEmailTemplate}
+        onHide={() => tog_ModalEmailTemplate()}
+        id="createModal"
+        className="zoomIn border-0"
+        centered
+      >
+        <Modal.Header className="px-4 pt-4" closeButton>
+          <h5 className="modal-title fs-18">Update email template</h5>
         </Modal.Header>
         <Modal.Body className="p-4">
           <form className="create-form">
@@ -173,48 +325,35 @@ const Template = ({ emails }: any) => {
             <Row>
               <Col lg={12}>
                 <div className="mb-3">
-                  <label htmlFor="brandName-input" className="form-label">
+                  <label htmlFor="name" className="form-label">
                     Title
                   </label>
                   <input
                     type="text"
                     className="form-control"
-                    id="brandName-input"
-                    placeholder="Enter email template title"
-                    required
+                    id="name"
+                    name="name"
+                    onChange={handleTitle}
+                    placeholder="Enter Title"
+                    defaultValue={emailUpdateLocation?.state?.name!}
                   />
                 </div>
               </Col>
               <Col lg={12}>
                 <div className="mb-3">
-                  <label htmlFor="brandName-input" className="form-label">
-                    Interaction
-                  </label>
-                  <select
-                    className="form-select text-muted"
-                    name="choices-single-default"
-                    id="statusSelect"
-                    required
-                  >
-                    <option value="">For</option>
-                    <option value="Visitor">Customer</option>
-                    <option value="Sub-Contractor">Affiliate</option>
-                  </select>
-                </div>
-              </Col>
-              <Col lg={12}>
-                <div className="mb-3">
-                  <label htmlFor="brandName-input" className="form-label">
+                  <label htmlFor="body" className="form-label">
                     Body
                   </label>
                   <textarea
-                                                className="form-control"
-                                                id="exampleFormControlTextarea5"
-                                                rows={3}
-                                              ></textarea>
+                    className="form-control"
+                    id="body"
+                    name="body"
+                    onChange={handleEmailBody}
+                    defaultValue={emailUpdateLocation?.state?.body!}
+                    rows={3}
+                  ></textarea>
                 </div>
               </Col>
-              
               <Col lg={12}>
                 <div className="hstack gap-2 justify-content-end">
                   <Button
@@ -225,51 +364,75 @@ const Template = ({ emails }: any) => {
                     <i className="ri-close-line align-bottom me-1"></i> Close
                   </Button>
                   <Button
+                    type="submit"
                     variant="primary"
                     id="addNew"
                     className="btn btn-primary"
+                    onClick={handleUpdate}
                   >
-                    Add Template
+                    Update Template
                   </Button>
                 </div>
               </Col>
             </Row>
           </form>
         </Modal.Body>
-          </Modal>
-          <Offcanvas show={showDetails} onHide={() => setShowDetails(false)} placement="end">
-                <Offcanvas.Header closeButton>
-                    <Offcanvas.Title>{info.templateName}</Offcanvas.Title>
-                </Offcanvas.Header>
-                <Offcanvas.Body>
-                    <div className="avatar-lg mx-auto">
-                        <div className="avatar-title bg-light rounded">
-              <i className={`${info.templateIcon} fs-24 text-dark`}></i>
-                        </div>
-                    </div>
-                    <div className="text-center mt-3">
-                        <h5 className="overview-title">{info.templateName}</h5>
-            <p className="text-muted">for <Link to="#" className="text-reset">{info.for}</Link></p>
-                    </div>
+      </Modal>
+
+      <Offcanvas
+        show={showDetails}
+        onHide={() => setShowDetails(false)}
+        placement="end"
+      >
+        <Offcanvas.Header closeButton>
+          <Offcanvas.Title>
+            {emailDetailsLocation?.state?.name!}
+          </Offcanvas.Title>
+        </Offcanvas.Header>
+        <Offcanvas.Body>
           <h6 className="fs-14 mb-3">Body</h6>
-          <p>{info.body}</p>
-                    <ul className="vstack gap-2 mb-0 subCategory" style={{ listStyleType: "circle" }}>
-                        {(info.subCategory || []).map((item: any, key: number) => (key < 4 && <li key={key}><Link to="#" className="text-reset">{item}</Link></li>))}
-                    </ul>
-                </Offcanvas.Body>
-                <div className="p-3 border-top">
-                    <Row>
-                        <Col sm={6}>
-                            <div data-bs-dismiss="offcanvas">
-                                <Button variant="danger" type="button" className="btn btn-danger w-100 remove-list" data-bs-toggle="modal" data-bs-target="#delteModal" data-remove-id="12"><i className="ri-delete-bin-line me-1 align-bottom"></i> Delete</Button>
-                            </div>
-                        </Col>
-                        <Col sm={6}>
-                            <Button variant="secondary" type="button" className="w-100 edit-list" data-bs-dismiss="offcanvas" data-edit-id="12"><i className="ri-pencil-line me-1 align-bottom"></i> Edit</Button>
-                        </Col>
-                    </Row>
-                </div>
-            </Offcanvas>
+          <p>{emailDetailsLocation?.state?.body!}</p>
+        </Offcanvas.Body>
+        <div className="p-3 border-top">
+          <Row>
+            <Col sm={6}>
+              <div data-bs-dismiss="offcanvas">
+                <Button
+                  variant="danger"
+                  type="button"
+                  className="btn btn-danger w-100 remove-list"
+                  data-bs-toggle="modal"
+                  data-bs-target="#delteModal"
+                  data-remove-id="12"
+                  onClick={() =>
+                    AlertDelete(emailDetailsLocation?.state?._id!).finally(() =>
+                      setShowDetails(!showDetails)
+                    )
+                  }
+                >
+                  <i className="ri-delete-bin-line me-1 align-bottom"></i>{" "}
+                  Delete
+                </Button>
+              </div>
+            </Col>
+            <Col sm={6}>
+              <Button
+                variant="secondary"
+                type="button"
+                className="w-100 edit-list"
+                data-bs-dismiss="offcanvas"
+                data-edit-id="12"
+                onClick={() => {
+                  tog_ModalEmailTemplate();
+                  setShowDetails(!showDetails);
+                }}
+              >
+                <i className="ri-pencil-line me-1 align-bottom"></i> Edit
+              </Button>
+            </Col>
+          </Row>
+        </div>
+      </Offcanvas>
     </React.Fragment>
   );
 };

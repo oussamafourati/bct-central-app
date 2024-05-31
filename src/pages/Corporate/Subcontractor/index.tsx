@@ -1,17 +1,10 @@
 import React, { useState } from "react";
-import {
-  Button,
-  Card,
-  Col,
-  Container,
-  Form,
-  Modal,
-  Row,
-} from "react-bootstrap";
+import { Button, Card, Col, Container, Modal, Row } from "react-bootstrap";
 import Breadcrumb from "Common/BreadCrumb";
 import { Link, useLocation } from "react-router-dom";
 import DataTable from "react-data-table-component";
 import {
+  useBlockAffiliateMutation,
   useDeleteAffiliateMutation,
   useGetAllAffiliatesQuery,
   useRefuseAffiliateMutation,
@@ -22,7 +15,6 @@ import Swal from "sweetalert2";
 const Subcontractors = () => {
   document.title = "Affiliates | Bouden Coach Travel";
   const { data: AllAffiliates = [] } = useGetAllAffiliatesQuery();
-
   const [deleteVisitor] = useDeleteAffiliateMutation();
   const date = new Date();
   let randomstring = Math.random().toString(36).slice(0, 8);
@@ -56,6 +48,45 @@ const Subcontractors = () => {
     },
     buttonsStyling: false,
   });
+
+  const [blockAffiliateMutation] = useBlockAffiliateMutation();
+  const handleBlock = (id: any) => {
+    blockAffiliateMutation({
+      id_Affiliate: id,
+    });
+  };
+
+  const AlertConfirm = async (id: any) => {
+    swalWithBootstrapButtons
+      .fire({
+        title: "Are You Sure?",
+        text: "You won't be able to go back !",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, block it !",
+        cancelButtonText: "No, cancel !",
+        reverseButtons: true,
+      })
+      .then((result: any) => {
+        if (result.isConfirmed) {
+          handleBlock(id);
+          swalWithBootstrapButtons.fire(
+            "Blocked !",
+            "The Affiliate has been blocked.",
+            "success"
+          );
+        } else if (
+          /* Read more about handling dismissals below */
+          result.dismiss === Swal.DismissReason.cancel
+        ) {
+          swalWithBootstrapButtons.fire(
+            "Canceled",
+            "The Affiliate is safe :)",
+            "info"
+          );
+        }
+      });
+  };
 
   const AlertDelete = async (_id: any) => {
     swalWithBootstrapButtons
@@ -122,16 +153,31 @@ const Subcontractors = () => {
       sortable: true,
       width: "100px",
     },
-    // {
-    //   name: <span className="font-weight-bold fs-13">Area of Coverage</span>,
-    //   selector: (row: any) => row?.coverageArea?.placeName!,
-    //   sortable: true,
-    // },
-    // {
-    //   name: <span className="font-weight-bold fs-13">Coverage Zone</span>,
-    //   selector: (row: any) => <span>{row?.coverageDistance} miles</span>,
-    //   sortable: true,
-    // },
+    {
+      name: <span className="font-weight-bold fs-13">License Expiry</span>,
+      selector: (row: any) => {
+        const targetDate = new Date(row?.id_creation_date!);
+        return date.getTime() >= targetDate.getTime() ? (
+          <span className="text-danger">{row?.id_creation_date!}</span>
+        ) : (
+          <span>{row?.id_creation_date!}</span>
+        );
+      },
+      sortable: true,
+    },
+    {
+      name: <span className="font-weight-bold fs-13">Insurance Expiry</span>,
+      selector: (row: any) => {
+        const targetDate = new Date(row?.insurance_date!);
+        return date.getTime() >= targetDate.getTime() ? (
+          <span className="text-danger">{row?.insurance_date!}</span>
+        ) : (
+          <span>{row?.insurance_date!}</span>
+        );
+      },
+      sortable: true,
+      width: "140px",
+    },
     {
       name: <span className="font-weight-bold fs-13">Status</span>,
       selector: (cell: any) => {
@@ -165,7 +211,11 @@ const Subcontractors = () => {
       selector: (row: any) => (
         <ul className="hstack gap-2 list-unstyled mb-0">
           <li>
-            <Link to="#" className="badge badge-soft-info edit-item-btn  fs-16">
+            <Link
+              to="/affilaite_details"
+              className="badge badge-soft-info edit-item-btn  fs-16"
+              state={row}
+            >
               <i className="ri-eye-line"></i>
             </Link>
           </li>
@@ -183,6 +233,31 @@ const Subcontractors = () => {
               >
                 <i className="ri-check-line"></i>
               </Link>
+            </li>
+          )}
+          {(date.getTime() >= new Date(row?.id_creation_date!).getTime() ||
+            date.getTime() >= new Date(row?.insurance_date!).getTime()) &&
+          row.statusAffiliate! === "Accepted" ? (
+            <li>
+              <button
+                title="Block Affiliate"
+                type="button"
+                className="btn btn-soft-warning btn-icon fs-10"
+                onClick={() => AlertConfirm(row._id)}
+              >
+                <i className="ri-user-unfollow-line fs-20"></i>
+              </button>
+            </li>
+          ) : (
+            <li>
+              <button
+                title="New Quote"
+                type="button"
+                className="btn btn-soft-warning btn-icon fs-10"
+                disabled
+              >
+                <i className="ri-user-unfollow-line fs-20"></i>
+              </button>
             </li>
           )}
           <li>

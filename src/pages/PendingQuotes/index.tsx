@@ -15,7 +15,6 @@ import Flatpickr from "react-flatpickr";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Quote,
-  SurveyAffiliates,
   useDeleteQuoteMutation,
   useGetAllQuoteQuery,
   useSurveyAffilaitesMutation,
@@ -24,27 +23,13 @@ import Swal from "sweetalert2";
 import { useGetAllAffiliatesQuery } from "features/Affiliate/affiliateSlice";
 import Select from "react-select";
 import SimpleBar from "simplebar-react";
-import { Resizable } from "react-resizable";
 
-// Define a resizable header component
-const ResizableHeader = (props: any) => {
-  const { onResize, width, ...restProps } = props;
-
-  if (!width) {
-    return <th {...restProps} />;
-  }
-
-  return (
-    <Resizable
-      width={width}
-      height={0}
-      onResize={onResize}
-      draggableOpts={{ enableUserSelectHack: false }}
-    >
-      <th {...restProps} />
-    </Resizable>
-  );
-};
+interface Column {
+  name: JSX.Element;
+  selector: (cell: Quote | any) => JSX.Element | any;
+  sortable: boolean;
+  width?: string;
+}
 
 const PendingQuotes = () => {
   document.title = "Pending Quotes | Bouden Coach Travel";
@@ -140,7 +125,6 @@ const PendingQuotes = () => {
 
   const { data: AllQuotes = [] } = useGetAllQuoteQuery();
   const result = AllQuotes.filter((bookings) => bookings.progress === "New");
-
   const filteredResult = result.filter(
     (quotes) =>
       quotes.date === selectedFromDate &&
@@ -160,14 +144,16 @@ const PendingQuotes = () => {
     setSelectedRow(selectedRows);
   };
 
-  const columns = [
+  const columns: Column[] = [
     {
       name: <span className="font-weight-bold fs-13">Quote ID</span>,
       selector: (cell: Quote) => {
         return (
           <span>
             <Link to={`/new-quote/${cell?._id!}`} state={cell}>
-              <span className="text-dark">{cell?._id}</span>
+              <span className="text-dark">
+                QT{cell?._id?.substring(18, 24)}
+              </span>
             </Link>{" "}
             <i className="ph ph-eye" onClick={() => tog_QuoteInfo()}></i>
           </span>
@@ -292,11 +278,14 @@ const PendingQuotes = () => {
     },
     {
       name: <span className="font-weight-bold fs-13">Price</span>,
-      selector: (row: any) => (
-        <span>
-          £ <b>{row?.manual_cost!}</b>
-        </span>
-      ),
+      selector: (row: any) =>
+        row?.manual_cost! === undefined ? (
+          <span>No Price</span>
+        ) : (
+          <span>
+            £ <b>{row?.manual_cost!}</b>
+          </span>
+        ),
       sortable: true,
     },
     {
@@ -372,6 +361,34 @@ const PendingQuotes = () => {
     },
   ];
 
+  const optionColumnsTable = [
+    { value: "Quote ID", label: "Quote ID" },
+    { value: "Go Date", label: "Go Date" },
+    { value: "Pax", label: "Pax" },
+    { value: "Group", label: "Group" },
+    { value: "Pick Up", label: "Pick Up" },
+    { value: "Destination", label: "Destination" },
+    { value: "Progress", label: "Progress" },
+    { value: "Status", label: "Status" },
+    { value: "Price", label: "Price" },
+  ];
+
+  // State to store the selected option values
+  const [selectedColumnValues, setSelectedColumnValues] = useState<any[]>([]);
+
+  // Event handler to handle changes in selected options
+  const handleSelectValueColumnChange = (selectedOption: any) => {
+    // Extract values from selected options and update state
+    const values = selectedOption.map((option: any) => option.value);
+    setSelectedColumnValues(values);
+  };
+
+  // Filter out columns based on selected options
+  const filteredColumns = columns.filter(
+    (column: Column) =>
+      !selectedColumnValues.includes(column.name.props.children) // Ensure props.children is string
+  );
+
   const [deleteQuote] = useDeleteQuoteMutation();
   const swalWithBootstrapButtons = Swal.mixin({
     customClass: {
@@ -446,13 +463,21 @@ const PendingQuotes = () => {
   }));
 
   // State to store the selected option values
-  const [selectedValues, setSelectedValues] = useState([]);
-
+  const [selectedValues, setSelectedValues] = useState<any[]>([]);
   // Event handler to handle changes in selected options
   const handleSelectValueChange = (selectedOption: any) => {
+    let whiteList: any[] = [];
+
     // Extract values from selected options and update state
-    const values = selectedOption.map((option: any) => option.value);
-    setSelectedValues(values);
+    const values = selectedOption.map((option: any) =>
+      whiteList.push({
+        id: option.value,
+        noteAcceptJob: "",
+        price: "",
+        jobStatus: "",
+      })
+    );
+    setSelectedValues(whiteList);
   };
 
   const [surveyAffiliate] = useSurveyAffilaitesMutation();
@@ -498,6 +523,15 @@ const PendingQuotes = () => {
             <Card>
               <Card.Body>
                 <Row className="g-lg-2 g-4">
+                  <Col lg={4}>
+                    <Select
+                      closeMenuOnSelect={false}
+                      isMulti
+                      options={optionColumnsTable}
+                      styles={customStyles}
+                      onChange={handleSelectValueColumnChange} // Set the onChange event handler
+                    />
+                  </Col>
                   <Col sm={9} className="col-lg-auto">
                     <select
                       className="form-select text-muted"
@@ -513,58 +547,6 @@ const PendingQuotes = () => {
                       <option value="Last 30 Days">Last 30 Days</option>
                       <option defaultValue="This Month">This Month</option>
                       <option value="Last Month">Last Month</option>
-                    </select>
-                  </Col>
-                  <Col sm={9} className="col-lg-auto">
-                    <select
-                      className="form-select text-muted"
-                      data-choices
-                      data-choices-search-false
-                      name="choices-single-default"
-                      id="idStatus"
-                    >
-                      <option value="all">All Payment</option>
-                      <option value="Today">Not paid</option>
-                      <option value="Yesterday">Part paid</option>
-                      <option value="Last 7 Days">Paid</option>
-                      <option value="Last 30 Days">Pay Cash</option>
-                    </select>
-                  </Col>
-                  <Col sm={9} className="col-lg-auto">
-                    <select
-                      className="form-select text-muted"
-                      data-choices
-                      data-choices-search-false
-                      name="choices-single-default"
-                      id="idStatus"
-                    >
-                      <option value="all">All Progress</option>
-                      <option value="Today">Accepted</option>
-                      <option value="Yesterday">Allocated</option>
-                      <option value="Last 7 Days">Confirmed</option>
-                      <option value="Last 30 Days">Ended</option>
-                      <option value="Today">In Progress</option>
-                      <option value="Yesterday">Internal Job</option>
-                      <option value="Last 7 Days">New</option>
-                      <option value="Today">On route</option>
-                      <option value="Yesterday">On site</option>
-                      <option value="Last 7 Days">Under bid</option>
-                    </select>
-                  </Col>
-                  <Col sm={9} className="col-lg-auto">
-                    <select
-                      className="form-select text-muted"
-                      data-choices
-                      data-choices-search-false
-                      name="choices-single-default"
-                      id="idStatus"
-                    >
-                      <option value="all">All Priority</option>
-                      <option value="Today">1</option>
-                      <option value="Yesterday">2</option>
-                      <option value="Last 7 Days">3</option>
-                      <option value="Last 30 Days">4</option>
-                      <option value="Today">5</option>
                     </select>
                   </Col>
                   <Col lg={2}>
@@ -588,50 +570,6 @@ const PendingQuotes = () => {
                       defaultValue={selectedToDate}
                       onChange={handleToDateChange}
                     />
-                  </Col>
-                  <Col className="d-flex align-items-center">
-                    <div className="form-check form-check-inline">
-                      <input
-                        className="form-check-input"
-                        type="checkbox"
-                        id="inlineCheckbox1"
-                        value="option1"
-                      />
-                      <label
-                        className="form-check-label"
-                        htmlFor="inlineCheckbox1"
-                      >
-                        Private Hire
-                      </label>
-                    </div>
-                    <div className="form-check form-check-inline">
-                      <input
-                        className="form-check-input"
-                        type="checkbox"
-                        id="inlineCheckbox2"
-                        value="option2"
-                      />
-                      <label
-                        className="form-check-label"
-                        htmlFor="inlineCheckbox2"
-                      >
-                        Contract
-                      </label>
-                    </div>
-                    <div className="form-check form-check-inline">
-                      <input
-                        className="form-check-input"
-                        type="checkbox"
-                        id="inlineCheckbox3"
-                        value="option3"
-                      />
-                      <label
-                        className="form-check-label"
-                        htmlFor="inlineCheckbox3"
-                      >
-                        Non Invoiced
-                      </label>
-                    </div>
                   </Col>
                 </Row>
               </Card.Body>
@@ -697,7 +635,7 @@ const PendingQuotes = () => {
               </Card.Header>
               <Card.Body>
                 <DataTable
-                  columns={columns}
+                  columns={filteredColumns}
                   data={result}
                   selectableRows
                   onSelectedRowsChange={handleChange}
@@ -793,74 +731,91 @@ const PendingQuotes = () => {
           </Offcanvas.Header>
           <Offcanvas.Body>
             <div className="mt-3">
-              {whiteListLocation?.state?.white_list?.map((affiliate: any) => (
-                <SimpleBar>
-                  <div
-                    className="p-3 border-bottom border-bottom-dashed"
-                    key={affiliate._id}
-                  >
-                    <table>
-                      <tr>
-                        <td>
-                          <h6>Price :</h6>{" "}
-                        </td>
-                        <td>
-                          <span className="badge bg-info">
-                            £ {affiliate.price}
-                          </span>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>
-                          <h6>Name :</h6>{" "}
-                        </td>
-                        <td>
-                          <i>{affiliate.name}</i>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>
-                          <h6>Phone : </h6>
-                        </td>
-                        <td>
-                          <i>{affiliate.phone}</i>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>
-                          <h6>Email : </h6>
-                        </td>
-                        <td>
-                          <i>{affiliate.email}</i>
-                        </td>
-                      </tr>
-                      {/*<tr>
-                        <td>
-                          <h6>Area of Coverage: </h6>
-                        </td>
-                        <td>
-                          {" "}
-                          {affiliate?.coverageArea!.map((area: any) => (
-                            <ul key={area._id}>
-                              <li>{area.placeName}</li>
+              {whiteListLocation?.state?.white_list?.map(
+                (affiliate: any, index: number) => (
+                  <SimpleBar>
+                    <div
+                      className="p-3 border-bottom border-bottom-dashed"
+                      key={index}
+                    >
+                      <table>
+                        <tr>
+                          <td>
+                            <h6>Price :</h6>{" "}
+                          </td>
+                          <td>
+                            <span className="badge bg-info">
+                              £ {affiliate?.price!}
+                            </span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <h6>Name :</h6>{" "}
+                          </td>
+                          <td>
+                            <i>{affiliate?.id?.name!}</i>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <h6>Phone : </h6>
+                          </td>
+                          <td>
+                            <i>{affiliate?.id?.phone}</i>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <h6>Email : </h6>
+                          </td>
+                          <td>
+                            <i>{affiliate?.id?.email}</i>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <h6>Area of Coverage: </h6>
+                          </td>
+                          <td>
+                            <ul>
+                              {affiliate?.id?.coverageArea!.map(
+                                (area: any, index: number) => (
+                                  <li key={index}>{area?.placeName!}</li>
+                                )
+                              )}
                             </ul>
-                          ))}
-                        </td>
-                        </tr>*/}
-                      <tr>
-                        {affiliate?.noteAcceptJob! === undefined ||
-                        affiliate?.noteAcceptJob! === "" ? (
-                          ""
-                        ) : (
-                          <div className="alert alert-warning" role="alert">
-                            <b>{affiliate?.noteAcceptJob!}</b>
-                          </div>
-                        )}
-                      </tr>
-                    </table>
-                  </div>
-                </SimpleBar>
-              ))}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <h6>Fleet: </h6>
+                          </td>
+                          <td>
+                            <ul>
+                              {affiliate?.id?.vehicles!.map(
+                                (vehicle: any, index: number) => (
+                                  <li key={index}>{vehicle?.type!}</li>
+                                )
+                              )}
+                            </ul>
+                          </td>
+                        </tr>
+                        <tr>
+                          {affiliate?.noteAcceptJob! === undefined ||
+                          affiliate?.noteAcceptJob! === "" ? (
+                            ""
+                          ) : (
+                            <div className="alert alert-warning" role="alert">
+                              <b>{affiliate?.noteAcceptJob!}</b>
+                            </div>
+                          )}
+                        </tr>
+                      </table>
+                    </div>
+                  </SimpleBar>
+                )
+              )}
             </div>
           </Offcanvas.Body>
         </Offcanvas>
