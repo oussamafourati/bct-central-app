@@ -186,13 +186,13 @@ const EmailsSent = () => {
       name: <span className="font-weight-bold fs-13">Date</span>,
       selector: (row: any) => row.date,
       sortable: true,
-      width: "200px",
+      width: "220px",
     },
     {
       name: <span className="font-weight-bold fs-13">Quote ID</span>,
       selector: (row: any) => row.quoteID,
       sortable: true,
-      width: "180px",
+      width: "220px",
     },
     {
       name: <span className="font-weight-bold fs-13">Subject</span>,
@@ -202,19 +202,19 @@ const EmailsSent = () => {
         </span>
       ),
       sortable: true,
-      width: "200px",
+      width: "220px",
     },
     {
       name: <span className="font-weight-bold fs-13">From</span>,
       selector: (row: any) => row.from,
       sortable: true,
-      width: "200px",
+      width: "220px",
     },
     {
       name: <span className="font-weight-bold fs-13">To</span>,
       selector: (row: any) => row.to,
       sortable: true,
-      width: "200px",
+      width: "220px",
     },
     {
       name: <span className="font-weight-bold fs-13">Action</span>,
