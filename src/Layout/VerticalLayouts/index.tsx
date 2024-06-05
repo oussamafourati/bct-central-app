@@ -415,7 +415,7 @@ const VerticalLayout = (props: any) => {
               onClick={() => tog_ModalEmail()}
             >
               <i className="ri-mail-send-line" style={{ fontSize: "24px" }}></i>
-              <span className="text-dark mt-1 fs-12">Emails</span>
+              <span className="text-dark mt-1 fs-12">EmailQueue</span>
               <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success">
                 +2 <span className="visually-hidden">unread messages</span>
               </span>
@@ -491,7 +491,7 @@ const VerticalLayout = (props: any) => {
       </Modal>
       <Modal
         className="fade zoomIn"
-        size="sm"
+        size="xl"
         show={modal_Email}
         onHide={() => {
           tog_ModalEmail();
@@ -500,14 +500,7 @@ const VerticalLayout = (props: any) => {
       >
         <Modal.Header className="px-4 pt-4" closeButton>
           <h5 className="modal-title fs-18" id="exampleModalLabel">
-            Email Queue{" "}
-            <Link
-              to="#"
-              className="link-danger fw-medium float-end"
-              onClick={clearQueue}
-            >
-              <span className="badge badge-label bg-primary">Clear</span>
-            </Link>
+            Email Queue
           </h5>
         </Modal.Header>
         <Modal.Body className="p-4">

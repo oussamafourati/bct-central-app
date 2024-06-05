@@ -1,81 +1,94 @@
-import React, { useMemo, useState } from "react";
-import {
-  Button,
-  Card,
-  Col,
-  Container,
-  Form,
-  Modal,
-  Offcanvas,
-  Row,
-} from "react-bootstrap";
-import Breadcrumb from "Common/BreadCrumb";
-import { Link, useNavigate } from "react-router-dom";
-import Flatpickr from "react-flatpickr";
-import TableContainer from "Common/TableContainer";
-import { shipments } from "Common/data";
-import offerbanner from "../../../../assets/images/ecommerce/offer-banner.jpg";
-import { transaction } from "Common/data";
+import React from "react";
+import { Row } from "react-bootstrap";
 import SimpleBar from "simplebar-react";
 import { productDelivery } from "Common/data";
-
-const Status = ({ status }: any) => {
-  switch (status) {
-    case "Successful":
-      return <span className="badge badge-soft-success"> {status}</span>;
-    case "Denied":
-      return <span className="badge badge-soft-danger"> {status}</span>;
-    case "Pending":
-      return <span className="badge badge-soft-warning"> {status}</span>;
-    default:
-      return <span className="badge badge-soft-success"> Successful </span>;
-  }
-};
+import { Link } from "react-router-dom";
+import DataTable from "react-data-table-component";
 
 const ModalEmail = () => {
-  const [paymentDetails, setPaymentDetails] = useState<any>({});
-
-  const columns = useMemo(
-    () => [
-      {
-        Header: "Transaction ID",
-        disableFilters: true,
-        filterable: true,
-        accessor: (cellProps: any) => {
-          return (
-            <Link
-              to="#"
-              className="fw-medium"
-              onClick={() => setPaymentDetails(cellProps)}
-            >
-              {cellProps.transactionID}
-            </Link>
-          );
-        },
+  const columns = [
+    {
+      name: <span className="font-weight-bold fs-13">Quote ID</span>,
+      selector: (row: any) => row.quoteID,
+      sortable: true,
+      width: "180px",
+    },
+    {
+      name: <span className="font-weight-bold fs-13">Subject</span>,
+      selector: (row: any) => (
+        <span>
+          <b>{row.subjectEmail}</b>
+        </span>
+      ),
+      sortable: true,
+      width: "240px",
+    },
+    {
+      name: <span className="font-weight-bold fs-13">From</span>,
+      selector: (row: any) => row.productName,
+      sortable: true,
+      width: "240px",
+    },
+    {
+      name: <span className="font-weight-bold fs-13">To</span>,
+      selector: (row: any) => row.productName,
+      sortable: true,
+      width: "240px",
+    },
+    {
+      name: <span className="font-weight-bold fs-13">Action</span>,
+      sortable: true,
+      selector: (row: any) => {
+        return (
+          <ul className="hstack gap-3 list-unstyled mb-0">
+            <li>
+              <Link
+                to="#"
+                className="badge badge-soft-info edit-item-btn"
+                // onClick={() => handleDownload(row.attachment)}
+              >
+                <i className="ri-send-plane-fill align-middle"></i> Send Now
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="#"
+                className="badge badge-soft-danger remove-item-btn"
+                // onClick={() => AlertDelete(row._id)}
+              >
+                <i className="ri-close-fill align-middle"></i> Clear
+              </Link>
+            </li>
+          </ul>
+        );
       },
-    ],
-    []
-  );
+    },
+  ];
 
   return (
     <React.Fragment>
       <Row>
         <div className="col-xxl-12 col-lg-12">
           <div className="card card-height-100">
-            <SimpleBar style={{ maxHeight: "445px" }}>
-              {(productDelivery || []).map((item, key) => (
-                <div
-                  className="p-3 border-bottom border-bottom-dashed"
-                  key={key}
-                >
-                  <div className="d-flex align-items-center gap-2">
-                    <div className="flex-grow-1">
-                      <h6 className="mb-1">{item.productName}</h6>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </SimpleBar>
+            <DataTable columns={columns} data={productDelivery} pagination />
+          </div>
+          <div>
+            <Link
+              to="#"
+              className="link-danger fw-medium float-start mb-2"
+              // onClick={clearQueue}
+            >
+              <span className="badge badge-label bg-primary">
+                Send Queue Now
+              </span>
+            </Link>
+            <Link
+              to="#"
+              className="link-danger fw-medium float-end mb-2"
+              // onClick={clearQueue}
+            >
+              <span className="badge badge-label bg-danger">Clear Queue</span>
+            </Link>
           </div>
         </div>
       </Row>

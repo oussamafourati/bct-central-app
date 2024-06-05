@@ -22,12 +22,16 @@ import LocationSettings from "./LocationSettings";
 import RegionalPricings from "./RegionalPricings";
 import CheckTypes from "./CheckTypes";
 import Attachments from "./Attachments";
+import EmailTemplates from "pages/EmailTemplate";
+import ShortCode from "./ShortCode";
 
 const SiteSettings = () => {
   document.title = "Site Settings | Bouden Coach Travel";
 
   const [showSettings, setShowSettings] = useState<boolean>(true);
   const [attachmentSettings, setAttachmentSettings] = useState<boolean>(false);
+  const [shortCodeSettings, setShortCodeSettings] = useState<boolean>(false);
+  const [templatetSettings, setTemplateSettings] = useState<boolean>(false);
   const [locationSettings, setLocationSettings] = useState<boolean>(false);
   const [showVehicleTypes, setShowVehicleTypes] = useState<boolean>(false);
   const [showJourneyTypes, setShowJourneyTypes] = useState<boolean>(false);
@@ -54,6 +58,30 @@ const SiteSettings = () => {
   function tog_PassengerAndLuggageLimits() {
     setShowPassengerAndLuggageLimits(true);
     setShowSettings(false);
+    setShortCodeSettings(false);
+    setAttachmentSettings(false);
+    setShowVehicleTypes(false);
+    setShowJourneyTypes(false);
+    setShowLuggageTypes(false);
+    setShowMileageBands(false);
+    setShowHourlyBands(false);
+    setShowWaitingBands(false);
+    setShowSingleJourneys(false);
+    setShowPricingCalendar(false);
+    setShowRegionalPricings(false);
+    setShowSources(false);
+    setShowBasetoBase(false);
+    setShowVehicleExtra(false);
+    setShowSupplierRoutingRule(false);
+    setLocationSettings(false);
+    setShowPricingPostalCodes(false);
+  }
+
+  function tog_EmailTemplate() {
+    setTemplateSettings(true);
+    setShortCodeSettings(false);
+    setShowPassengerAndLuggageLimits(false);
+    setShowSettings(false);
     setAttachmentSettings(false);
     setShowVehicleTypes(false);
     setShowJourneyTypes(false);
@@ -74,6 +102,7 @@ const SiteSettings = () => {
 
   function tog_ShowSettings() {
     setShowSettings(true);
+    setShortCodeSettings(false);
     setAttachmentSettings(false);
     setShowVehicleTypes(false);
     setShowJourneyTypes(false);
@@ -91,10 +120,12 @@ const SiteSettings = () => {
     setShowPassengerAndLuggageLimits(false);
     setLocationSettings(false);
     setShowPricingPostalCodes(false);
+    setTemplateSettings(false);
   }
 
   function tog_ShowVehiclesTypes() {
     setShowSettings(false);
+    setShortCodeSettings(false);
     setAttachmentSettings(false);
     setShowVehicleTypes(true);
     setShowJourneyTypes(false);
@@ -112,10 +143,12 @@ const SiteSettings = () => {
     setShowPassengerAndLuggageLimits(false);
     setLocationSettings(false);
     setShowPricingPostalCodes(false);
+    setTemplateSettings(false);
   }
 
   function tog_ShowJourneyTypes() {
     setShowJourneyTypes(true);
+    setShortCodeSettings(false);
     setAttachmentSettings(false);
     setShowSettings(false);
     setShowVehicleTypes(false);
@@ -133,10 +166,12 @@ const SiteSettings = () => {
     setShowPassengerAndLuggageLimits(false);
     setLocationSettings(false);
     setShowPricingPostalCodes(false);
+    setTemplateSettings(false);
   }
 
   function tog_ShowLuggageTypes() {
     setShowLuggageTypes(true);
+    setShortCodeSettings(false);
     setAttachmentSettings(false);
     setShowJourneyTypes(false);
     setShowSettings(false);
@@ -154,9 +189,11 @@ const SiteSettings = () => {
     setShowPassengerAndLuggageLimits(false);
     setLocationSettings(false);
     setShowPricingPostalCodes(false);
+    setTemplateSettings(false);
   }
   function tog_ShowMileageBands() {
     setShowMileageBands(true);
+    setShortCodeSettings(false);
     setAttachmentSettings(false);
     setShowLuggageTypes(false);
     setShowJourneyTypes(false);
@@ -174,10 +211,12 @@ const SiteSettings = () => {
     setShowPassengerAndLuggageLimits(false);
     setLocationSettings(false);
     setShowPricingPostalCodes(false);
+    setTemplateSettings(false);
   }
 
   function tog_ShowHourlyBands() {
     setShowHourlyBands(true);
+    setShortCodeSettings(false);
     setAttachmentSettings(false);
     setShowMileageBands(false);
     setShowLuggageTypes(false);
@@ -195,10 +234,12 @@ const SiteSettings = () => {
     setShowPassengerAndLuggageLimits(false);
     setLocationSettings(false);
     setShowPricingPostalCodes(false);
+    setTemplateSettings(false);
   }
 
   function tog_ShowWaitingBands() {
     setShowWaitingBands(true);
+    setShortCodeSettings(false);
     setAttachmentSettings(false);
     setShowHourlyBands(false);
     setShowMileageBands(false);
@@ -216,10 +257,12 @@ const SiteSettings = () => {
     setShowPassengerAndLuggageLimits(false);
     setLocationSettings(false);
     setShowPricingPostalCodes(false);
+    setTemplateSettings(false);
   }
 
   function tog_ShowSingleJourneys() {
     setShowSingleJourneys(true);
+    setShortCodeSettings(false);
     setAttachmentSettings(false);
     setShowWaitingBands(false);
     setShowHourlyBands(false);
@@ -237,10 +280,12 @@ const SiteSettings = () => {
     setShowPassengerAndLuggageLimits(false);
     setLocationSettings(false);
     setShowPricingPostalCodes(false);
+    setTemplateSettings(false);
   }
 
   function tog_ShowPricingCalendar() {
     setShowPricingCalendar(true);
+    setShortCodeSettings(false);
     setAttachmentSettings(false);
     setShowSingleJourneys(false);
     setShowWaitingBands(false);
@@ -258,10 +303,12 @@ const SiteSettings = () => {
     setShowPassengerAndLuggageLimits(false);
     setLocationSettings(false);
     setShowPricingPostalCodes(false);
+    setTemplateSettings(false);
   }
 
   function tog_ShowRegionalPricings() {
     setShowRegionalPricings(true);
+    setShortCodeSettings(false);
     setAttachmentSettings(false);
     setShowPricingCalendar(false);
     setShowSingleJourneys(false);
@@ -279,10 +326,12 @@ const SiteSettings = () => {
     setShowPassengerAndLuggageLimits(false);
     setLocationSettings(false);
     setShowPricingPostalCodes(false);
+    setTemplateSettings(false);
   }
 
   function tog_ShowSources() {
     setShowSources(true);
+    setShortCodeSettings(false);
     setAttachmentSettings(false);
     setShowRegionalPricings(false);
     setShowPricingCalendar(false);
@@ -300,10 +349,12 @@ const SiteSettings = () => {
     setShowPassengerAndLuggageLimits(false);
     setLocationSettings(false);
     setShowPricingPostalCodes(false);
+    setTemplateSettings(false);
   }
 
   function tog_ShowBasetoBase() {
     setShowBasetoBase(true);
+    setShortCodeSettings(false);
     setAttachmentSettings(false);
     setShowSources(false);
     setShowRegionalPricings(false);
@@ -321,10 +372,12 @@ const SiteSettings = () => {
     setShowPassengerAndLuggageLimits(false);
     setLocationSettings(false);
     setShowPricingPostalCodes(false);
+    setTemplateSettings(false);
   }
 
   function tog_ShowVehicleExtra() {
     setShowVehicleExtra(true);
+    setShortCodeSettings(false);
     setAttachmentSettings(false);
     setShowBasetoBase(false);
     setShowSources(false);
@@ -342,10 +395,12 @@ const SiteSettings = () => {
     setShowPassengerAndLuggageLimits(false);
     setLocationSettings(false);
     setShowPricingPostalCodes(false);
+    setTemplateSettings(false);
   }
 
   function tog_ShowSupplierRoutingRule() {
     setShowSupplierRoutingRule(true);
+    setShortCodeSettings(false);
     setAttachmentSettings(false);
     setShowVehicleExtra(false);
     setShowBasetoBase(false);
@@ -363,10 +418,12 @@ const SiteSettings = () => {
     setShowPassengerAndLuggageLimits(false);
     setLocationSettings(false);
     setShowPricingPostalCodes(false);
+    setTemplateSettings(false);
   }
 
   function tog_ShowLocations() {
     setShowSupplierRoutingRule(false);
+    setShortCodeSettings(false);
     setAttachmentSettings(false);
     setShowVehicleExtra(false);
     setShowBasetoBase(false);
@@ -384,10 +441,12 @@ const SiteSettings = () => {
     setShowPassengerAndLuggageLimits(false);
     setLocationSettings(true);
     setShowPricingPostalCodes(false);
+    setTemplateSettings(false);
   }
 
   function tog_ShowPricingPostalCodes() {
     setShowSupplierRoutingRule(false);
+    setShortCodeSettings(false);
     setAttachmentSettings(false);
     setShowVehicleExtra(false);
     setShowBasetoBase(false);
@@ -405,10 +464,12 @@ const SiteSettings = () => {
     setShowPassengerAndLuggageLimits(false);
     setLocationSettings(false);
     setShowPricingPostalCodes(true);
+    setTemplateSettings(false);
   }
 
   function tog_ShowCheckTypes() {
     setShowSupplierRoutingRule(false);
+    setShortCodeSettings(false);
     setAttachmentSettings(false);
     setShowVehicleExtra(false);
     setShowBasetoBase(false);
@@ -427,10 +488,12 @@ const SiteSettings = () => {
     setLocationSettings(false);
     setShowPricingPostalCodes(false);
     setShowCheckTypes(true);
+    setTemplateSettings(false);
   }
 
   function tog_ShowAttachmentSettings() {
     setShowSupplierRoutingRule(false);
+    setShortCodeSettings(false);
     setAttachmentSettings(true);
     setShowVehicleExtra(false);
     setShowBasetoBase(false);
@@ -449,6 +512,31 @@ const SiteSettings = () => {
     setLocationSettings(false);
     setShowPricingPostalCodes(false);
     setShowCheckTypes(false);
+    setTemplateSettings(false);
+  }
+
+  function tog_ShowShortCodeSettings() {
+    setShowSupplierRoutingRule(false);
+    setShortCodeSettings(true);
+    setAttachmentSettings(false);
+    setShowVehicleExtra(false);
+    setShowBasetoBase(false);
+    setShowSources(false);
+    setShowRegionalPricings(false);
+    setShowPricingCalendar(false);
+    setShowSingleJourneys(false);
+    setShowWaitingBands(false);
+    setShowHourlyBands(false);
+    setShowMileageBands(false);
+    setShowLuggageTypes(false);
+    setShowJourneyTypes(false);
+    setShowSettings(false);
+    setShowVehicleTypes(false);
+    setShowPassengerAndLuggageLimits(false);
+    setLocationSettings(false);
+    setShowPricingPostalCodes(false);
+    setShowCheckTypes(false);
+    setTemplateSettings(false);
   }
 
   return (
@@ -1521,7 +1609,7 @@ const SiteSettings = () => {
                                 }}
                               >
                                 <i
-                                  className="ph ph-path align-middle"
+                                  className="ph ph-check-circle align-middle"
                                   style={{
                                     transition: "transform 0.3s ease-in-out",
                                     cursor: "pointer",
@@ -1551,31 +1639,200 @@ const SiteSettings = () => {
                               </span>
                             </Accordion.Header>
                             <Accordion.Body className="text-body pt-1">
-                              <Link
-                                className="text-muted"
-                                to="#"
-                                onClick={() => {
-                                  tog_ShowAttachmentSettings();
-                                }}
-                              >
-                                <i
-                                  className="ph ph-paperclip align-middle"
-                                  style={{
-                                    transition: "transform 0.3s ease-in-out",
-                                    cursor: "pointer",
-                                    fontSize: "1.6em",
-                                  }}
-                                  onMouseEnter={(e) =>
-                                    (e.currentTarget.style.transform =
-                                      "scale(1.3)")
-                                  }
-                                  onMouseLeave={(e) =>
-                                    (e.currentTarget.style.transform =
-                                      "scale(1)")
-                                  }
-                                ></i>{" "}
-                                <span>Attachments</span>
-                              </Link>
+                              <ul className="list-unstyled">
+                                {templatetSettings &&
+                                templatetSettings === true ? (
+                                  <li className="mb-1 bg-warning">
+                                    <Link
+                                      className="text-white fs-16"
+                                      to="#"
+                                      onClick={() => {
+                                        tog_EmailTemplate();
+                                      }}
+                                    >
+                                      <i
+                                        className="ph ph-envelope align-middle"
+                                        style={{
+                                          transition:
+                                            "transform 0.3s ease-in-out",
+                                          cursor: "pointer",
+                                          fontSize: "1.6em",
+                                        }}
+                                        onMouseEnter={(e) =>
+                                          (e.currentTarget.style.transform =
+                                            "scale(1.3)")
+                                        }
+                                        onMouseLeave={(e) =>
+                                          (e.currentTarget.style.transform =
+                                            "scale(1)")
+                                        }
+                                      ></i>{" "}
+                                      <span className="fw-bold">
+                                        Canned Messages
+                                      </span>
+                                    </Link>
+                                  </li>
+                                ) : (
+                                  <li className="mb-1">
+                                    <Link
+                                      className="text-dark"
+                                      to="#"
+                                      onClick={() => {
+                                        tog_EmailTemplate();
+                                      }}
+                                    >
+                                      <i
+                                        className="ph ph-envelope align-middle"
+                                        style={{
+                                          transition:
+                                            "transform 0.3s ease-in-out",
+                                          cursor: "pointer",
+                                          fontSize: "1.6em",
+                                        }}
+                                        onMouseEnter={(e) =>
+                                          (e.currentTarget.style.transform =
+                                            "scale(1.3)")
+                                        }
+                                        onMouseLeave={(e) =>
+                                          (e.currentTarget.style.transform =
+                                            "scale(1)")
+                                        }
+                                      ></i>{" "}
+                                      <span className="fw-bold">
+                                        Canned Messages
+                                      </span>
+                                    </Link>
+                                  </li>
+                                )}
+                                {attachmentSettings &&
+                                attachmentSettings === true ? (
+                                  <li className="mb-1 bg-warning">
+                                    <Link
+                                      className="text-white fs-16"
+                                      to="#"
+                                      onClick={() => {
+                                        tog_ShowAttachmentSettings();
+                                      }}
+                                    >
+                                      <i
+                                        className="ph ph-paperclip align-middle"
+                                        style={{
+                                          transition:
+                                            "transform 0.3s ease-in-out",
+                                          cursor: "pointer",
+                                          fontSize: "1.6em",
+                                        }}
+                                        onMouseEnter={(e) =>
+                                          (e.currentTarget.style.transform =
+                                            "scale(1.3)")
+                                        }
+                                        onMouseLeave={(e) =>
+                                          (e.currentTarget.style.transform =
+                                            "scale(1)")
+                                        }
+                                      ></i>{" "}
+                                      <span className="fw-bold">
+                                        Attachments
+                                      </span>
+                                    </Link>
+                                  </li>
+                                ) : (
+                                  <li className="mb-1">
+                                    <Link
+                                      className="text-dark"
+                                      to="#"
+                                      onClick={() => {
+                                        tog_ShowAttachmentSettings();
+                                      }}
+                                    >
+                                      <i
+                                        className="ph ph-paperclip align-middle"
+                                        style={{
+                                          transition:
+                                            "transform 0.3s ease-in-out",
+                                          cursor: "pointer",
+                                          fontSize: "1.6em",
+                                        }}
+                                        onMouseEnter={(e) =>
+                                          (e.currentTarget.style.transform =
+                                            "scale(1.3)")
+                                        }
+                                        onMouseLeave={(e) =>
+                                          (e.currentTarget.style.transform =
+                                            "scale(1)")
+                                        }
+                                      ></i>{" "}
+                                      <span className="fw-bold">
+                                        Attachments
+                                      </span>
+                                    </Link>
+                                  </li>
+                                )}
+                                {shortCodeSettings &&
+                                shortCodeSettings === true ? (
+                                  <li className="mb-1 bg-warning">
+                                    <Link
+                                      className="text-white fs-16"
+                                      to="#"
+                                      onClick={() => {
+                                        tog_ShowShortCodeSettings();
+                                      }}
+                                    >
+                                      <i
+                                        className="ph ph-brackets-square align-middle"
+                                        style={{
+                                          transition:
+                                            "transform 0.3s ease-in-out",
+                                          cursor: "pointer",
+                                          fontSize: "1.6em",
+                                        }}
+                                        onMouseEnter={(e) =>
+                                          (e.currentTarget.style.transform =
+                                            "scale(1.3)")
+                                        }
+                                        onMouseLeave={(e) =>
+                                          (e.currentTarget.style.transform =
+                                            "scale(1)")
+                                        }
+                                      ></i>{" "}
+                                      <span className="fw-bold">
+                                        Short Codes
+                                      </span>
+                                    </Link>
+                                  </li>
+                                ) : (
+                                  <li className="mb-1">
+                                    <Link
+                                      className="text-dark d-flex"
+                                      to="#"
+                                      onClick={() => {
+                                        tog_ShowShortCodeSettings();
+                                      }}
+                                    >
+                                      <i
+                                        className="ph ph-brackets-square  align-middle"
+                                        style={{
+                                          transition:
+                                            "transform 0.3s ease-in-out",
+                                          cursor: "pointer",
+                                          fontSize: "1.6em",
+                                        }}
+                                        onMouseEnter={(e) =>
+                                          (e.currentTarget.style.transform =
+                                            "scale(1.3)")
+                                        }
+                                        onMouseLeave={(e) =>
+                                          (e.currentTarget.style.transform =
+                                            "scale(1)")
+                                        }
+                                      ></i>{" "}
+                                      <span className="fw-bold">
+                                        Short Codes
+                                      </span>
+                                    </Link>
+                                  </li>
+                                )}
+                              </ul>
                             </Accordion.Body>
                           </Accordion.Item>
                         </Accordion>
@@ -1605,6 +1862,8 @@ const SiteSettings = () => {
                   {showPricingPostalCodes && <PricingPostalCodes />}
                   {showCheckTypes && <CheckTypes />}
                   {attachmentSettings && <Attachments />}
+                  {templatetSettings && <EmailTemplates />}
+                  {shortCodeSettings && <ShortCode />}
                 </Col>
               </Row>
             </Card.Header>

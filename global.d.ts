@@ -12,3 +12,4 @@ declare module 'react-dual-listbox';
 declare module 'react-datepicker';
 declare module 'js-cookie';
 declare module 'react-resizable';
+declare module 'react-autocomplete';

@@ -38,6 +38,7 @@ import { affiliateSlice } from "features/Affiliate/affiliateSlice";
 import { emailSlice } from "features/Emails/emailSlice";
 import { attachmentSlice } from "features/Attachments/attachmentSlice";
 import { emailSentSlice } from "features/emailSent/emailSentSlice";
+import { shortCodeSlice } from "features/ShortCode/shortCodeSlice";
 
 export const store = configureStore({
   reducer: {
@@ -71,6 +72,7 @@ export const store = configureStore({
     [emailSlice.reducerPath]: emailSlice.reducer,
     [attachmentSlice.reducerPath]: attachmentSlice.reducer,
     [emailSentSlice.reducerPath]: emailSentSlice.reducer,
+    [shortCodeSlice.reducerPath]: shortCodeSlice.reducer,
     auth: authSlice,
     Layout: LayoutReducer,
     ForgetPassword: ForgetPasswordReducer,
@@ -108,7 +110,8 @@ export const store = configureStore({
       affiliateSlice.middleware,
       emailSlice.middleware,
       attachmentSlice.middleware,
-      emailSentSlice.middleware
+      emailSentSlice.middleware,
+      shortCodeSlice.middleware
     ]);
   },
 });

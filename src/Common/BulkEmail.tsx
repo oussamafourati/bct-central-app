@@ -14,6 +14,8 @@ import { useGetAllVisitorsQuery } from "features/Visitor/visitorSlice";
 import Flatpickr from "react-flatpickr";
 import { Autocomplete, useJsApiLoader } from "@react-google-maps/api";
 import { GoogleApiWrapper, Map, Marker, Circle } from "google-maps-react";
+import { useGetAllShortCodesQuery } from "features/ShortCode/shortCodeSlice";
+import { useGetAllQuoteQuery } from "features/Quotes/quoteSlice";
 
 const LoadingContainer = () => <div>Loading...</div>;
 interface Stop {
@@ -25,10 +27,16 @@ interface Stop {
   raduis: number;
 }
 
+interface ChildProps {
+  data: string;
+  setData: React.Dispatch<React.SetStateAction<string>>;
+  checkedCheckbox: string;
+}
+
 const BulkEmail = (props: any) => {
   const user = useSelector((state: RootState) => selectCurrentUser(state));
   const navigate = useNavigate();
-
+  const { data: AllShortCodes = [] } = useGetAllShortCodesQuery();
   const { data: AllJourneys = [] } = useGetAllJourneyQuery();
   const { data: AllAffiliates = [] } = useGetAllAffiliatesQuery();
   const { data: AllVisitors = [] } = useGetAllVisitorsQuery();
@@ -68,12 +76,6 @@ const BulkEmail = (props: any) => {
     setEditor(true);
   }, []);
 
-  const [checkedCheckbox, setCheckedCheckbox] = useState(null);
-
-  const handleCheckboxChange = (attachmentId: any) => {
-    setCheckedCheckbox(attachmentId);
-  };
-
   const [show, setShow] = useState<boolean>(false);
   const [mapShow, setMapShow] = useState<boolean>(false);
   const [mapShowFromButton, setMapShowFromButton] = useState<boolean>(false);
@@ -86,8 +88,25 @@ const BulkEmail = (props: any) => {
     setSelectedSendTo(value);
   };
 
-  const { data: OneAttachment } = useGetAttachmentByIDQuery(checkedCheckbox!);
-  const [data, setData] = useState("");
+  const [selectedJourney, setSelectedJourney] = useState<string>("");
+  // This function is triggered when the select Journey
+  const handleSelectJourney = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = event.target.value;
+    setSelectedJourney(value);
+  };
+
+  const [selectedJobStatus, setSelectedJobStatus] = useState<string>("");
+  // This function is triggered when the select Job Status
+  const handleSelectJobStatus = (
+    event: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    const value = event.target.value;
+    setSelectedJobStatus(value);
+  };
+
+  const { data: OneAttachment } = useGetAttachmentByIDQuery(
+    props.checkedCheckbox!
+  );
   const [email, setEmail] = useState<string>("");
   const [subjectNewEmail, setSubject] = useState<string>("");
 
@@ -101,7 +120,7 @@ const BulkEmail = (props: any) => {
     }
 
     setSelectedValues(newSelectedOptions);
-    setData((prevData) => {
+    props.setData((prevData: any) => {
       const newData = `${prevData}<p>${newSelectedOptions}</p>`;
       return newData;
     });
@@ -122,35 +141,189 @@ const BulkEmail = (props: any) => {
     body: "",
     file: "",
     sender: "",
+    name: "",
   };
 
   const currentDate = new Date();
+  const { data: AllQuotes = [] } = useGetAllQuoteQuery();
+  const filtredQuoteJourney = AllQuotes.filter(
+    (quote) =>
+      quote.journey_type === selectedJourney && quote.id_affiliate !== null
+  );
+  const filtredQuoteJobStatusAndJourneyType: any = AllQuotes.filter(
+    (quote: any) =>
+      quote.progress === selectedJobStatus &&
+      quote.journey_type === selectedJourney &&
+      quote.id_affiliate !== null
+  );
+  const filtredQuoteJobStatus = AllQuotes.filter(
+    (quote) =>
+      quote.progress === selectedJobStatus && quote.id_affiliate !== null
+  );
 
   const [saveEmailSentMutation] = useAddNewEmailSentMutation();
 
   const [sendNewEmail, setSendNewEmail] = useState(initialSendNewEmailData);
 
-  const { newEmail, subject, body, file, sender } = sendNewEmail;
+  const { newEmail, subject, body, file, sender, name } = sendNewEmail;
 
   const onSubmitSendNewEmail = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      sendNewEmail["body"] = data;
-      sendNewEmail["newEmail"] = email;
-      sendNewEmail["subject"] = subjectNewEmail;
-      sendNewEmail["file"] = OneAttachment?.attachment!;
-      sendNewEmail["sender"] = user?.email;
-      sendNewEmailMutation(sendNewEmail)
-        .then(() => notifySuccess())
-        .then(() =>
-          saveEmailSentMutation({
-            date: currentDate.toDateString(),
-            subjectEmail: subjectNewEmail,
-            from: user?.email,
-            to: email,
-          })
-        )
-        .then(() => navigate("/emails-sent"));
+      if (selectedSendTo === "AllCustomers") {
+        const sendEmailsWithDelay = (index: number) => {
+          if (index >= AllVisitors.length) return;
+
+          const element = AllVisitors[index];
+          sendNewEmail["body"] = props.data;
+          sendNewEmail["newEmail"] = element.email;
+          sendNewEmail["subject"] = subjectNewEmail;
+          sendNewEmail["file"] = OneAttachment?.attachment!;
+          sendNewEmail["sender"] = user?.email;
+          sendNewEmail["name"] = element?.name;
+          sendNewEmailMutation(sendNewEmail).then(() => {
+            saveEmailSentMutation({
+              date: currentDate.toDateString(),
+              subjectEmail: subjectNewEmail,
+              from: user?.email,
+              to: element.email,
+            }).then(() => {
+              setTimeout(() => {
+                sendEmailsWithDelay(index + 1);
+              }, 1000);
+            });
+          });
+        };
+        sendEmailsWithDelay(0);
+        notifySuccess();
+        navigate("/emails-sent");
+      }
+      if (
+        selectedSendTo === "AllAffiliates" &&
+        selectedJourney === "" &&
+        selectedJobStatus === ""
+      ) {
+        const sendEmailsWithDelay = (index: number) => {
+          if (index >= acceptedAffiliates.length) return;
+          const element = acceptedAffiliates[index];
+          sendNewEmail["body"] = props.data;
+          sendNewEmail["newEmail"] = element.email;
+          sendNewEmail["subject"] = subjectNewEmail;
+          sendNewEmail["file"] = OneAttachment?.attachment!;
+          sendNewEmail["sender"] = user?.email;
+          sendNewEmail["name"] = element?.name;
+          sendNewEmailMutation(sendNewEmail).then(() => {
+            saveEmailSentMutation({
+              date: currentDate.toDateString(),
+              subjectEmail: subjectNewEmail,
+              from: user?.email,
+              to: element.email,
+            }).then(() => {
+              setTimeout(() => {
+                sendEmailsWithDelay(index + 1);
+              }, 1000);
+            });
+          });
+        };
+        sendEmailsWithDelay(0);
+        notifySuccess();
+        navigate("/emails-sent");
+      }
+      if (
+        selectedSendTo === "AllAffiliates" &&
+        selectedJourney !== "" &&
+        selectedJobStatus === ""
+      ) {
+        const sendEmailsWithDelay = (index: number) => {
+          if (index >= filtredQuoteJourney.length) return;
+          const element: any = filtredQuoteJourney[index];
+          sendNewEmail["body"] = props.data;
+          sendNewEmail["newEmail"] = element?.id_affiliate?.email!;
+          sendNewEmail["subject"] = subjectNewEmail;
+          sendNewEmail["file"] = OneAttachment?.attachment!;
+          sendNewEmail["sender"] = user?.email;
+          sendNewEmail["name"] = element?.name;
+          sendNewEmailMutation(sendNewEmail).then(() => {
+            saveEmailSentMutation({
+              date: currentDate.toDateString(),
+              quoteID: element?._id,
+              subjectEmail: subjectNewEmail,
+              from: user?.email,
+              to: element?.id_affiliate?.email!,
+            }).then(() => {
+              setTimeout(() => {
+                sendEmailsWithDelay(index + 1);
+              }, 1000);
+            });
+          });
+        };
+        sendEmailsWithDelay(0);
+        notifySuccess();
+        navigate("/emails-sent");
+      }
+      if (
+        selectedSendTo === "AllAffiliates" &&
+        selectedJobStatus !== "" &&
+        selectedJourney === ""
+      ) {
+        const sendEmailsWithDelay = (index: number) => {
+          if (index >= filtredQuoteJobStatus.length) return;
+          const element: any = filtredQuoteJobStatus[index];
+          sendNewEmail["body"] = props.data;
+          sendNewEmail["newEmail"] = element?.id_affiliate?.email!;
+          sendNewEmail["subject"] = subjectNewEmail;
+          sendNewEmail["file"] = OneAttachment?.attachment!;
+          sendNewEmail["sender"] = user?.email;
+          sendNewEmail["name"] = element?.name;
+          sendNewEmailMutation(sendNewEmail).then(() => {
+            saveEmailSentMutation({
+              date: currentDate.toDateString(),
+              quoteID: element?._id,
+              subjectEmail: subjectNewEmail,
+              from: user?.email,
+              to: element?.id_affiliate?.email!,
+            }).then(() => {
+              setTimeout(() => {
+                sendEmailsWithDelay(index + 1);
+              }, 1000);
+            });
+          });
+        };
+        sendEmailsWithDelay(0);
+        notifySuccess();
+        navigate("/emails-sent");
+      }
+      if (
+        selectedSendTo === "AllAffiliates" &&
+        selectedJourney !== "" &&
+        selectedJobStatus !== ""
+      ) {
+        const sendEmailsWithDelay = (index: number) => {
+          if (index >= filtredQuoteJobStatusAndJourneyType.length) return;
+          const element: any = filtredQuoteJobStatusAndJourneyType[index];
+          sendNewEmail["body"] = props.data;
+          sendNewEmail["newEmail"] = element?.id_affiliate?.email!;
+          sendNewEmail["subject"] = subjectNewEmail;
+          sendNewEmail["file"] = OneAttachment?.attachment!;
+          sendNewEmail["name"] = element?.name;
+          sendNewEmailMutation(sendNewEmail).then(() => {
+            saveEmailSentMutation({
+              date: currentDate.toDateString(),
+              quoteID: element?._id,
+              subjectEmail: subjectNewEmail,
+              from: user?.email,
+              to: element?.id_affiliate?.email!,
+            }).then(() => {
+              setTimeout(() => {
+                sendEmailsWithDelay(index + 1);
+              }, 1000);
+            });
+          });
+        };
+        sendEmailsWithDelay(0);
+        notifySuccess();
+        navigate("/emails-sent");
+      }
     } catch (error) {
       notifyError(error);
     }
@@ -342,7 +515,7 @@ const BulkEmail = (props: any) => {
           <Col lg={2}>
             <div className="hstack gap-2 justify-content-start mb-2">
               <Button
-                type="submit"
+                type="button"
                 className="btn-soft-success"
                 data-bs-dismiss="modal"
                 onClick={() => {
@@ -353,7 +526,7 @@ const BulkEmail = (props: any) => {
                 <i className="ri-map-pin-line me-1"></i>
               </Button>
               <Button
-                type="submit"
+                type="button"
                 className="btn-soft-danger"
                 data-bs-dismiss="modal"
               >
@@ -471,10 +644,10 @@ const BulkEmail = (props: any) => {
         <Row className="mb-2">
           <Col className="d-flex justify-content-end">
             <Button
-              type="submit"
+              type="button"
               className="btn-soft-danger"
               data-bs-dismiss="modal"
-              onClick={() => setData("")}
+              onClick={() => props.setData("")}
             >
               <i className="ri-delete-back-line align-middle me-1"></i> Clear
             </Button>
@@ -483,7 +656,7 @@ const BulkEmail = (props: any) => {
         <Row className="m-2">
           <Col lg={3} className="d-flex justify-content-start">
             <Button
-              type="submit"
+              type="button"
               className="btn-soft-info"
               data-bs-dismiss="modal"
               onClick={() => setShowShortCodes(!showShortCodes)}
@@ -504,22 +677,11 @@ const BulkEmail = (props: any) => {
               marginTop: "-50px",
             }}
           >
-            <option value="[name]">Customer Name</option>
-            <option value="[drivername]">Driver Name</option>
-            <option value="[quote]">Quote</option>
-            <option value="[paylink]">Payment Link</option>
-            <option value="[cancellink]">Cancel Link</option>
-            <option value="[acceptlink]">Accept Job Link</option>
-            <option value="[driver_pay]">Driver Pay</option>
-            <option value="[driver_details]">Driver Details</option>
-            <option value="[quote_num]">Quote ID</option>
-            <option value="[outward_travel_date]">Outward Travel Date</option>
-            <option value="[balance_due]">Balance Due</option>
-            <option value="[balance_due_date]">Balance Due Date</option>
-            <option value="[Website_name]">Internal Company Name</option>
-            <option value="[Website_phone]">Internal Company Phone</option>
-            <option value="[Website_email]">Internal Company Email</option>
-            <option value="[Website_url]">Internal Company Website</option>
+            {AllShortCodes.map((code) => (
+              <option key={code?._id!} value={code.text}>
+                {code.name}
+              </option>
+            ))}
           </select>
         )}
         <Row className="mb-4">
@@ -527,13 +689,13 @@ const BulkEmail = (props: any) => {
             {editor ? (
               <CKEditor
                 editor={ClassicEditor}
-                data={data}
+                data={props.data}
                 onReady={(editor: any) => {
                   console.log("Editor is ready to use!", editor);
                 }}
                 onChange={(event: any, editor: any) => {
                   const data = editor.getData();
-                  setData(data);
+                  props.setData(data);
                 }}
               />
             ) : (
@@ -548,15 +710,16 @@ const BulkEmail = (props: any) => {
               className="btn-soft-success"
               data-bs-dismiss="modal"
             >
-              <i className="ri-safe-2-line me-1"></i> Send
+              <i className="ri-send-plane-fill me-1 fs-18 align-middle"></i>
+              Send
             </Button>
-            <Button
+            {/* <Button
               type="submit"
               className="btn-soft-info"
               data-bs-dismiss="modal"
             >
               <i className="ri-user-add-line me-1"></i> Save
-            </Button>
+            </Button> */}
           </div>
         </Row>
       </Form>

@@ -3,41 +3,29 @@ import { Container, Row, Card, Col, Tab, Nav } from "react-bootstrap";
 import Breadcrumb from "Common/BreadCrumb";
 import { useGetAllEmailQuery } from "features/Emails/emailSlice";
 import { Link } from "react-router-dom";
-
 import { useGetAllAttachmentsQuery } from "features/Attachments/attachmentSlice";
 
-import { useSelector } from "react-redux";
-import { selectCurrentUser } from "features/Account/authSlice";
-import { RootState } from "app/store";
-
+import "./EmailFilterComponent.css"; // Import the CSS file for styling
 import SingleEmail from "Common/SingleEmail";
 import BulkEmail from "Common/BulkEmail";
-
-interface Stop {
-  placeName: string;
-  coordinates: {
-    lat: number;
-    lng: number;
-  };
-  raduis: number;
-}
 
 const NewEmail = () => {
   document.title = "New Email | Bouden Coach Travel";
   const { data: AllAttachments = [] } = useGetAllAttachmentsQuery();
-  const user = useSelector((state: RootState) => selectCurrentUser(state));
+
   const { data: AllEmails = [] } = useGetAllEmailQuery();
   const [show, setShow] = useState<boolean>(false);
+
   const [data, setData] = useState("");
-  // Function to handle clicking on an email link
-  const handleEmailClick = (emailBody: any) => {
-    setData(emailBody); // Set the email body to the state
-  };
+
   const [checkedCheckbox, setCheckedCheckbox] = useState(null);
+
   const handleCheckboxChange = (attachmentId: any) => {
     setCheckedCheckbox(attachmentId);
   };
-
+  const handleEmailClick = (emailBody: any) => {
+    setData(emailBody);
+  };
   return (
     <React.Fragment>
       <div className="page-content">
@@ -72,7 +60,7 @@ const NewEmail = () => {
                           </div>
                           <Link to="#" onClick={() => setShow(!show)}>
                             <div className="flex-grow-1 ms-2 text-dark">
-                              Uncatagorized
+                              For Customer
                             </div>
                           </Link>
                         </div>
@@ -138,10 +126,17 @@ const NewEmail = () => {
                     </Nav>
                     <Tab.Content className="text-muted">
                       <Tab.Pane eventKey="home1">
-                        <SingleEmail />
+                        <SingleEmail
+                          data={data}
+                          checkedCheckbox={checkedCheckbox!}
+                        />
                       </Tab.Pane>
                       <Tab.Pane eventKey="profile1">
-                        <BulkEmail />
+                        <BulkEmail
+                          data={data}
+                          setData={setData}
+                          checkedCheckbox={checkedCheckbox!}
+                        />
                       </Tab.Pane>
                     </Tab.Content>
                   </Tab.Container>

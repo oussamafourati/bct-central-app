@@ -407,13 +407,13 @@ const Navdata = () => {
           icon: "mdi mdi-car-side",
           parentId: "Management",
         },
-        {
-          id: "Emails",
-          label: "Emails",
-          link: "/email-templates",
-          icon: "mdi mdi-email-plus",
-          parentId: "Management",
-        },
+        // {
+        //   id: "Emails",
+        //   label: "Emails",
+        //   link: "/email-templates",
+        //   icon: "mdi mdi-email-plus",
+        //   parentId: "Management",
+        // },
         {
           id: "Defects",
           label: "Defects",

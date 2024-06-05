@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Button, Col, Modal, Offcanvas, Row } from "react-bootstrap";
+import { Button, Card, Col, Modal, Offcanvas, Row } from "react-bootstrap";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import DataTable from "react-data-table-component";
 import {
@@ -8,9 +8,10 @@ import {
   useUpdateEmailTemplateMutation,
 } from "features/Emails/emailSlice";
 import Swal from "sweetalert2";
-import { shortCodeList } from "Common/data/shortCodes";
+import { useGetAllShortCodesQuery } from "features/ShortCode/shortCodeSlice";
 
 const Template = ({ emails }: any) => {
+  const { data: shortCodeList = [] } = useGetAllShortCodesQuery();
   const navigate = useNavigate();
   const [show, setShow] = useState<boolean>(false);
   const [showDetails, setShowDetails] = useState<boolean>(false);
@@ -191,32 +192,39 @@ const Template = ({ emails }: any) => {
   return (
     <React.Fragment>
       <Row className="align-items-center mb-4">
-        <Col xxl={3} lg={4} sm={9}>
-          <div className="search-box mb-3 mb-sm-0">
-            <input
-              type="text"
-              className="form-control"
-              id="searchInputList"
-              autoComplete="off"
-              placeholder="Search template..."
-            />
-            <i className="ri-search-line search-icon"></i>
-          </div>
-        </Col>
-        <Col sm={3} className="col-lg-auto ms-auto">
-          <Button
-            variant="success"
-            onClick={() => setShow(true)}
-            className="w-100 btn-sm"
-          >
-            <i className="mdi mdi-email-plus-outline me-1 align-middle"></i> Add
-            Canned Message
-          </Button>
-        </Col>
+        <Card>
+          <Card.Header>
+            <Col xxl={3} lg={4} sm={9}>
+              <div className="search-box mb-3 mb-sm-0">
+                <input
+                  type="text"
+                  className="form-control"
+                  id="searchInputList"
+                  autoComplete="off"
+                  placeholder="Search template..."
+                />
+                <i className="ri-search-line search-icon"></i>
+              </div>
+            </Col>
+            <Col sm={3} className="justify-content-end col-lg-3 ms-auto">
+              <Button
+                variant="success"
+                onClick={() => setShow(true)}
+                className="w-100 btn-sm"
+              >
+                <i className="mdi mdi-email-plus-outline me-1 align-middle"></i>{" "}
+                Add Canned Message
+              </Button>
+            </Col>
+          </Card.Header>
+          <Card.Body>
+            <div className="table-responsive table-card">
+              <DataTable columns={columns} data={emails} pagination />
+            </div>
+          </Card.Body>
+        </Card>
       </Row>
-      <div className="table-responsive table-card">
-        <DataTable columns={columns} data={emails} pagination />
-      </div>
+
       {/* Add New Email Template Modal */}
       <Modal
         show={show}
@@ -242,9 +250,9 @@ const Template = ({ emails }: any) => {
                 {shortCodeList.map((code) => (
                   <Button
                     className="m-2"
-                    onClick={() => onShortCodeButtonClick(code.value)}
+                    onClick={() => onShortCodeButtonClick(code.text)}
                   >
-                    {code.text}
+                    {code.name}
                   </Button>
                 ))}
               </Col>

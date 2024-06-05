@@ -13,6 +13,7 @@ export interface NewEmail {
   body: string;
   file?: string
   sender?: string
+  name?: string
 }
 
 export const emailSlice = createApi({
@@ -67,7 +68,8 @@ export const emailSlice = createApi({
           subject,
           body,
           file,
-          sender
+          sender,
+          name
         }) {
           return {
             url: "/sendNewEmail",
@@ -77,7 +79,8 @@ export const emailSlice = createApi({
               subject,
               body,
               file,
-              sender
+              sender,
+              name
           },
           };
         },

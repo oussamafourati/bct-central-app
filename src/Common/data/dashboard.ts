@@ -194,7 +194,7 @@ const productDelivery = [
     {
         id: 2,
         productImage: productImg4,
-        productName: "Oadby-50plus@outlook.com",
+        productName: "Oadby-50plusss@outlook.com",
         productBy: "Edgar Bailey",
         productStatus: "Delivered"
     },

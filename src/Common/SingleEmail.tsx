@@ -8,9 +8,18 @@ import { selectCurrentUser } from "features/Account/authSlice";
 import { RootState } from "app/store";
 import { useAddNewEmailSentMutation } from "features/emailSent/emailSentSlice";
 import { useNavigate } from "react-router-dom";
+import {
+  useGetAllVisitorsQuery,
+  useGetVisitorByEmailQuery,
+} from "features/Visitor/visitorSlice";
 
-const SingleEmail = () => {
+interface ChildProps {
+  data: string;
+  checkedCheckbox: string;
+}
+const SingleEmail: React.FC<ChildProps> = ({ data, checkedCheckbox }) => {
   const user = useSelector((state: RootState) => selectCurrentUser(state));
+  const { data: AllVisitors = [] } = useGetAllVisitorsQuery();
   const navigate = useNavigate();
   const notifySuccess = () => {
     Swal.fire({
@@ -44,21 +53,43 @@ const SingleEmail = () => {
     setEditor(true);
   }, []);
 
-  const [checkedCheckbox, setCheckedCheckbox] = useState(null);
+  const [inputValue, setInputValue] = useState("");
+  const [filteredEmails, setFilteredEmails] = useState<any[]>([]);
+  const [selectedEmail, setSelectedEmail] = useState<string | null>(null);
 
-  const handleCheckboxChange = (attachmentId: any) => {
-    setCheckedCheckbox(attachmentId);
+  useEffect(() => {
+    if (inputValue === selectedEmail) {
+      setFilteredEmails([]);
+    } else {
+      const uniqueEmails = new Set();
+      const filtered = AllVisitors.filter((visitor) => {
+        const emailMatches = visitor.email
+          .toLowerCase()
+          .includes(inputValue.toLowerCase());
+        if (emailMatches && !uniqueEmails.has(visitor.email)) {
+          uniqueEmails.add(visitor.email);
+          return true;
+        }
+        return false;
+      });
+      setFilteredEmails(filtered);
+    }
+  }, [inputValue, AllVisitors, selectedEmail]);
+
+  const handleInputChange = (event: any) => {
+    setInputValue(event.target.value);
+    setSelectedEmail(null); // Clear selected email when typing
   };
 
+  const handleEmailAutocompleteClick = (email: string) => {
+    setInputValue(email);
+    setSelectedEmail(email);
+    setFilteredEmails([]); // Hide the list
+  };
+
+  const { data: oneVisitor } = useGetVisitorByEmailQuery(selectedEmail!);
   const { data: OneAttachment } = useGetAttachmentByIDQuery(checkedCheckbox!);
-  const [data, setData] = useState("");
-  const [email, setEmail] = useState<string>("");
   const [subjectNewEmail, setSubject] = useState<string>("");
-
-  const handleEmail = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(e.target.value);
-  };
-
   const handleSubject = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSubject(e.target.value);
   };
@@ -70,6 +101,7 @@ const SingleEmail = () => {
     body: "",
     file: "",
     sender: "",
+    name: "",
   };
 
   const currentDate = new Date();
@@ -78,16 +110,17 @@ const SingleEmail = () => {
 
   const [sendNewEmail, setSendNewEmail] = useState(initialSendNewEmailData);
 
-  const { newEmail, subject, body, file, sender } = sendNewEmail;
+  const { newEmail, subject, body, file, sender, name } = sendNewEmail;
 
   const onSubmitSendNewEmail = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
       sendNewEmail["body"] = data;
-      sendNewEmail["newEmail"] = email;
+      sendNewEmail["newEmail"] = selectedEmail!;
       sendNewEmail["subject"] = subjectNewEmail;
       sendNewEmail["file"] = OneAttachment?.attachment!;
       sendNewEmail["sender"] = user?.email;
+      sendNewEmail["name"] = oneVisitor?.name!;
       sendNewEmailMutation(sendNewEmail)
         .then(() => notifySuccess())
         .then(() =>
@@ -95,7 +128,7 @@ const SingleEmail = () => {
             date: currentDate.toDateString(),
             subjectEmail: subjectNewEmail,
             from: user?.email,
-            to: email,
+            to: selectedEmail!,
           })
         )
         .then(() => navigate("/emails-sent"));
@@ -111,13 +144,35 @@ const SingleEmail = () => {
             <Form.Label htmlFor="email">Email </Form.Label>
           </Col>
           <Col lg={5}>
-            <Form.Control
-              type="email"
-              id="email"
-              name="email"
-              value={email}
-              onChange={handleEmail}
-            />
+            <div className="input-wrapper">
+              <Form.Control
+                placeholder="Search for email..."
+                id="autoCompleteFruit"
+                type="text"
+                dir="ltr"
+                spellCheck={false}
+                autoComplete="on"
+                autoCapitalize="off"
+                value={inputValue}
+                onChange={handleInputChange}
+              />
+              <i className="ph ph-caret-down dropdown-icon"></i>
+              {inputValue && filteredEmails.length > 0 && (
+                <ul className="email-list">
+                  {filteredEmails.map((visitor) => (
+                    <li
+                      key={visitor._id}
+                      className="email-item"
+                      onClick={() =>
+                        handleEmailAutocompleteClick(visitor.email)
+                      }
+                    >
+                      {visitor.email}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </Col>
           <Col lg={2}>
             <Form.Label>Email BBC</Form.Label>
@@ -143,10 +198,10 @@ const SingleEmail = () => {
         <Row className="mb-2">
           <Col className="d-flex justify-content-end">
             <Button
-              type="submit"
+              type="button"
               className="btn-soft-danger"
               data-bs-dismiss="modal"
-              onClick={() => setData("")}
+              // onClick={() => setData("")}
             >
               <i className="ri-delete-back-line align-middle me-1"></i> Clear
             </Button>
@@ -163,7 +218,7 @@ const SingleEmail = () => {
                 }}
                 onChange={(event: any, editor: any) => {
                   const data = editor.getData();
-                  setData(data);
+                  // setData(data);
                 }}
               />
             ) : (
@@ -178,15 +233,16 @@ const SingleEmail = () => {
               className="btn-soft-success"
               data-bs-dismiss="modal"
             >
-              <i className="ri-safe-2-line me-1"></i> Send
+              <i className="ri-send-plane-fill me-1 fs-18 align-middle"></i>
+              Send
             </Button>
-            <Button
+            {/* <Button
               type="submit"
               className="btn-soft-info"
               data-bs-dismiss="modal"
             >
               <i className="ri-user-add-line me-1"></i> Save
-            </Button>
+            </Button> */}
           </div>
         </Row>
       </Form>

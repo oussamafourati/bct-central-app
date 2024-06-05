@@ -1,6 +1,5 @@
-import BreadCrumb from "Common/BreadCrumb";
 import React from "react";
-import { Container, Row } from "react-bootstrap";
+import { Col } from "react-bootstrap";
 
 import Template from "./Template";
 import { useGetAllEmailQuery } from "features/Emails/emailSlice";
@@ -10,14 +9,9 @@ const EmailTemplates = () => {
   const { data: AllEmails = [] } = useGetAllEmailQuery();
   return (
     <React.Fragment>
-      <div className="page-content">
-        <Container fluid>
-          <BreadCrumb title="Email Templates" pageTitle="Dashboard" />
-          <Row>
-            <Template emails={AllEmails} />
-          </Row>
-        </Container>
-      </div>
+      <Col lg={12}>
+        <Template emails={AllEmails} />
+      </Col>
     </React.Fragment>
   );
 };
